@@ -5,8 +5,13 @@ from .models import CustomUser
 
 
 class CustomUserAdmin(UserAdmin):
-    fieldsets = UserAdmin.fieldsets + ('Custom Fields', {'fields': ['phone_number']},)
-    add_fieldsets = UserAdmin.add_fieldsets + ('Custom Fields', {'fields': ['phone_number']},)
+    fieldsets = UserAdmin.fieldsets + (
+        ('Custom Fields', {'fields': ['phone_number', ]},),
+    )
+
+    add_fieldsets = UserAdmin.add_fieldsets + (
+        ('Custom Fields', {'fields': ['phone_number', ]},),
+    )
 
 
 admin.site.register(CustomUser, CustomUserAdmin)
