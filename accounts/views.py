@@ -9,6 +9,7 @@ def sign_up(request):
         form = CustomCreationForm(request.POST)
         if form.is_valid():
             form.save()
+            print("f")
             return redirect('home')
 
     form = CustomCreationForm()
