@@ -48,6 +48,7 @@ INSTALLED_APPS = [
 
     # my app
     'accounts.apps.AccountsConfig',
+    'manhwas.apps.ManhwasConfig',
 ]
 
 MIDDLEWARE = [
