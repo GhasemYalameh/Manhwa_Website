@@ -29,10 +29,16 @@ class Genre(models.Model):
     title = models.CharField(max_length=200)
     description = models.CharField(max_length=500)
 
+    def __str__(self):
+        return self.title
+
 
 class Studio(models.Model):
     title = models.CharField(max_length=200)
     description = models.TextField()
+
+    def __str__(self):
+        return self.title
 
 
 class Manhwa(models.Model):
@@ -72,10 +78,16 @@ class Manhwa(models.Model):
     # add views
     # age_limit
 
+    def __str__(self):
+        return self.en_title
+
 
 class ManhwaGenre(models.Model):
     genre = models.ForeignKey(Genre, on_delete=models.CASCADE, related_name='manhwas')
     manhwa = models.ForeignKey(Manhwa, on_delete=models.CASCADE, related_name='genres')
+
+    def __str__(self):
+        return self.genre.title
 
 
 class Episode(models.Model):
@@ -86,5 +98,8 @@ class Episode(models.Model):
 
     datetime_created = models.DateTimeField(auto_now_add=True)
     datetime_modified = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.number
 
 
