@@ -6,23 +6,21 @@ from django.utils.text import slugify
 
 def manhwa_file_upload_to(instance, filename):
     # استفاده از slugify برای تمیز کردن عنوان و جلوگیری از مشکلات مسیر
-    manhwa_title = instance.manhwa.title
+    manhwa_title = instance.manhwa.en_title
     manhwa_season = instance.manhwa.season
-    title = manhwa_title[:10] if len(manhwa_title > 10) else manhwa_title  # length of title most be less than 10
     season = str(manhwa_season)
 
     # manhwas/title/season/episodes/filename
-    return os.path.join('manhwa', slugify(title), slugify(season), 'episodes', filename)
+    return os.path.join('Manhwa', slugify(manhwa_title), slugify('Season '+season), 'Episodes', filename)
 
 
 def manhwa_cover_upload_to(instance, filename):
-    manhwa_title = instance.manhwa.title
-    manhwa_season = instance.manhwa.season
-    title = manhwa_title[:10] if len(manhwa_title > 10) else manhwa_title  # length of title most be less than 10
+    manhwa_title = instance.en_title
+    manhwa_season = instance.season
     season = str(manhwa_season)
 
     # manhwas/title/season/covers/filename
-    return os.path.join('manhwa', slugify(title), slugify(season), 'covers', filename)
+    return os.path.join('Manhwa', slugify(manhwa_title), slugify("Season "+season), 'Covers', filename)
 
 
 class Genre(models.Model):
@@ -100,6 +98,6 @@ class Episode(models.Model):
     datetime_modified = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return self.number
+        return str(self.number)
 
 
