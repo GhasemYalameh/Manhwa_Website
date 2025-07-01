@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="stylesheet" href="">
+    {% block css %}  {% endblock %}
+
+    <title>{% block title %}{% endblock %}</title>
+</head>
+<body>
+
+    <!-- start header -->
+    <header>
+        <nav class="navbar">
+            <div class="navbar-right">
+                <div class="navbar-sidebar">
+                    <div class="line"></div>
+                    <div class="line"></div>
+                    <div class="line"></div>
+                    <div class="line-end"></div>
+                </div>
+                <div class="home-icon">
+                    <span><a href="#">Home</a></span>
+                </div>
+                <div class="search-box">
+                    <input type="text" placeholder="Search">
+                </div>
+            </div>
+
+            <div class="navbar-left">
+                <div class="login-signup">Login/SignUp</div>
+                <!-- <div class="circle">0</div>
+                <div class="circle">Q</div> -->
+
+            </div>
+
+        </nav>
+    </header>
+    <!-- end header -->
+
+
+
+    <!-- start main -->
+    <main>
+        <div class="container">
+            {% block content %}
+
+            {% endblock %}
+        </div>
+    </main>
+    <!-- end main -->
+
+
+    <!-- start footer -->
+    <footer></footer>
+    <!-- end header -->
+
+</body>
+</html>
