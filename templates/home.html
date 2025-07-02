@@ -26,15 +26,18 @@ Fanta Webtoon
             <a href="#">نمایش همه</a>
         </div>
         <div class="wrapper-body">
-            <a href="#" class="manhwa-box">
-                <img src="{% static 'img/animation.jpg' %}" alt="">
-                <div class="box-blur">
-                    <span class="manhwa-name">manhwa name</span>
-                </div>
+            {% for manhwa in manhwas %}
+                <a href="#" class="manhwa-box">
+                    <img src="{{ manhwa.cover.url }}" alt="">
+                    <div class="box-blur">
+                        <span class="manhwa-name">{{ manhwa.tilte }}</span>
+                    </div>
 
-                <div class="manhwa-rating">@ 4.5</div>
-                <div class="manhwa-status">S1-E15</div>
-            </a>
+                    <div class="manhwa-rating">{{ manhwa.avg_rating }}</div>
+                    <div class="manhwa-status">S1-E15</div>
+                </a>
+            {% endfor %}
+
 
             <a href="#" class="manhwa-box">
                 <img src="{% static 'img/my-hero.jpg' %}" alt="">

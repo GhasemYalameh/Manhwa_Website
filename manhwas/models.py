@@ -2,6 +2,7 @@ import os.path
 
 from django.db import models
 from django.utils.text import slugify
+from django.contrib.auth import get_user_model
 
 
 def manhwa_file_upload_to(instance, filename):
@@ -78,6 +79,19 @@ class Manhwa(models.Model):
 
     def __str__(self):
         return self.en_title
+
+
+class Rate(models.Model):
+    RATING_CHOICES = (
+        ('1', '1'),
+        ('2', '2'),
+        ('3', '3'),
+        ('4', '4'),
+        ('5', '5'),
+    )
+    user = models.ForeignKey(get_user_model(), on_delete=models.CASCADE)
+    manhwa = models.ForeignKey(Manhwa, on_delete=models.CASCADE, related_name='rates')
+    rating = models.CharField(max_length=2, choices=RATING_CHOICES)
 
 
 class ManhwaGenre(models.Model):
