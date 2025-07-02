@@ -1,0 +1,220 @@
+.header{
+
+    height: 100vh;
+    width: 100%;
+    overflow: hidden;
+
+    font-size: 20px;
+    text-align: center;
+    text-shadow: 1px 1px 5px  rgba(0, 0, 0, .3);
+    padding-bottom: 30px;
+
+
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 60px;
+    margin-top: 80px;
+    margin-bottom: 60px;
+
+    background-image:linear-gradient(
+                        rgba(0, 0, 0, .6) 60%,
+                        rgba(255, 255, 255, .2)),
+                        url("../../img/amw_.jpg") ;
+
+    background-size: cover;
+    background-position: center;
+    border-radius: 0 0 15% 15%;
+}
+
+.header h1,
+.header p{
+    width: 70%;
+    margin: 0 auto;
+
+}
+
+.body{
+    padding: 0 20px;
+    width: 70%;
+    margin: 90px auto;
+}
+
+.wrapper{
+    width: 100%;
+    margin-top: 30px;
+    /* background-color: rgb(10, 10, 10); */
+}
+
+.wrapper-header{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    height: 40px;
+    padding: 0 10px;
+    /*margin: 0 10px;*/
+
+    /* border-bottom: 1px solid rgb(101, 101, 101); */
+    /* border-right: 2px solid white;
+    border-radius:0 30px 30px 0; */
+
+
+}
+
+.wrapper-header h3{
+    position: relative;
+    height: 30px;
+    width: 300px;
+    line-height: 25px;
+    /* border-right: 4px solid white;
+    border-radius: 20px;
+    padding-right: 10px; */
+
+
+}
+
+.wrapper-header h3::before{
+    content: "";
+    width: 4px;
+    height: 35px;
+    background-color: #bb86fc;
+    border-radius: 0 30px 30px 0;
+    /* border-right: 5px solid white; */
+    position: absolute;
+    display: block;
+    top: 0;
+    bottom: 0;
+    left: 307px;
+    margin: auto 0;
+    /* transform: rotate(30deg); */
+}
+
+.wrapper-body{
+    height: 330px;
+    width: 100%;
+
+    overflow-x: auto;
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+
+    padding: 0 5px;
+}
+
+.manhwa-box{
+    flex: 0 0 auto;
+    height: 300px;
+    width: 200px;
+    overflow: hidden;
+    position: relative;
+
+    border-radius: 15px;
+    background-color: antiquewhite;
+    background-size:cover;
+    transition: transform 200ms linear 50ms;
+}
+/* Chrome, Edge, Safari */
+.wrapper-body::-webkit-scrollbar {
+  height: 2px; /* ضخامت اسکرول‌بار افقی */
+}
+
+.wrapper-body::-webkit-scrollbar-track {
+  background: #2e2e2e; /* پس‌زمینه تیره */
+  border-radius: 10px;
+}
+
+.wrapper-body::-webkit-scrollbar-thumb {
+  background: #5e5e5e; /* رنگ اصلی اسکرول‌بار */
+  border-radius: 10px;
+  transition: background 0.3s ease;
+}
+
+.wrapper-body::-webkit-scrollbar-thumb:hover {
+    background: #7a7a7a; /* روشن‌تر شدن وقتی موش رویش هست */
+}
+
+.manhwa-box:hover{
+    background-image: linear-gradient(rgba(0, 0, 0, .6), rgba(255, 255, 255, .3));
+    box-shadow: 1px 1px 5px rgb(255, 255, 255);
+    transform: scale(1.01);
+}
+
+.manhwa-box img{
+    width: 100%;
+    height: 100%;
+    border-radius: 15px;
+}
+
+.manhwa-status{
+    position: absolute;
+    color: #fff;
+    font-size: .7rem;
+    top: 0;
+    left: 0;
+    margin: 10px 10px;
+    padding: 3px 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 5px;
+
+    background-color: rgb(198, 184, 56);
+    opacity: .8;
+}
+
+.manhwa-rating{
+    position: absolute;
+    color: #fff;
+    font-size: .7rem;
+    top: 0;
+    right: 0;
+    direction: ltr;
+    margin: 10px 10px;
+    padding: 3px 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 5px;
+    background-color: rgba(70, 137, 120, 0.94);
+    opacity: .8;
+}
+
+
+.box-blur {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    right: 0;
+    z-index:2;
+    bottom: 340px;
+    transition: all 10ms ease 50ms;
+    color: white;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 0 4px;
+}
+
+.manhwa-box:hover .box-blur{
+    bottom: 0;
+    background-image: linear-gradient(rgba(0, 0, 0, .7) 100%, rgba(215, 212, 212, 0.8));
+    /* background-image: linear-gradient(rgba(0, 0, 0, .7) 50%,rgba(255, 255, 255, .3) ); */
+}
+
+.manhwa-name{
+    text-align: center;
+    max-height: 150px;
+    overflow: hidden;
+}
+
+.manhwa-rating{
+
+}
+
+.manhwa-status{
+
+}

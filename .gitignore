@@ -4,3 +4,4 @@ media/
 venv/
 __pycache__/
 .env
+static/img/

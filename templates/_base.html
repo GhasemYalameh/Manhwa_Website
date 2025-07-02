@@ -1,15 +1,19 @@
+{% load static %}
+
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <link rel="stylesheet" href="">
-    {% block css %}  {% endblock %}
+    <link rel="stylesheet" href="{% static 'css/base/main.css' %}">
+    {% block css %}
+    {% endblock %}
 
     <title>{% block title %}{% endblock %}</title>
 </head>
 <body>
+
 
     <!-- start header -->
     <header>
@@ -22,15 +26,15 @@
                     <div class="line-end"></div>
                 </div>
                 <div class="home-icon">
-                    <span><a href="#">Home</a></span>
+                    <span><a href="#">خانه</a></span>
                 </div>
                 <div class="search-box">
-                    <input type="text" placeholder="Search">
+                    <input type="text" placeholder="جستجو">
                 </div>
             </div>
 
             <div class="navbar-left">
-                <div class="login-signup">Login/SignUp</div>
+                <div class="login-signup">ورود/ثبت نام</div>
                 <!-- <div class="circle">0</div>
                 <div class="circle">Q</div> -->
 

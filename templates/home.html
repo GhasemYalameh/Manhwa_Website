@@ -1,0 +1,163 @@
+{% extends '_base.html' %}
+{% load static %}
+{% block css %}
+    <link rel="stylesheet" href="{% static 'css/home/home.css' %}">
+{% endblock %}
+
+
+{% block title %}
+Fanta Webtoon
+{% endblock %}
+
+
+
+{% block content %}
+{#    <div class="header">#}
+{#        <h1>#}
+{#            به فانتا مانهوا خوش آمدید!#}
+{#        </h1>#}
+{#        <p>لورم ایپسوم متن ساختگی با تولید سادگی نامفهوم از صنعت چاپ، و با استفاده از طراحان گرافیک است، چاپگرها و متون بلکه روزنامه و مجله در ستون و سطرآنچنان که لازم است، و برای شرایط فعلی تکنولوژی مورد نیاز، و کاربردهای متنوع با هدف بهبود ابزارهای کاربردی می باشد، کتابهای زیادی در شصت و سه درصد گذشته حال و آینده، شناخت فراوان جامعه و متخصصان را می طلبد، تا با نرم افزارها شناخت بیشتری را برای طراحان رایانه ای علی الخصوص طراحان خلاقی، و فرهنگ پیشرو در زبان فارسی ایجاد کرد، در این صورت می توان امید داشت که تمام و دشواری موجود در ارائه راهکارها، و شرایط سخت تایپ به پایان رسد و زمان مورد نیاز شامل حروفچینی دستاوردهای اصلی، و جوابگوی سوالات پیوسته اهل دنیای موجود طراحی اساسا مورد استفاده قرار گیرد.</p>#}
+{#    </div>#}
+
+    <div class="body">
+        <div class="wrapper">
+        <div class="wrapper-header">
+            <h3>محبوب ترین ها</h3>
+            <a href="#">نمایش همه</a>
+        </div>
+        <div class="wrapper-body">
+            <a href="#" class="manhwa-box">
+                <img src="{% static 'img/animation.jpg' %}" alt="">
+                <div class="box-blur">
+                    <span class="manhwa-name">manhwa name</span>
+                </div>
+
+                <div class="manhwa-rating">@ 4.5</div>
+                <div class="manhwa-status">S1-E15</div>
+            </a>
+
+            <a href="#" class="manhwa-box">
+                <img src="{% static 'img/my-hero.jpg' %}" alt="">
+                <div class="box-blur">
+                    <span class="manhwa-name"></span>
+                </div>
+
+                <div class="manhwa-rating">@ 4.5</div>
+                <div class="manhwa-status">S1-E15</div>
+            </a>
+            <a href="#" class="manhwa-box">
+                <img src="{% static 'img/manhowa.jpg' %}" alt="">
+                <div class="box-blur">
+                    <span class="manhwa-name">manhwa name</span>
+                </div>
+
+                <div class="manhwa-rating">@ 4.5</div>
+                <div class="manhwa-status">S1-E15</div>
+            </a>
+            <a href="#" class="manhwa-box">
+                <img src="{% static 'img/anime.jpg' %}" alt="">
+                <div class="box-blur">
+                    <span class="manhwa-name">manhwa name</span>
+                </div>
+
+                <div class="manhwa-rating">@ 4.5</div>
+                <div class="manhwa-status">S1-E15</div>
+            </a>
+        </div>
+
+    </div>
+        <div class="wrapper">
+        <div class="wrapper-header">
+            <h3>اخرین ها</h3>
+            <a href="#">نمایش همه</a>
+        </div>
+        <div class="wrapper-body">
+            <a href="#" class="manhwa-box">
+                <img src="{% static 'img/animation.jpg' %}" alt="">
+                <div class="box-blur">
+                    <span class="manhwa-name">manhwa name</span>
+                </div>
+
+                <div class="manhwa-rating">@ 4.5</div>
+                <div class="manhwa-status">S1-E15</div>
+            </a>
+
+            <a href="#" class="manhwa-box">
+                <img src="{% static 'img/my-hero.jpg' %}" alt="">
+                <div class="box-blur">
+                    <span class="manhwa-name">Lorem ipsum dolor sit amet consecrate radicalising elit. Nostrum adipisci quibusdam reprehenderit ullam deserunt cum ipsa nemo perferendis dolorum delectus? Tenetur, ipsum velit est ab alias cum quam cupiditate sequi?</span>
+                </div>
+
+                <div class="manhwa-rating">@ 4.5</div>
+                <div class="manhwa-status">S1-E15</div>
+            </a>
+            <a href="#" class="manhwa-box">
+                <img src="{% static 'img/manhwa.jpg' %}" alt="">
+                <div class="box-blur">
+                    <span class="manhwa-name">manhwa name</span>
+                </div>
+
+                <div class="manhwa-rating">@ 4.5</div>
+                <div class="manhwa-status">S1-E15</div>
+            </a>
+            <a href="#" class="manhwa-box">
+                <img src="{% static 'img/anime.jpg' %}" alt="">
+                <div class="box-blur">
+                    <span class="manhwa-name">manhwa name</span>
+                </div>
+
+                <div class="manhwa-rating">@ 4.5</div>
+                <div class="manhwa-status">S1-E15</div>
+            </a>
+        </div>
+
+        </div>
+        <div class="wrapper">
+            <div class="wrapper-header">
+                <h3>این فصل </h3>
+                <a href="#">نمایش همه</a>
+            </div>
+            <div class="wrapper-body">
+                <a href="#" class="manhwa-box">
+                    <img src="{% static 'img/animation.jpg' %}" alt="">
+                    <div class="box-blur">
+                        <span class="manhwa-name">manhwa name</span>
+                    </div>
+
+                    <div class="manhwa-rating">@ 4.5</div>
+                    <div class="manhwa-status">S1-E15</div>
+                </a>
+
+                <a href="#" class="manhwa-box">
+                    <img src="{% static 'img/my-hero.jpg' %}" alt="">
+                    <div class="box-blur">
+                        <span class="manhwa-name">Lorem ipsum dolor sit amet consecrate radicalising elit. Nostrum adipisci quibusdam reprehenderit ullam deserunt cum ipsa nemo perferendis dolorum delectus? Tenetur, ipsum velit est ab alias cum quam cupiditate sequi?</span>
+                    </div>
+
+                    <div class="manhwa-rating">@ 4.5</div>
+                    <div class="manhwa-status">S1-E15</div>
+                </a>
+                <a href="#" class="manhwa-box">
+                    <img src="{% static 'img/manhowa.jpg' %}" alt="">
+                    <div class="box-blur">
+                        <span class="manhwa-name">manhwa name</span>
+                    </div>
+
+                    <div class="manhwa-rating">@ 4.5</div>
+                    <div class="manhwa-status">S1-E15</div>
+                </a>
+                <a href="#" class="manhwa-box">
+                    <img src="{% static 'img/anime.jpg' %}" alt="">
+                    <div class="box-blur">
+                        <span class="manhwa-name">manhwa name</span>
+                    </div>
+
+                    <div class="manhwa-rating">@ 4.5</div>
+                    <div class="manhwa-status">S1-E15</div>
+                </a>
+            </div>
+
+        </div>
+    </div>
+
+{% endblock %}
