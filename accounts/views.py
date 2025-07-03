@@ -1,18 +1,33 @@
 from django.shortcuts import render, redirect
+from django.contrib.auth import login, authenticate
+from django.contrib.auth.views import LoginView
+from django.contrib import messages
+from .forms import CustomUserCreationForm, CustomAuthenticationForm
 
-from .forms import CustomCreationForm, CustomChangeForm
+
+class CustomLoginView(LoginView):
+    form_class = CustomAuthenticationForm
+    template_name = 'registration/login.html'
+
+    def form_valid(self, form):
+        messages.success(self.request, 'با موفقیت وارد شدید!')
+        return super().form_valid(form)
 
 
-def sign_up(request):
-
+def register_view(request):
     if request.method == 'POST':
-        form = CustomCreationForm(request.POST)
+        form = CustomUserCreationForm(request.POST)
         if form.is_valid():
-            form.save()
-            print("f")
-            return redirect('home')
+            user = form.save()
+            # خودکار لاگین کردن بعد از ثبت نام
+            phone_number = form.cleaned_data.get('phone_number')
+            password = form.cleaned_data.get('password1')
+            user = authenticate(phone_number=phone_number, password=password)
+            if user:
+                login(request, user)
+                messages.success(request, 'حساب کاربری شما با موفقیت ایجاد شد!')
+                return redirect('home')  # به home page برو
+    else:
+        form = CustomUserCreationForm()
 
-    form = CustomCreationForm()
-    return render(request, 'accounts/signup.html', context={'form': form})
-
-
+    return render(request, 'registration/register.html', {'form': form})

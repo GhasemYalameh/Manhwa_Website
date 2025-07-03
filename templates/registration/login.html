@@ -1,6 +1,33 @@
-{% load crispy_forms_tags %}
-<form action="" method="post">
-    {% csrf_token %}
-    {{ form|crispy }}
-    <input type="submit" value="login">
-</form>
+<!DOCTYPE html>
+<html>
+<head>
+    <title>ورود</title>
+</head>
+<body>
+    <div class="container">
+        <h2>ورود</h2>
+        <form method="post">
+            {% csrf_token %}
+            {% if form.errors %}
+                <div class="alert alert-danger">
+                    {{ form.errors }}
+                </div>
+            {% endif %}
+
+            <div class="form-group">
+                <label>{{ form.username.label }}</label>
+                {{ form.username }}
+            </div>
+
+            <div class="form-group">
+                <label>{{ form.password.label }}</label>
+                {{ form.password }}
+            </div>
+
+            <button type="submit" class="btn btn-primary">ورود</button>
+        </form>
+
+        <p><a href="{% url 'register' %}">حساب کاربری ندارید؟ ثبت نام کنید</a></p>
+    </div>
+</body>
+</html>
