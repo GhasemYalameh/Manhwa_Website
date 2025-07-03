@@ -25,4 +25,5 @@ urlpatterns = [
     path('', include('manhwas.urls')),
     path('account/', include('accounts.urls')),
     path('account/', include('django.contrib.auth.urls')),
+    # path('autocomplete/', include('dal.urls')),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

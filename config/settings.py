@@ -45,6 +45,8 @@ INSTALLED_APPS = [
     # third party
     'crispy_forms',
     'crispy_bootstrap5',
+    'dal',
+    'dal_select2',
 
     # my app
     'accounts.apps.AccountsConfig',
