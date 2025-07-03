@@ -63,7 +63,7 @@ class Manhwa(models.Model):
     day_of_week = models.CharField(max_length=30, choices=DAY_OF_THE_WEEK)
     cover = models.ImageField(upload_to=manhwa_cover_upload_to)
     publication_datetime = models.DateTimeField()
-    # genre method
+    genres = models.ManyToManyField(Genre, related_name='manhwas')
     studio = models.ForeignKey(Studio, on_delete=models.PROTECT, related_name='manhwas')
     views = models.PositiveIntegerField(default=0)
 
@@ -83,23 +83,15 @@ class Manhwa(models.Model):
 
 class Rate(models.Model):
     RATING_CHOICES = (
-        ('1', '1'),
-        ('2', '2'),
-        ('3', '3'),
-        ('4', '4'),
-        ('5', '5'),
+        (1, '1'),
+        (2, '2'),
+        (3, '3'),
+        (4, '4'),
+        (5, '5'),
     )
     user = models.ForeignKey(get_user_model(), on_delete=models.CASCADE)
     manhwa = models.ForeignKey(Manhwa, on_delete=models.CASCADE, related_name='rates')
-    rating = models.CharField(max_length=2, choices=RATING_CHOICES)
-
-
-class ManhwaGenre(models.Model):
-    genre = models.ForeignKey(Genre, on_delete=models.CASCADE, related_name='manhwas')
-    manhwa = models.ForeignKey(Manhwa, on_delete=models.CASCADE, related_name='genres')
-
-    def __str__(self):
-        return self.genre.title
+    rating = models.PositiveSmallIntegerField(choices=RATING_CHOICES)
 
 
 class Episode(models.Model):

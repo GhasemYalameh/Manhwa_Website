@@ -21,16 +21,19 @@ Fanta Webtoon
 
     <div class="body">
         <div class="wrapper">
-        <div class="wrapper-header">
-            <h3>محبوب ترین ها</h3>
-            <a href="#">نمایش همه</a>
-        </div>
-        <div class="wrapper-body">
+            <div class="wrapper-header">
+                <h3>محبوب ترین ها</h3>
+                <a href="#">نمایش همه</a>
+            </div>
+           <div class="wrapper-body">
             {% for manhwa in manhwas %}
                 <a href="#" class="manhwa-box">
                     <img src="{{ manhwa.cover.url }}" alt="">
                     <div class="box-blur">
-                        <span class="manhwa-name">{{ manhwa.tilte }}</span>
+                        <span class="manhwa-name">{{ manhwa.en_title }}</span>
+                        {% for genre in manhwa.genres.all %}
+                            <span class="manhwa-name">{{ genre.title }}</span>
+                        {% endfor %}
                     </div>
 
                     <div class="manhwa-rating">{{ manhwa.avg_rating }}</div>
@@ -68,13 +71,13 @@ Fanta Webtoon
             </a>
         </div>
 
-    </div>
-        <div class="wrapper">
-        <div class="wrapper-header">
-            <h3>اخرین ها</h3>
-            <a href="#">نمایش همه</a>
         </div>
-        <div class="wrapper-body">
+        <div class="wrapper">
+            <div class="wrapper-header">
+                <h3>اخرین ها</h3>
+                <a href="#">نمایش همه</a>
+            </div>
+            <div class="wrapper-body">
             <a href="#" class="manhwa-box">
                 <img src="{% static 'img/animation.jpg' %}" alt="">
                 <div class="box-blur">
