@@ -93,6 +93,9 @@ class Rate(models.Model):
     manhwa = models.ForeignKey(Manhwa, on_delete=models.CASCADE, related_name='rates')
     rating = models.PositiveSmallIntegerField(choices=RATING_CHOICES)
 
+    class Meta:
+        unique_together = ('user', 'manhwa')
+
 
 class Episode(models.Model):
     number = models.PositiveIntegerField(default=1)
@@ -102,6 +105,9 @@ class Episode(models.Model):
 
     datetime_created = models.DateTimeField(auto_now_add=True)
     datetime_modified = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ('number', 'manhwa')
 
     def __str__(self):
         return str(self.number)
