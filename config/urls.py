@@ -16,11 +16,14 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
-from django.views.generic import TemplateView
 from django.conf.urls.static import static
-from . import settings
 from django.contrib.auth import views as auth_views
 from accounts.views import CustomLoginView, register_view
+
+from debug_toolbar.toolbar import debug_toolbar_urls
+
+from . import settings
+
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -30,4 +33,4 @@ urlpatterns = [
     path('logout/', auth_views.LogoutView.as_view(), name='logout'),
     path('register/', register_view, name='register'),
     # path('autocomplete/', include('dal.urls')),
-] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT) + debug_toolbar_urls()
