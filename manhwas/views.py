@@ -39,7 +39,7 @@ def manhwa_detail(request, pk):
             manhwa=manhwa,
         )
         if created:
-            manhwa.views += 1
-            manhwa.save(update_fields=['views'])
+            manhwa.views_count += 1
+            manhwa.save(update_fields=['views_count'])
 
     return render(request, 'manhwas/manhwa_detail_view.html', context={'manhwa': manhwa})

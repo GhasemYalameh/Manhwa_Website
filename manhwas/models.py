@@ -65,7 +65,7 @@ class Manhwa(models.Model):
     publication_datetime = models.DateTimeField()
     genres = models.ManyToManyField(Genre, related_name='manhwas')
     studio = models.ForeignKey(Studio, on_delete=models.PROTECT, related_name='manhwas')
-    views = models.PositiveIntegerField(default=0)
+    views_count = models.PositiveIntegerField(default=0)
 
     datetime_created = models.DateTimeField(auto_now_add=True)
     datetime_modified = models.DateTimeField(auto_now=True)

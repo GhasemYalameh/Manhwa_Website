@@ -1,11 +1,11 @@
 from django.contrib import admin
 from django import forms
 
-from .models import Manhwa, Episode, Studio, Genre, Rate
+from .models import Manhwa, Episode, Studio, Genre, Rate, View
 
 
 class ManhwaAdmin(admin.ModelAdmin):
-    list_display = ('en_title', 'season', 'views', 'get_genres')
+    list_display = ('en_title', 'season', 'views_count', 'get_genres')
     # filter_horizontal = ('genres',)
     autocomplete_fields = ['genres']
     list_filter = ['genres']
@@ -14,6 +14,10 @@ class ManhwaAdmin(admin.ModelAdmin):
     def get_genres(self, obj):
         return ', '.join([genre.title for genre in obj.genres.all()])
     get_genres.short_description = 'Genre'
+
+
+class ViewAdmin(admin.ModelAdmin):
+    list_display = ('user', 'manhwa', 'datetime_viewed')
 
 
 class RateAdmin(admin.ModelAdmin):
@@ -38,4 +42,5 @@ admin.site.register(Genre, GenreAdmin)
 admin.site.register(Studio, StudioAdmin)
 admin.site.register(Episode, EpisodeAdmin)
 admin.site.register(Rate, RateAdmin)
+admin.site.register(View, ViewAdmin)
 
