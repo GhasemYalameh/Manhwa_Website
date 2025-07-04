@@ -81,6 +81,15 @@ class Manhwa(models.Model):
         return self.en_title
 
 
+class View(models.Model):
+    user = models.ForeignKey(get_user_model(), on_delete=models.CASCADE)
+    manhwa = models.ForeignKey(Manhwa, on_delete=models.CASCADE, related_name='views')
+    datetime_viewed = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('manhwa', 'user')
+
+
 class Rate(models.Model):
     RATING_CHOICES = (
         (1, '1'),

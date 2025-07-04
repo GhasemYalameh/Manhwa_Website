@@ -27,7 +27,7 @@ Fanta Webtoon
             </div>
             <div class="wrapper-body">
                {% for manhwa in manhwas %}
-                    <a href="#" class="manhwa-box">
+                    <a href="{% url 'manhwa_detail' manhwa.id %}" class="manhwa-box">
                         <img src="{{ manhwa.cover.url }}" alt="">
                         <div class="box-blur">
                             <span class="manhwa-name">{{ manhwa.en_title }}</span>

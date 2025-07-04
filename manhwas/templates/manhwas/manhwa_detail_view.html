@@ -1,0 +1,33 @@
+{% extends '_base.html' %}
+{% load static %}
+{% block css %}
+    <link rel="stylesheet" href="{% static 'css/home/home.css' %}">
+{% endblock %}
+
+
+{% block title %}
+    {{ manhwa.title }} Detail
+{% endblock %}
+
+
+{% block content %}
+    <div class="body" dir="ltr">
+        <h1>En_Title : {{ manhwa.en_title }}</h1>
+        <h1>fa_Title : {{ manhwa.fa_title }}</h1><br>
+        <p>Views : {{ manhwa.views }}</p>
+        <span>Genres :
+        {% for genre in manhwa.genres.all %}
+            {{ genre.title }},
+        {% endfor %}
+
+        </span><br><br>
+        <p>Summary : {{ manhwa.summary }}</p>
+        <br><br>
+        {% for episode in manhwa.episodes.all %}
+            <h3>Episode : {{ episode.number }} / {{ episode.datetime_created }}</h3>
+        {% endfor %}
+    </div>
+
+
+
+{% endblock %}
