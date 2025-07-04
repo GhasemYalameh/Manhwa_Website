@@ -35,8 +35,7 @@
 }
 
 .body{
-    padding: 0 20px;
-    width: 70%;
+    width: 1090px;
     margin: 90px auto;
 }
 
@@ -52,8 +51,8 @@
     justify-content: space-between;
 
     height: 40px;
-    padding: 0 10px;
-    /*margin: 0 10px;*/
+    padding-right: 10px;
+    margin: 10px 0;
 
     /* border-bottom: 1px solid rgb(101, 101, 101); */
     /* border-right: 2px solid white;
@@ -90,6 +89,18 @@
     /* transform: rotate(30deg); */
 }
 
+.btn{
+    background-color: #ae71ff;
+    padding: 5px 8px;
+    border-radius: 5px;
+    font-family: "vazir", sans-serif;
+    font-weight: bold;
+}
+
+.btn:hover{
+        background-color: #b471fd;
+}
+
 .wrapper-body{
     height: 330px;
     width: 100%;
@@ -101,6 +112,8 @@
     gap: 20px;
 
     padding: 0 5px;
+    background-color: #2f2f2f;
+    border-radius: 5px;
 }
 
 .manhwa-box{
@@ -160,8 +173,7 @@
     justify-content: center;
     border-radius: 5px;
 
-    background-color: rgb(198, 184, 56);
-    opacity: .8;
+    background-color: #bb86fc;
 }
 
 .manhwa-rating{
@@ -177,8 +189,7 @@
     align-items: center;
     justify-content: center;
     border-radius: 5px;
-    background-color: rgba(70, 137, 120, 0.94);
-    opacity: .8;
+    background-color: #0cb12b;
 }
 
 
