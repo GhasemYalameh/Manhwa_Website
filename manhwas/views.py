@@ -2,6 +2,7 @@ from django.shortcuts import render, get_object_or_404
 from .models import Manhwa, View
 from django.db.models import Avg, Value, Max, When, Case, CharField
 from django.db.models.functions import Coalesce, Concat, Cast
+from django.utils.translation import gettext as _
 
 
 def home_page(request):
@@ -15,8 +16,8 @@ def home_page(request):
         avg_rating=Coalesce(Avg('rates__rating'), Value(0.0)),
         last_episode=Max('episodes__number'),
         last_upload=Case(
-            When(last_episode=0, then=Value('اپلود نشده')),
-            When(last_episode__isnull=True, then=Value("اپلود نشده")),
+            When(last_episode=0, then=Value(_('No uploaded'))),
+            When(last_episode__isnull=True, then=Value(_('No uploaded'))),
             default=Concat(
                 Value('S'), Cast('season', CharField()), Value('-E'),
                 Case(
