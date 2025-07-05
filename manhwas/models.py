@@ -3,6 +3,7 @@ import os.path
 from django.db import models
 from django.utils.text import slugify
 from django.contrib.auth import get_user_model
+from django.utils.translation import gettext as _
 
 
 def manhwa_file_upload_to(instance, filename):
@@ -25,16 +26,16 @@ def manhwa_cover_upload_to(instance, filename):
 
 
 class Genre(models.Model):
-    title = models.CharField(max_length=200)
-    description = models.CharField(max_length=500)
+    title = models.CharField(max_length=200, verbose_name=_('title'))
+    description = models.CharField(max_length=500, verbose_name='description')
 
     def __str__(self):
         return self.title
 
 
 class Studio(models.Model):
-    title = models.CharField(max_length=200)
-    description = models.TextField()
+    title = models.CharField(max_length=200, verbose_name=_('title'))
+    description = models.TextField(verbose_name=_('description'))
 
     def __str__(self):
         return self.title
@@ -56,19 +57,19 @@ class Manhwa(models.Model):
         ('child', 'less than 13'),
         ('teen', 'older than 13'),
     )
-    fa_title = models.CharField(max_length=500, blank=True)
-    en_title = models.CharField(max_length=500)
-    summary = models.TextField()
-    season = models.PositiveIntegerField(default=1)
-    day_of_week = models.CharField(max_length=30, choices=DAY_OF_THE_WEEK)
-    cover = models.ImageField(upload_to=manhwa_cover_upload_to)
-    publication_datetime = models.DateTimeField()
-    genres = models.ManyToManyField(Genre, related_name='manhwas')
-    studio = models.ForeignKey(Studio, on_delete=models.PROTECT, related_name='manhwas')
-    views_count = models.PositiveIntegerField(default=0)
+    fa_title = models.CharField(max_length=500, blank=True, verbose_name=_('persian title'))
+    en_title = models.CharField(max_length=500, verbose_name=_('english title'))
+    summary = models.TextField(verbose_name=_('summary'))
+    season = models.PositiveIntegerField(default=1, verbose_name=_('season'))
+    day_of_week = models.CharField(max_length=30, choices=DAY_OF_THE_WEEK, verbose_name=_('day of the week'))
+    cover = models.ImageField(upload_to=manhwa_cover_upload_to, verbose_name=_('manhwa cover'))
+    publication_datetime = models.DateTimeField(verbose_name=_('publication datetime'))
+    genres = models.ManyToManyField(Genre, related_name='manhwas', verbose_name=_('genre'))
+    studio = models.ForeignKey(Studio, on_delete=models.PROTECT, related_name='manhwas', verbose_name=_('studio'))
+    views_count = models.PositiveIntegerField(default=0, verbose_name=_('views count'))
 
-    datetime_created = models.DateTimeField(auto_now_add=True)
-    datetime_modified = models.DateTimeField(auto_now=True)
+    datetime_created = models.DateTimeField(auto_now_add=True, verbose_name=_('datetime created'))
+    datetime_modified = models.DateTimeField(auto_now=True, verbose_name=_('datetime modified'))
 
     # status
     # rating
@@ -82,9 +83,9 @@ class Manhwa(models.Model):
 
 
 class View(models.Model):
-    user = models.ForeignKey(get_user_model(), on_delete=models.CASCADE)
-    manhwa = models.ForeignKey(Manhwa, on_delete=models.CASCADE, related_name='views')
-    datetime_viewed = models.DateTimeField(auto_now_add=True)
+    user = models.ForeignKey(get_user_model(), on_delete=models.CASCADE, verbose_name=_('user'))
+    manhwa = models.ForeignKey(Manhwa, on_delete=models.CASCADE, related_name='views', verbose_name=_('manhwa'))
+    datetime_viewed = models.DateTimeField(auto_now_add=True, verbose_name=_('datetime viewed'))
 
     class Meta:
         unique_together = ('manhwa', 'user')
@@ -98,22 +99,22 @@ class Rate(models.Model):
         (4, '4'),
         (5, '5'),
     )
-    user = models.ForeignKey(get_user_model(), on_delete=models.CASCADE)
-    manhwa = models.ForeignKey(Manhwa, on_delete=models.CASCADE, related_name='rates')
-    rating = models.PositiveSmallIntegerField(choices=RATING_CHOICES)
+    user = models.ForeignKey(get_user_model(), on_delete=models.CASCADE, verbose_name=_('user'))
+    manhwa = models.ForeignKey(Manhwa, on_delete=models.CASCADE, related_name='rates', verbose_name=_('manhwa'))
+    rating = models.PositiveSmallIntegerField(choices=RATING_CHOICES, verbose_name=_('rating'))
 
     class Meta:
         unique_together = ('user', 'manhwa')
 
 
 class Episode(models.Model):
-    number = models.PositiveIntegerField(default=1)
-    manhwa = models.ForeignKey(Manhwa, on_delete=models.PROTECT, related_name='episodes')
-    file = models.FileField(upload_to=manhwa_file_upload_to)
-    downloads_count = models.PositiveIntegerField(default=0)
+    number = models.PositiveIntegerField(default=1, verbose_name=_('number of episode'))
+    manhwa = models.ForeignKey(Manhwa, on_delete=models.PROTECT, related_name='episodes', verbose_name=_('manhwa'))
+    file = models.FileField(upload_to=manhwa_file_upload_to, verbose_name=_('episode file'))
+    downloads_count = models.PositiveIntegerField(default=0, verbose_name=_('download count'))
 
-    datetime_created = models.DateTimeField(auto_now_add=True)
-    datetime_modified = models.DateTimeField(auto_now=True)
+    datetime_created = models.DateTimeField(auto_now_add=True, verbose_name=_('datetime created'))
+    datetime_modified = models.DateTimeField(auto_now=True, verbose_name=_('datetime modified'))
 
     class Meta:
         unique_together = ('number', 'manhwa')
