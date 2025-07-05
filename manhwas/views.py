@@ -10,7 +10,7 @@ def home_page(request):
         'en_title',
         'season',
         'cover',
-        'views',
+        'views_count',
     ).annotate(
         avg_rating=Coalesce(Avg('rates__rating'), Value(0.0)),
         last_episode=Max('episodes__number'),
@@ -29,7 +29,10 @@ def home_page(request):
 
 
 def manhwa_detail(request, pk):
-    manhwa = get_object_or_404(Manhwa, pk=pk)
+    manhwa = get_object_or_404(
+        Manhwa.objects.prefetch_related('episodes', 'genres'),
+        pk=pk
+    )
     if request.user.is_authenticated:
 
         # if user viewed the manhwa in past created=False
