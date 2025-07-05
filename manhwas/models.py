@@ -42,21 +42,18 @@ class Studio(models.Model):
 
 
 class Manhwa(models.Model):
+    SATURDAY, SUNDAY, MONDAY, TUESDAY = 'sat', 'sun', 'mon', 'tue'
+    WEDNESDAY, THURSDAY, FRIDAY = 'wed', 'thu', 'fri'
+
     DAY_OF_THE_WEEK = (
-        ('sat', 'Saturday'),
-        ('sun', 'Sunday'),
-        ('mon', 'Monday'),
-        ('tue', 'Tuesday'),
-        ('wed', 'Wednesday'),
-        ('thu', 'thursday'),
-        ('fri', 'Friday'),
+        (SATURDAY, 'Saturday'), (SUNDAY, 'Sunday'), (MONDAY, 'Monday'), (TUESDAY, 'Tuesday'),
+        (WEDNESDAY, 'Wednesday'), (THURSDAY, 'thursday'), (FRIDAY, 'Friday'),
     )
     AGE_RANGE = (
-        ('all', 'All people'),
-        ('adult', 'older than 18'),
-        ('child', 'less than 13'),
-        ('teen', 'older than 13'),
+        ('all', 'All people'), ('adult', 'older than 18'),
+        ('child', 'less than 13'), ('teen', 'older than 13'),
     )
+
     fa_title = models.CharField(max_length=500, blank=True, verbose_name=_('persian title'))
     en_title = models.CharField(max_length=500, verbose_name=_('english title'))
     summary = models.TextField(verbose_name=_('summary'))
@@ -71,11 +68,7 @@ class Manhwa(models.Model):
     datetime_created = models.DateTimeField(auto_now_add=True, verbose_name=_('datetime created'))
     datetime_modified = models.DateTimeField(auto_now=True, verbose_name=_('datetime modified'))
 
-    # status
-    # rating
     # IMDB rating
-
-    # add views
     # age_limit
 
     def __str__(self):
@@ -93,11 +86,8 @@ class View(models.Model):
 
 class Rate(models.Model):
     RATING_CHOICES = (
-        (1, '1'),
-        (2, '2'),
-        (3, '3'),
-        (4, '4'),
-        (5, '5'),
+        (1, '1'), (2, '2'), (3, '3'),
+        (4, '4'), (5, '5'),
     )
     user = models.ForeignKey(get_user_model(), on_delete=models.CASCADE, verbose_name=_('user'))
     manhwa = models.ForeignKey(Manhwa, on_delete=models.CASCADE, related_name='rates', verbose_name=_('manhwa'))
@@ -122,4 +112,48 @@ class Episode(models.Model):
     def __str__(self):
         return str(self.number)
 
+
+class Comment(models.Model):
+    author = models.ForeignKey(
+        get_user_model(),
+        on_delete=models.CASCADE,
+        related_name='comments',
+        verbose_name=_('author')
+    )
+    manhwa = models.ForeignKey(Manhwa, on_delete=models.CASCADE, related_name='comments', verbose_name=_('manhwa'))
+    text = models.TextField()
+    likes_count = models.PositiveIntegerField(default=0, editable=False, verbose_name=_('Likes count'))
+    dis_likes_count = models.PositiveIntegerField(default=0, editable=False, verbose_name=_('disLikes count'))
+
+    datetime_created = models.DateTimeField(auto_now_add=True, verbose_name=_('datetime created'))
+    datetime_modified = models.DateTimeField(auto_now=True, verbose_name=_('datetime modified'))
+
+    class Meta:
+        unique_together = ('manhwa', 'user', 'text')  # try except for same text and spam robot
+
+    def __str__(self):
+        return f'comment id ={self.id}'
+
+
+
+class CommentReAction(models.Model):
+    LIKE = 'lk'
+    DISLIKE = 'dlk'
+
+    COMMENT_REACTIONS = (
+        (LIKE, 'like'),
+        (DISLIKE, 'dislike'),
+    )
+
+    user = models.ForeignKey(
+        get_user_model(),
+        on_delete=models.CASCADE,
+        related_name='comment_reactions',
+        verbose_name=_('user')
+    )
+    comment = models.ForeignKey(Comment, on_delete=models.CASCADE, related_name='reactions', verbose_name=_('comment'))
+    reaction = models.CharField(max_length=10, choices=COMMENT_REACTIONS, verbose_name=_('reaction'))
+
+    class Meta:
+        unique_together = ('user', 'comment')
 
