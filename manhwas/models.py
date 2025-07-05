@@ -135,7 +135,6 @@ class Comment(models.Model):
         return f'comment id ={self.id}'
 
 
-
 class CommentReAction(models.Model):
     LIKE = 'lk'
     DISLIKE = 'dlk'
