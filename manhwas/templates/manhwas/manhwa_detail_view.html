@@ -1,5 +1,10 @@
 {% extends '_base.html' %}
+
+
 {% load static %}
+{% load i18n %}
+
+
 {% block css %}
     <link rel="stylesheet" href="{% static 'css/home/home.css' %}">
 {% endblock %}
@@ -12,19 +17,19 @@
 
 {% block content %}
     <div class="body" dir="ltr">
-        <h1>En_Title : {{ manhwa.en_title }}</h1>
-        <h1>fa_Title : {{ manhwa.fa_title }}</h1><br>
-        <p>Views : {{ manhwa.views_count }}</p>
-        <span>Genres :
+        <h1>{% trans 'english title' %} : {{ manhwa.en_title }}</h1>
+        <h1>{% trans 'persian title' %} : {{ manhwa.fa_title }}</h1><br>
+        <p>{% trans 'views count' %} : {{ manhwa.views_count }}</p>
+        <span>{% trans 'genres' %} :
         {% for genre in manhwa.genres.all %}
             {{ genre.title }},
         {% endfor %}
 
         </span><br><br>
-        <p>Summary : {{ manhwa.summary }}</p>
+        <p>{% trans 'summary' %} : {{ manhwa.summary }}</p>
         <br><br>
         {% for episode in manhwa.episodes.all %}
-            <h3>Episode : {{ episode.number }} / {{ episode.datetime_created }}</h3>
+            <h3>{% trans 'Episodes' %} : {{ episode.number }} / {{ episode.datetime_created }}</h3>
         {% endfor %}
     </div>
 
