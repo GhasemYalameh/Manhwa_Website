@@ -129,7 +129,7 @@ class Comment(models.Model):
     datetime_modified = models.DateTimeField(auto_now=True, verbose_name=_('datetime modified'))
 
     class Meta:
-        unique_together = ('manhwa', 'user', 'text')  # try except for same text and spam robot
+        unique_together = ('manhwa', 'author', 'text')  # try except for same text and spam robot
 
     def __str__(self):
         return f'comment id ={self.id}'
