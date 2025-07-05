@@ -1,12 +1,17 @@
 {% extends '_base.html' %}
+
+
 {% load static %}
+{% load i18n %}
+
+
 {% block css %}
     <link rel="stylesheet" href="{% static 'css/home/home.css' %}">
 {% endblock %}
 
 
 {% block title %}
-Fanta Webtoon
+
 {% endblock %}
 
 
@@ -22,8 +27,8 @@ Fanta Webtoon
     <div class="body">
         <div class="wrapper">
             <div class="wrapper-header">
-                <h3>محبوب ترین ها</h3>
-                <a class="btn" href="#">نمایش همه</a>
+                <h3>{% trans 'Most Popular' %}</h3>
+                <a class="btn" href="#">{% trans 'Show All' %}</a>
             </div>
             <div class="wrapper-body">
                {% for manhwa in manhwas %}
@@ -36,46 +41,6 @@ Fanta Webtoon
                         <div class="manhwa-status">{{ manhwa.last_upload }}</div>
                     </a>
                 {% endfor %}
-
-            </div>
-        </div>
-        <div class="wrapper">
-            <div class="wrapper-header">
-                <h3>محبوب ترین ها</h3>
-                <a class="btn" href="#">نمایش همه</a>
-            </div>
-            <div class="wrapper-body">
-               {% for manhwa in manhwas %}
-                <a href="#" class="manhwa-box">
-                    <img src="{{ manhwa.cover.url }}" alt="">
-                    <div class="box-blur">
-                        <span class="manhwa-name">{{ manhwa.en_title }}</span>
-                    </div>
-
-                    <div class="manhwa-rating">{{ manhwa.avg_rating|floatformat:1 }}</div>
-                    <div class="manhwa-status">{{ manhwa.last_update }}</div>
-                </a>
-            {% endfor %}
-
-            </div>
-        </div>
-        <div class="wrapper">
-            <div class="wrapper-header">
-                <h3>محبوب ترین ها</h3>
-                <a class="btn" href="#">نمایش همه</a>
-            </div>
-            <div class="wrapper-body">
-               {% for manhwa in manhwas %}
-                <a href="#" class="manhwa-box">
-                    <img src="{{ manhwa.cover.url }}" alt="">
-                    <div class="box-blur">
-                        <span class="manhwa-name">{{ manhwa.en_title }}</span>
-                    </div>
-
-                    <div class="manhwa-rating">{{ manhwa.avg_rating|floatformat:1 }}</div>
-                    <div class="manhwa-status">{{ manhwa.last_update }}</div>
-                </a>
-            {% endfor %}
 
             </div>
         </div>

@@ -11,12 +11,12 @@
 
 
 {% block title %}
-    {{ manhwa.title }} Detail
+    {{ manhwa.title }} {% trans 'detail' %}
 {% endblock %}
 
 
 {% block content %}
-    <div class="body" dir="ltr">
+    <div class="body">
         <h1>{% trans 'english title' %} : {{ manhwa.en_title }}</h1>
         <h1>{% trans 'persian title' %} : {{ manhwa.fa_title }}</h1><br>
         <p>{% trans 'views count' %} : {{ manhwa.views_count }}</p>

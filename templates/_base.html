@@ -1,4 +1,6 @@
 {% load static %}
+{% load i18n %}
+
 
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
@@ -26,15 +28,15 @@
                     <div class="line-end"></div>
                 </div>
                 <div class="home-icon">
-                    <span><a href="#">خانه</a></span>
+                    <span><a href="#">{% trans 'home' %}</a></span>
                 </div>
                 <div class="search-box">
-                    <input type="text" placeholder="جستجو">
+                    <input type="text" placeholder="{% trans 'search' %}">
                 </div>
             </div>
 
             <div class="navbar-left">
-                <div class="login-signup">ورود/ثبت نام</div>
+                <div class="login-signup">{% trans 'Login' %}/{% trans 'Signup' %}</div>
                 <!-- <div class="circle">0</div>
                 <div class="circle">Q</div> -->
 
