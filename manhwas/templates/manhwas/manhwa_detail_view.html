@@ -35,7 +35,7 @@
             <h1>user_id : {{ comment.author_id }}</h1>
             <h3>{% trans 'user' %} : {{ comment.author.username }}</h3>
             <h4>{{ comment.text }}</h4>
-            <h6>{{ comment.datetime_modified }}</h6><br>
+            <h6>{{ comment.datetime_modified|timesince }}</h6><br>
         {% endfor %}
 
     </div>
