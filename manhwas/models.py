@@ -131,6 +131,7 @@ class Comment(models.Model):
 
     class Meta:
         unique_together = ('manhwa', 'author', 'text')  # try except for same text and spam robot
+        ordering = ('-datetime_created',)
 
     def __str__(self):
         return f'comment id ={self.id}'
