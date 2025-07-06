@@ -2,6 +2,8 @@ from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.core.validators import RegexValidator
 
+from manhwas.models import Manhwa
+
 
 class CustomUser(AbstractUser):
     phone_regex = RegexValidator(
@@ -15,6 +17,7 @@ class CustomUser(AbstractUser):
         unique=True,
         verbose_name='شماره موبایل'
     )
+    watch_list = models.ManyToManyField(Manhwa, related_name='users', blank=True)
 
     USERNAME_FIELD = 'phone_number'
     REQUIRED_FIELDS = ['username']
