@@ -17,10 +17,10 @@ class CustomUser(AbstractUser):
         unique=True,
         verbose_name='شماره موبایل'
     )
-    watch_list = models.ManyToManyField(Manhwa, related_name='users', blank=True)
+    watch_list = models.ManyToManyField(Manhwa, blank=True)
 
     USERNAME_FIELD = 'phone_number'
-    REQUIRED_FIELDS = ['username']
+    REQUIRED_FIELDS = ['username', 'watch_list']
 
     def __str__(self):
         return self.phone_number

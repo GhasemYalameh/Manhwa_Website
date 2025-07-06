@@ -5,6 +5,8 @@ from django.utils.text import slugify
 from django.contrib.auth import get_user_model
 from django.utils.translation import gettext as _
 
+from config import settings
+
 
 def manhwa_file_upload_to(instance, filename):
     # استفاده از slugify برای تمیز کردن عنوان و جلوگیری از مشکلات مسیر
@@ -76,7 +78,12 @@ class Manhwa(models.Model):
 
 
 class View(models.Model):
-    user = models.ForeignKey(get_user_model(), on_delete=models.CASCADE, verbose_name=_('user'))
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='views',
+        verbose_name=_('user')
+    )
     manhwa = models.ForeignKey(Manhwa, on_delete=models.CASCADE, related_name='views', verbose_name=_('manhwa'))
     datetime_viewed = models.DateTimeField(auto_now_add=True, verbose_name=_('datetime viewed'))
 
@@ -89,7 +96,7 @@ class Rate(models.Model):
         (1, '1'), (2, '2'), (3, '3'),
         (4, '4'), (5, '5'),
     )
-    user = models.ForeignKey(get_user_model(), on_delete=models.CASCADE, verbose_name=_('user'))
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='rates', verbose_name=_('user'))
     manhwa = models.ForeignKey(Manhwa, on_delete=models.CASCADE, related_name='rates', verbose_name=_('manhwa'))
     rating = models.PositiveSmallIntegerField(choices=RATING_CHOICES, verbose_name=_('rating'))
 
@@ -116,7 +123,7 @@ class Episode(models.Model):
 
 class Comment(models.Model):
     author = models.ForeignKey(
-        get_user_model(),
+        settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         related_name='comments',
         verbose_name=_('author')
@@ -147,7 +154,7 @@ class CommentReAction(models.Model):
     )
 
     user = models.ForeignKey(
-        get_user_model(),
+        settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         related_name='comment_reactions',
         verbose_name=_('user')

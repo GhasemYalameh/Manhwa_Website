@@ -1,0 +1,15 @@
+{#{% extends '_base.html' %}#}
+
+<html>
+<body>
+<div class="body">
+        {% for manhwa in user.watch_list.all %}
+            <h2>{{ manhwa.en_title }}</h2>
+            <p>{{ manhwa.summary }}</p>
+            <p>{{ manhwa.publication_datetime }}</p>
+        {% endfor %}
+
+    </div>
+
+</body>
+</html>
