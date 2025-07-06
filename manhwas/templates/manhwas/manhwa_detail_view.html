@@ -30,7 +30,14 @@
         <br><br>
         {% for episode in manhwa.episodes.all %}
             <h3>{% trans 'Episodes' %} : {{ episode.number }} / {{ episode.datetime_created }}</h3>
+        {% endfor %}<br> <br><br>
+        {% for comment in manhwa.comments.all %}
+            <h1>user_id : {{ comment.author_id }}</h1>
+            <h3>{% trans 'user' %} : {{ comment.author.username }}</h3>
+            <h4>{{ comment.text }}</h4>
+            <h6>{{ comment.datetime_modified }}</h6><br>
         {% endfor %}
+
     </div>
 
 

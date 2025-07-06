@@ -108,6 +108,7 @@ class Episode(models.Model):
 
     class Meta:
         unique_together = ('number', 'manhwa')
+        ordering = ('number', )
 
     def __str__(self):
         return str(self.number)

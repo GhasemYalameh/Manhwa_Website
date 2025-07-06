@@ -9,7 +9,7 @@ msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2025-07-05 12:25+0330\n"
-"PO-Revision-Date: 2025-07-05 10:51+0330\n"
+"PO-Revision-Date: 2025-07-05 12:27+0330\n"
 "Last-Translator:   <ghasemyalame06@gmail.com>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
@@ -104,29 +104,26 @@ msgstr "تعداد دانلود"
 
 #: .\models.py:121
 msgid "author"
-msgstr ""
+msgstr "نویسنده"
 
 #: .\models.py:125
-#, fuzzy
 #| msgid "views count"
 msgid "Likes count"
-msgstr "تعداد بازدید"
+msgstr "تعداد موافق (لایک)"
 
 #: .\models.py:126
-#, fuzzy
 #| msgid "views count"
 msgid "disLikes count"
-msgstr "تعداد بازدید"
+msgstr "تعداد مخالف (دیسلایک)"
 
 #: .\models.py:153
 msgid "comment"
-msgstr ""
+msgstr "دیدگاه ها"
 
 #: .\models.py:154
-#, fuzzy
 #| msgid "rating"
 msgid "reaction"
-msgstr "امتیاز"
+msgstr "واکنش"
 
 #: .\templates\manhwas\manhwa_detail_view.html:14
 msgid "detail"

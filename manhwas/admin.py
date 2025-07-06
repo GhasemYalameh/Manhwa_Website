@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django import forms
 
-from .models import Manhwa, Episode, Studio, Genre, Rate, View
+from .models import Manhwa, Episode, Studio, Genre, Rate, View, Comment, CommentReAction
 
 
 class ManhwaAdmin(admin.ModelAdmin):
@@ -37,10 +37,20 @@ class EpisodeAdmin(admin.ModelAdmin):
     list_display = ('number', 'downloads_count', 'manhwa')
 
 
+class CommentAdmin(admin.ModelAdmin):
+    list_display = ('author', 'manhwa', 'datetime_modified',)
+
+
+class CommentReActionAdmin(admin.ModelAdmin):
+    list_display = ('user', 'comment', 'reaction')
+
+
 admin.site.register(Manhwa, ManhwaAdmin)
 admin.site.register(Genre, GenreAdmin)
 admin.site.register(Studio, StudioAdmin)
 admin.site.register(Episode, EpisodeAdmin)
 admin.site.register(Rate, RateAdmin)
 admin.site.register(View, ViewAdmin)
+admin.site.register(Comment, CommentAdmin)
+admin.site.register(CommentReAction, CommentReActionAdmin)
 
