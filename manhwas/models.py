@@ -105,8 +105,8 @@ class Rate(models.Model):
 
 
 class Episode(models.Model):
-    number = models.PositiveIntegerField(default=1, verbose_name=_('number of episode'))
     manhwa = models.ForeignKey(Manhwa, on_delete=models.PROTECT, related_name='episodes', verbose_name=_('manhwa'))
+    number = models.PositiveIntegerField(default=1, verbose_name=_('number of episode'))
     file = models.FileField(upload_to=manhwa_file_upload_to, verbose_name=_('episode file'))
     downloads_count = models.PositiveIntegerField(default=0, verbose_name=_('download count'))
 

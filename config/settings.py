@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     'crispy_bootstrap5',
     'debug_toolbar',
     'rosetta',
+    # 'jalali_date',
 
     # my app
     'accounts.apps.AccountsConfig',
