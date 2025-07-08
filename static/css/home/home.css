@@ -177,6 +177,8 @@
 }
 
 .manhwa-rating{
+    width: 40px;
+    height: 24px;
     position: absolute;
     color: #fff;
     font-size: .7rem;
@@ -192,6 +194,14 @@
     background-color: #0cb12b;
 }
 
+.manhwa-rating svg{
+    color: white;
+    margin-bottom: 5px;
+}
+.manhwa-rating span{
+    padding-top: 10px;
+    color: white;
+}
 
 .box-blur {
     position: absolute;

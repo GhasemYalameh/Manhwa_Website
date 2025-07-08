@@ -3,10 +3,11 @@
 
 {% load static %}
 {% load i18n %}
+{% load crispy_forms_tags %}
 
 
 {% block css %}
-    <link rel="stylesheet" href="{% static 'css/home/home.css' %}">
+    <link rel="stylesheet" href="{% static 'css/manhwa_detail.css' %}">
 {% endblock %}
 
 
@@ -17,26 +18,48 @@
 
 {% block content %}
     <div class="body">
+        <div class="manhwa-cover">
+            <img src="{{ manhwa.cover.url }}" alt="">
+        </div>
         <h1>{% trans 'english title' %} : {{ manhwa.en_title }}</h1>
         <h1>{% trans 'persian title' %} : {{ manhwa.fa_title }}</h1><br>
         <p>{% trans 'views count' %} : {{ manhwa.views_count }}</p>
-        <span>{% trans 'genres' %} :
+ <br><br>
+        <span>{% trans 'genres' %} : </span>
         {% for genre in manhwa.genres.all %}
-            {{ genre.title }},
+            <a href="#" class="genre">{{ genre.title }}</a>
         {% endfor %}
 
-        </span><br><br>
+       <br><br>
         <p>{% trans 'summary' %} : {{ manhwa.summary }}</p>
         <br><br>
         {% for episode in manhwa.episodes.all %}
             <h3>{% trans 'Episodes' %} : {{ episode.number }} / {{ episode.datetime_created }}</h3>
-        {% endfor %}<br> <br><br>
+        {% endfor %}<br><br>
+
+        <h2 class="topic">{% trans 'write your comment : ' %}</h2>
+        <form action="{% url 'add_comment_manhwa' manhwa.id %}" method="post">
+            {% csrf_token %}
+            <h3 >{% trans 'text' %}* :</h3>
+            <textarea class="text-area" name="text" cols="40" rows="6" required="" id="id_text"></textarea>
+            <button class="btn-block" type="submit">{% trans 'send' %}</button>
+        </form>
+
+        <br>
         {% for comment in manhwa.comments.all %}
-            <h1>user_id : {{ comment.author_id }}</h1>
-            <h3>{% trans 'user' %} : {{ comment.author.username }}</h3>
-            <h4>{{ comment.text }}</h4>
-            <h6>{{ comment.datetime_modified|timesince }}</h6><br>
+            <div class="comment-box">
+                <div class="comment-img">
+
+                </div>
+                <div class="comment-content">
+                    <h3>{{ comment.author.username }}</h3>
+                    <p>{{ comment.text }}</p>
+                    <span>{{ comment.datetime_modified|timesince }}</span>
+                </div>
+            </div>
+
         {% endfor %}
+    <br><br>
 
     </div>
 

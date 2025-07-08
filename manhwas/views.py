@@ -1,8 +1,13 @@
-from django.shortcuts import render, get_object_or_404
-from .models import Manhwa, View
+from django.db import IntegrityError
+from django.shortcuts import render, get_object_or_404, redirect, reverse
 from django.db.models import Avg, F, Value, Max, When, Case, CharField
 from django.db.models.functions import Coalesce, Concat, Cast
 from django.utils.translation import gettext as _
+from django.contrib import messages
+
+from .forms import CommentForm
+from .models import Manhwa, View
+
 
 
 def home_page(request):
@@ -50,4 +55,20 @@ def manhwa_detail(request, pk):
                 views_count=F('views_count')+1
             )
 
-    return render(request, 'manhwas/manhwa_detail_view.html', context={'manhwa': manhwa})
+    form = CommentForm()
+
+    return render(request, 'manhwas/manhwa_detail_view.html', context={'manhwa': manhwa, 'form': form})
+
+
+def add_comment_manhwa(request, pk):
+    form = CommentForm(request.POST)
+    if form.is_valid():
+        obj = form.save(commit=False)
+        obj.manhwa_id = pk
+        obj.author = request.user
+        try:
+            obj.save()
+        except IntegrityError:
+            messages.error(request, _("you cant send same text for your comments"))
+
+    return redirect('manhwa_detail', pk=pk)
