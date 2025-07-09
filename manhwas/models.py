@@ -7,6 +7,8 @@ from django.utils.translation import gettext as _
 
 from config import settings
 
+from django_ckeditor_5.fields import CKEditor5Field
+
 
 def manhwa_file_upload_to(instance, filename):
     # استفاده از slugify برای تمیز کردن عنوان و جلوگیری از مشکلات مسیر
@@ -58,7 +60,7 @@ class Manhwa(models.Model):
 
     fa_title = models.CharField(max_length=500, blank=True, verbose_name=_('persian title'))
     en_title = models.CharField(max_length=500, verbose_name=_('english title'))
-    summary = models.TextField(verbose_name=_('summary'))
+    summary = CKEditor5Field('Text', config_name='extends')
     season = models.PositiveIntegerField(default=1, verbose_name=_('season'))
     day_of_week = models.CharField(max_length=30, choices=DAY_OF_THE_WEEK, verbose_name=_('day of the week'))
     cover = models.ImageField(upload_to=manhwa_cover_upload_to, verbose_name=_('manhwa cover'))

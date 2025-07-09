@@ -39,6 +39,6 @@ urlpatterns = [
 
 
 if 'rosetta' in settings.INSTALLED_APPS:
-   urlpatterns += [
+    urlpatterns += [
        re_path(r'^rosetta/', include('rosetta.urls')),
-   ]
+    ]
