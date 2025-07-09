@@ -33,7 +33,7 @@
 
        <br><br>
         <h3>{% trans 'summary' %} : </h3>
-        <p>{{ manhwa.summary|linebreaks }}</p>
+        <p>{{ manhwa.summary|safe|linebreaks }}</p>
         <br><br>
         {% for episode in manhwa.episodes.all %}
             <a href="#" class="episodes">{% trans 'Episode' %} : {{ episode.number }}</a>
