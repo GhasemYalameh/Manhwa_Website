@@ -8,6 +8,7 @@ body{
 }
 
 .body{
+    padding-top: 30px;
     width: 1090px;
     height: 100vh;
     margin: 80px auto;
@@ -16,10 +17,56 @@ body{
 .manhwa-cover{
     width: 200px;
     height: 300px;
+    position: relative;
+    border-radius: 10px;
 }
+
+@property --angle{
+    syntax: "<angle>";
+    initial-value: 0 deg;
+    inherits: false;
+}
+
+
+.manhwa-cover::before,
+.manhwa-cover::after{
+    content: "";
+    position: absolute;
+    height: 100%;
+    width: 100%;
+    top: 50%;
+    left: 50%;
+    translate: -50% -50%;
+    background-image: conic-gradient(
+            from var(--angle),
+            #2AD70EFF, #0ED7C6FF, #1009EDFF,
+            #F605F2FF, #F6053DFF, #F6AA05FF,
+            #2AD70EFF
+    );
+    z-index: -1;
+    padding: 3px;
+    border-radius: 10px;
+
+    animation: 3s my-spin linear infinite;
+
+}
+.manhwa-cover::after{
+    filter: blur(1.5rem);
+    opacity: .5;
+}
+@keyframes my-spin {
+    from{
+        --angle: 0deg;
+    }
+    to{
+        --angle:360deg;
+    }
+}
+
 .manhwa-cover img{
     width: 100%;
     height: 100%;
+    border-radius: 10px;
     object-fit: cover;
 }
 
@@ -31,6 +78,16 @@ body{
     border: 2px solid #a052ff ;
     background-color: rgba(223, 194, 251, 0.8);
     border-radius: 10px;
+}
+
+.episodes{
+    display: block;
+    font-size: 22px;
+    font-weight: bold;
+    padding: 10px 10px;
+    border: 2px solid aqua;
+    border-radius: 20px;
+    margin: 5px 0;
 }
 
 .text-area{

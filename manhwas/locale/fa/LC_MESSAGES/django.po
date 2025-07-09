@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-08 17:29+0330\n"
-"PO-Revision-Date: 2025-07-08 17:30+0330\n"
+"POT-Creation-Date: 2025-07-08 19:53+0330\n"
+"PO-Revision-Date: 2025-07-08 19:54+0330\n"
 "Last-Translator:   <ghasemyalame06@gmail.com>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
@@ -26,15 +26,15 @@ msgstr "نام"
 msgid "description"
 msgstr "توضیحات"
 
-#: .\models.py:59 .\templates\manhwas\manhwa_detail_view.html:22
+#: .\models.py:59 .\templates\manhwas\manhwa_detail_view.html:26
 msgid "persian title"
 msgstr "نام فارسی"
 
-#: .\models.py:60 .\templates\manhwas\manhwa_detail_view.html:21
+#: .\models.py:60 .\templates\manhwas\manhwa_detail_view.html:25
 msgid "english title"
 msgstr "نام انگلیسی"
 
-#: .\models.py:61 .\templates\manhwas\manhwa_detail_view.html:30
+#: .\models.py:61 .\templates\manhwas\manhwa_detail_view.html:35
 msgid "summary"
 msgstr "خلاصه داستان"
 
@@ -62,7 +62,7 @@ msgstr "ژانر"
 msgid "studio"
 msgstr "استودیو"
 
-#: .\models.py:68 .\templates\manhwas\manhwa_detail_view.html:23
+#: .\models.py:68 .\templates\manhwas\manhwa_detail_view.html:27
 msgid "views count"
 msgstr "تعداد بازدید"
 
@@ -75,7 +75,6 @@ msgid "datetime modified"
 msgstr "تاریخ ویرایش"
 
 #: .\models.py:85 .\models.py:99 .\models.py:160
-#: .\templates\manhwas\manhwa_detail_view.html:47
 msgid "user"
 msgstr "کاربر"
 
@@ -92,7 +91,6 @@ msgid "rating"
 msgstr "امتیاز"
 
 #: .\models.py:108
-#| msgid "Episodes"
 msgid "episodes"
 msgstr "قسمت ها"
 
@@ -132,27 +130,36 @@ msgstr "واکنش"
 msgid "detail"
 msgstr "جزئیات"
 
-#: .\templates\manhwas\manhwa_detail_view.html:24
+#: .\templates\manhwas\manhwa_detail_view.html:29
 msgid "genres"
 msgstr "ژانر ها"
 
-#: .\templates\manhwas\manhwa_detail_view.html:33
-msgid "Episodes"
-msgstr "قسمت ها"
+#: .\templates\manhwas\manhwa_detail_view.html:39
+#| msgid "Episodes"
+msgid "Episode"
+msgstr "قسمت"
 
-#: .\templates\manhwas\manhwa_detail_view.html:36
+#: .\templates\manhwas\manhwa_detail_view.html:42
 msgid "write your comment : "
 msgstr "دیدگاه خود را بنویسید : "
 
-#: .\templates\manhwas\manhwa_detail_view.html:39
+#: .\templates\manhwas\manhwa_detail_view.html:45
 msgid "text"
 msgstr "متن"
 
-#: .\templates\manhwas\manhwa_detail_view.html:41
-#| msgid "season"
+#: .\templates\manhwas\manhwa_detail_view.html:47
 msgid "send"
 msgstr "ارسال"
 
-#: .\views.py:21 .\views.py:22
+#: .\templates\manhwas\manhwa_detail_view.html:50
+#| msgid "comment"
+msgid "comments"
+msgstr "دیدگاه ها"
+
+#: .\views.py:24 .\views.py:25
 msgid "No uploaded"
 msgstr "آپلود نشده"
+
+#: .\views.py:72
+msgid "you cant send same text for your comments"
+msgstr "نمیتوانید متن تکراری برای کامنت ها ارسال کنید!"

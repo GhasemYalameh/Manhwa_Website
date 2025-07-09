@@ -190,16 +190,16 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    gap: 2px;
     border-radius: 5px;
     background-color: #0cb12b;
 }
 
 .manhwa-rating svg{
     color: white;
-    margin-bottom: 5px;
 }
 .manhwa-rating span{
-    padding-top: 10px;
+    padding-top: 3px;
     color: white;
 }
 

@@ -21,31 +21,35 @@
         <div class="manhwa-cover">
             <img src="{{ manhwa.cover.url }}" alt="">
         </div>
+        <br>
         <h1>{% trans 'english title' %} : {{ manhwa.en_title }}</h1>
         <h1>{% trans 'persian title' %} : {{ manhwa.fa_title }}</h1><br>
         <p>{% trans 'views count' %} : {{ manhwa.views_count }}</p>
- <br><br>
+        <br><br>
         <span>{% trans 'genres' %} : </span>
         {% for genre in manhwa.genres.all %}
             <a href="#" class="genre">{{ genre.title }}</a>
         {% endfor %}
 
        <br><br>
-        <p>{% trans 'summary' %} : {{ manhwa.summary }}</p>
+        <h3>{% trans 'summary' %} : </h3>
+        <p>{{ manhwa.summary|linebreaks }}</p>
         <br><br>
         {% for episode in manhwa.episodes.all %}
-            <h3>{% trans 'Episodes' %} : {{ episode.number }} / {{ episode.datetime_created }}</h3>
+            <a href="#" class="episodes">{% trans 'Episode' %} : {{ episode.number }}</a>
         {% endfor %}<br><br>
 
         <h2 class="topic">{% trans 'write your comment : ' %}</h2>
         <form action="{% url 'add_comment_manhwa' manhwa.id %}" method="post">
             {% csrf_token %}
-            <h3 >{% trans 'text' %}* :</h3>
+            <h3 >*{% trans 'text' %} :</h3>
             <textarea class="text-area" name="text" cols="40" rows="6" required="" id="id_text"></textarea>
             <button class="btn-block" type="submit">{% trans 'send' %}</button>
         </form>
-
         <br>
+        <br>
+        <h2>{% trans 'comments' %} : </h2>
+
         {% for comment in manhwa.comments.all %}
             <div class="comment-box">
                 <div class="comment-img">
