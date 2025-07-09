@@ -32,7 +32,9 @@ urlpatterns = [
     path('login/', CustomLoginView.as_view(), name='login'),
     path('logout/', auth_views.LogoutView.as_view(), name='logout'),
     path('register/', register_view, name='register'),
-    # path('autocomplete/', include('dal.urls')),
+
+    path("ckeditor5/", include('django_ckeditor_5.urls')),  # ckeditor url
+
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT) + debug_toolbar_urls()
 
 
