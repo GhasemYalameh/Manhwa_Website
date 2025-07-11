@@ -1,7 +1,8 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth import login, authenticate
-from django.contrib.auth.views import LoginView
+from django.contrib.auth.views import LoginView, LogoutView
 from django.contrib import messages
+from django.utils.translation import gettext as _
 from .forms import CustomUserCreationForm, CustomAuthenticationForm
 from .models import CustomUser
 
@@ -13,6 +14,12 @@ class CustomLoginView(LoginView):
     def form_valid(self, form):
         messages.success(self.request, 'با موفقیت وارد شدید!')
         return super().form_valid(form)
+
+
+class CustomLogoutView(LogoutView):
+    def dispatch(self, request, *args, **kwargs):
+        messages.success(request, _('successfully you are logged out'))
+        return super().dispatch(request, *args, **kwargs)
 
 
 def register_view(request):

@@ -36,9 +36,31 @@
             </div>
 
             <div class="navbar-left">
-                <div class="login-signup">{% trans 'Login' %}/{% trans 'Signup' %}</div>
-                <!-- <div class="circle">0</div>
-                <div class="circle">Q</div> -->
+
+{#              <div class="circle">#}
+{#              </div>#}
+
+                <div class="login-signup">
+                    {% if user.is_authenticated %}
+                        <form style="display: inline" action="{% url "logout" %}" method="post">
+                            {% csrf_token %}
+                            <button style="
+                                        background-color: inherit;
+                                        border: none;
+                                        font-size: inherit;
+                                        font-family:'vazir', sans-serif;
+                                        font-weight: bold;"
+                                    type="submit">
+                                                Logout
+                            </button>
+                        </form>
+                    {% else %}
+                        <a href="{% url 'login' %}">{% trans 'Login' %}</a>/
+                        <a href="{% url 'register' %}"> {% trans 'Signup' %} </a></div>
+                    {% endif %}
+
+
+
 
             </div>
 

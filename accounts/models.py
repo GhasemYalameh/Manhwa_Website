@@ -20,7 +20,7 @@ class CustomUser(AbstractUser):
     watch_list = models.ManyToManyField(Manhwa, blank=True)
 
     USERNAME_FIELD = 'phone_number'
-    REQUIRED_FIELDS = ['username', 'watch_list']
+    REQUIRED_FIELDS = ['username']
 
     def __str__(self):
         return self.phone_number

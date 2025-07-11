@@ -18,7 +18,7 @@ from django.contrib import admin
 from django.urls import path, include, re_path
 from django.conf.urls.static import static
 from django.contrib.auth import views as auth_views
-from accounts.views import CustomLoginView, register_view
+from accounts.views import CustomLoginView, register_view, CustomLogoutView
 
 from debug_toolbar.toolbar import debug_toolbar_urls
 
@@ -30,7 +30,7 @@ urlpatterns = [
     path('', include('manhwas.urls')),
     path('account/', include('accounts.urls')),
     path('login/', CustomLoginView.as_view(), name='login'),
-    path('logout/', auth_views.LogoutView.as_view(), name='logout'),
+    path('logout/', CustomLogoutView.as_view(), name='logout'),
     path('register/', register_view, name='register'),
 
     path("ckeditor5/", include('django_ckeditor_5.urls')),  # ckeditor url
