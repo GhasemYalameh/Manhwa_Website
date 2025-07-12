@@ -13,6 +13,10 @@ body{
     height: 100vh;
     margin: 80px auto;
 }
+.body p{
+    background-color: inherit;
+    color: white;
+}
 
 .manhwa-cover{
     width: 200px;

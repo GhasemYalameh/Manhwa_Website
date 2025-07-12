@@ -25,22 +25,23 @@ body{
 
 .navbar{
     position: fixed;
-    z-index: 2;
     top: 0;
+    z-index: 2;
+
     display: flex;
     justify-content: space-between;
     align-items: center;
     
     width: 100vw;
     height: 80px;
-    padding: 7px 15px 7px 25px;
+    padding: 7px 100px 7px 60px;
 
     background-color: #121212;
     color: white;
 }
 .navbar-right{
     display: flex;
-    gap: 20px;
+    gap: 30px;
     height: 70%;
 
 }
@@ -75,6 +76,7 @@ body{
     text-decoration: none;
     color: white;
     font-size: 20px;
+    font-weight: bold;
 }
 
 .search-box{
