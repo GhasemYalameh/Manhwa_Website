@@ -40,7 +40,7 @@
         {% endfor %}<br><br>
 
         <h2 class="topic">{% trans 'write your comment : ' %}</h2>
-        <form action="{% url 'add_comment_manhwa' manhwa.id %}" method="post">
+        <form id="comment-form" action="{% url 'add_comment_manhwa' manhwa.id %}" method="post">
             {% csrf_token %}
             <h3 >*{% trans 'text' %} :</h3>
             <textarea class="text-area" name="text" cols="40" rows="6" required="" id="id_text"></textarea>
@@ -50,23 +50,27 @@
         <br>
         <h2>{% trans 'comments' %} : </h2>
 
-        {% for comment in manhwa.comments.all %}
-            <div class="comment-box">
-                <div class="comment-img">
-
+        <div id="comments-list" class="comments">
+            {% for comment in manhwa.comments.all %}
+                <div class="comment-box">
+                    <div class="comment-img">
+                    </div>
+                    <div class="comment-content">
+                        <h3>{{ comment.author.username }}</h3>
+                        <p>{{ comment.text }}</p>
+                        <span>{{ comment.datetime_modified|timesince }}</span>
+                    </div>
                 </div>
-                <div class="comment-content">
-                    <h3>{{ comment.author.username }}</h3>
-                    <p>{{ comment.text }}</p>
-                    <span>{{ comment.datetime_modified|timesince }}</span>
-                </div>
-            </div>
-
-        {% endfor %}
+            {% endfor %}
+        </div>
     <br><br>
 
     </div>
 
 
 
+{% endblock %}
+
+{% block js %}
+    <script src="{% static 'js/manhwa_detail.js' %}"></script>
 {% endblock %}

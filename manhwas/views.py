@@ -1,13 +1,16 @@
 from django.db import IntegrityError
+from django.http import JsonResponse
 from django.shortcuts import render, get_object_or_404, redirect, reverse
 from django.db.models import Avg, F, Value, Max, When, Case, CharField
 from django.db.models.functions import Coalesce, Concat, Cast
+from django.utils.timesince import timesince
 from django.utils.translation import gettext as _
 from django.contrib import messages
 
 from .forms import CommentForm
 from .models import Manhwa, View
 
+import json
 
 
 def home_page(request):
@@ -61,15 +64,42 @@ def manhwa_detail(request, pk):
 
 
 def add_comment_manhwa(request, pk):
-    form = CommentForm(request.POST)
+    data = json.loads(request.body)
+
+    form_data = {
+        'text': data.get('body')
+    }
+    form = CommentForm(form_data)
+
     if form.is_valid():
         obj = form.save(commit=False)
-        obj.manhwa_id = pk
         obj.author = request.user
+        obj.manhwa_id = pk
         try:
             obj.save()
-            messages.success(request, _('your comment successfully added!'))
+            response = {
+                'status': True,
+                'author': request.user.username,
+                'body': data.get('body'),
+                'datetime_modified': timesince(obj.datetime_modified),
+                'message': _('comment successfully added.')
+                }
         except IntegrityError:
-            messages.error(request, _("you cant send same text for your comments"))
+            response = {'status': False, 'message': _('you can not send same text for comments.')}
 
-    return redirect('manhwa_detail', pk=pk)
+    else:
+        response = {'status': False, 'errors': form.errors, 'message': 'form is not valid'}
+
+    return JsonResponse(response)
+    # form = CommentForm(request.POST)
+    # if form.is_valid():
+    #     obj = form.save(commit=False)
+    #     obj.manhwa_id = pk
+    #     obj.author = request.user
+    #     try:
+    #         obj.save()
+    #         messages.success(request, _('your comment successfully added!'))
+    #     except IntegrityError:
+    #         messages.error(request, _("you cant send same text for your comments"))
+    #
+    # return redirect('manhwa_detail', pk=pk)
