@@ -68,6 +68,7 @@ def add_comment_manhwa(request, pk):
         obj.author = request.user
         try:
             obj.save()
+            messages.success(request, _('your comment successfully added!'))
         except IntegrityError:
             messages.error(request, _("you cant send same text for your comments"))
 
