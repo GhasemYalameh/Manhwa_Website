@@ -64,3 +64,42 @@ form.onsubmit = function (e){
         )
 }
 
+function reactionHandler(comment_id, reaction){
+
+    fetch(`/comment-reaction/${comment_id}/`, {
+        method: 'POST',
+        headers:{
+            'Content-Type': 'application/json',
+            'X-CSRFToken': get_csrf_token()
+        },
+        body: JSON.stringify({
+            reaction: reaction
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status){
+            changeCommentUi(comment_id, data)
+        }
+    })
+
+}
+
+function changeCommentUi(comment_id, data){
+    let like_btn = document.getElementById(`comment-${comment_id}-lk-count`)
+    let dislike_btn = document.getElementById(`comment-${comment_id}-dlk-count`)
+
+    like_btn.classList.remove('active')
+    dislike_btn.classList.remove('active')
+
+    if (data.reaction === 'like'){
+        like_btn.classList.add('active')
+    }else if (data.reaction === 'dislike'){
+        dislike_btn.classList.add('active')
+    }
+    console.log(data.likes_count)
+    console.log(data.dis_likes_count)
+    like_btn.innerHTML = "lk:" + data.likes_count
+    dislike_btn.innerHTML = "dlk:" + data.dis_likes_count
+
+}
