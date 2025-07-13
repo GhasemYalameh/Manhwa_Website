@@ -1,14 +1,14 @@
 from django.db import IntegrityError
 from django.http import JsonResponse
-from django.shortcuts import render, get_object_or_404, redirect, reverse
+from django.shortcuts import render, get_object_or_404
 from django.db.models import Avg, F, Value, Max, When, Case, CharField
 from django.db.models.functions import Coalesce, Concat, Cast
 from django.utils.timesince import timesince
 from django.utils.translation import gettext as _
-from django.contrib import messages
+from django.views.decorators.http import require_POST
 
 from .forms import CommentForm
-from .models import Manhwa, View
+from .models import Manhwa, View, CommentReAction, Comment
 
 import json
 
@@ -61,6 +61,97 @@ def manhwa_detail(request, pk):
     form = CommentForm()
 
     return render(request, 'manhwas/manhwa_detail_view.html', context={'manhwa': manhwa, 'form': form})
+
+
+@require_POST
+def change_or_create_reaction(request, pk):
+    data = json.loads(request.body)
+    reaction = data.get('reaction')
+
+    allow_reactions = [CommentReAction.LIKE, CommentReAction.DISLIKE]
+
+    if reaction not in allow_reactions:
+        return JsonResponse({'status': False, 'message': _('reaction not true')})
+
+    try:
+        # if reaction does exist
+
+        reaction_obj = CommentReAction.objects.get(
+            user=request.user,
+            comment_id=pk
+        )
+
+        # if reaction repeated. then delete reaction
+        if reaction_obj.reaction == reaction:
+            reaction_obj.delete()
+
+            # decrease comment likes or dislikes count field
+            if reaction == CommentReAction.LIKE:
+                Comment.objects.filter(pk=pk).update(likes_count=F('likes_count') - 1)
+            else:
+                Comment.objects.filter(pk=pk).update(dis_likes_count=F('dis_likes_count') - 1)
+
+            comment = get_object_or_404(Comment, pk=pk)
+            response = {
+                'status': True,
+                'reaction': '',
+                'message': _('reaction removed'),
+                'likes_count': comment.likes_count,
+                'dis_likes_count': comment.dis_likes_count
+            }
+
+        else:  # if reaction is different
+
+            reaction_obj.reaction = reaction
+            reaction_obj.save()
+
+            # change comment likes and dislikes count
+            if reaction == CommentReAction.LIKE:
+                Comment.objects.filter(pk=pk).update(
+                    likes_count=F('likes_count') + 1,
+                    dis_likes_count=F('dis_likes_count') - 1
+                )
+
+            else:
+                Comment.objects.filter(pk=pk).update(
+                    likes_count=F('likes_count') - 1,
+                    dis_likes_count=F('dis_likes_count') + 1
+                )
+
+            comment = get_object_or_404(Comment, pk=pk)
+
+            response = {
+                'status': True,
+                'reaction': 'like' if reaction == 'like' else 'dislike',
+                'message': _('reaction changed'),
+                'likes_count': comment.likes_count,
+                'dis_likes_count': comment.dis_likes_count
+            }
+
+    except CommentReAction.DoesNotExist:  # if reaction is not in db created it
+        CommentReAction.objects.create(
+            user=request.user,
+            comment_id=pk,
+            reaction=reaction
+        )
+
+        # increase likes or dislikes count
+        if reaction == CommentReAction.LIKE:
+            Comment.objects.filter(pk=pk).update(likes_count=F('likes_count') + 1)
+        else:
+            Comment.objects.filter(pk=pk).update(dis_likes_count=F('dis_likes_count') + 1)
+
+        comment = get_object_or_404(Comment, pk=pk)
+
+        response = {
+            'status': True,
+            'reaction': 'like',
+            'message': _('add reaction'),
+            'likes_count': comment.likes_count,
+            'dis_likes_count': comment.dis_likes_count
+        }
+    print(response)
+    return JsonResponse(response)
 
 
 def add_comment_manhwa(request, pk):
