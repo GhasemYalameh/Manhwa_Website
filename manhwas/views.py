@@ -122,7 +122,7 @@ def change_or_create_reaction(request, pk):
 
             response = {
                 'status': True,
-                'reaction': 'like' if reaction == 'like' else 'dislike',
+                'reaction': 'like' if reaction == CommentReAction.LIKE else 'dislike',
                 'message': _('reaction changed'),
                 'likes_count': comment.likes_count,
                 'dis_likes_count': comment.dis_likes_count
@@ -145,15 +145,15 @@ def change_or_create_reaction(request, pk):
 
         response = {
             'status': True,
-            'reaction': 'like',
+            'reaction': 'like' if reaction == CommentReAction.LIKE else 'dislike',
             'message': _('add reaction'),
             'likes_count': comment.likes_count,
             'dis_likes_count': comment.dis_likes_count
         }
-    print(response)
     return JsonResponse(response)
 
 
+@require_POST
 def add_comment_manhwa(request, pk):
     data = json.loads(request.body)
 
@@ -182,15 +182,4 @@ def add_comment_manhwa(request, pk):
         response = {'status': False, 'errors': form.errors, 'message': 'form is not valid'}
 
     return JsonResponse(response)
-    # form = CommentForm(request.POST)
-    # if form.is_valid():
-    #     obj = form.save(commit=False)
-    #     obj.manhwa_id = pk
-    #     obj.author = request.user
-    #     try:
-    #         obj.save()
-    #         messages.success(request, _('your comment successfully added!'))
-    #     except IntegrityError:
-    #         messages.error(request, _("you cant send same text for your comments"))
-    #
-    # return redirect('manhwa_detail', pk=pk)
+

@@ -97,8 +97,7 @@ function changeCommentUi(comment_id, data){
     }else if (data.reaction === 'dislike'){
         dislike_btn.classList.add('active')
     }
-    console.log(data.likes_count)
-    console.log(data.dis_likes_count)
+
     like_btn.innerHTML = "lk:" + data.likes_count
     dislike_btn.innerHTML = "dlk:" + data.dis_likes_count
 
