@@ -64,9 +64,23 @@ form.onsubmit = function (e){
                         <div class="comment-img">
                         </div>
                         <div class="comment-content">
-                            <h3>${data.author}</h3>
+                            <h3>${data.author_name }</h3>
                             <p>${data.body}</p>
-                            <span>${data.datetime_modified}</span>
+                            <div class="comment-bottom">
+                                <span>${data.datetime_modified}</span>
+                                <div class="comment-reactions">
+                                    <button
+                                            onclick="reactionHandler(${data.comment_id}, 'lk')"
+                                            id="comment-${data.comment_id}-lk-count">
+                                        lk:0
+                                    </button>
+                                    <button
+                                            onclick="reactionHandler(${data.comment_id}, 'dlk')"
+                                            id="comment-${data.comment_id}-dlk-count">
+                                        dlk:0
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 `

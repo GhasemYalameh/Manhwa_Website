@@ -179,7 +179,8 @@ def add_comment_manhwa(request, pk):
             obj.save()
             response = {
                 'status': True,
-                'author': request.user.username,
+                'comment_id': obj.id,
+                'author_name': request.user.username,
                 'body': data.get('body'),
                 'datetime_modified': timesince(obj.datetime_modified),
                 'message': _('comment successfully added.')
