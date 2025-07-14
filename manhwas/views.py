@@ -1,6 +1,6 @@
 from django.db import IntegrityError
 from django.http import JsonResponse
-from django.shortcuts import render, get_object_or_404, redirect
+from django.shortcuts import render, get_object_or_404
 from django.db.models import Avg, F, Value, Max, When, Case, CharField, Subquery, OuterRef
 from django.db.models.functions import Coalesce, Concat, Cast
 from django.utils.timesince import timesince
@@ -9,8 +9,6 @@ from django.views.decorators.http import require_POST
 
 from .forms import CommentForm
 from .models import Manhwa, View, CommentReAction, Comment
-
-from accounts.models import CustomUser
 
 import json
 
@@ -204,13 +202,4 @@ def add_comment_manhwa(request, pk):
         response = {'status': False, 'errors': form.errors, 'message': 'form is not valid'}
 
     return JsonResponse(response)
-
-
-def set_zero_reaction(request, pk):
-    Comment.objects.filter(manhwa_id=pk).update(likes_count=0, dis_likes_count=0)
-    comments = Comment.objects.filter(manhwa_id=pk)
-    for comment in comments:
-        for reaction in comment.reactions.all():
-            reaction.delete()
-    return redirect('manhwa_detail', pk=pk)
 
