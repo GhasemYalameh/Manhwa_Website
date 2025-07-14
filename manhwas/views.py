@@ -75,14 +75,11 @@ def manhwa_detail(request, pk):
     else:
         comments = Comment.objects.filter(manhwa_id=pk).select_related('author').all()
 
-    form = CommentForm()
-
     return render(
         request,
         'manhwas/manhwa_detail_view.html',
         context={
             'manhwa': manhwa,
-            'form': form,
             'comments': comments
         }
       )
