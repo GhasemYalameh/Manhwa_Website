@@ -18,6 +18,7 @@
 
 {% block content %}
     <div class="body">
+        <a href="{% url 'set_zero_reactions' manhwa.id %}"> set zero</a>
         <div class="manhwa-cover">
             <img src="{{ manhwa.cover.url }}" alt="">
         </div>
@@ -51,7 +52,7 @@
         <h2>{% trans 'comments' %} : </h2>
 
         <div id="comments-list" class="comments">
-            {% for comment in manhwa.comments.all %}
+            {% for comment in comments %}
                 <div class="comment-box">
                     <div class="comment-img">
                     </div>
@@ -62,11 +63,13 @@
                             <span>{{ comment.datetime_modified|timesince }}</span>
                             <div class="comment-reactions">
                                 <button
+                                        class="{% if comment.user_reaction == 'lk' %}active{% endif %}"
                                         onclick="reactionHandler({{ comment.id }}, 'lk')"
                                         id="comment-{{ comment.id }}-lk-count">
                                     lk:{{ comment.likes_count }}
                                 </button>
                                 <button
+                                        class="{% if comment.user_reaction == 'dlk' %}active{% endif %}"
                                         onclick="reactionHandler({{ comment.id }}, 'dlk')"
                                         id="comment-{{ comment.id }}-dlk-count">
                                     dlk:{{ comment.dis_likes_count }}
