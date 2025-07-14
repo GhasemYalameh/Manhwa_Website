@@ -48,17 +48,6 @@ def manhwa_detail(request, pk):
 
     if request.user.is_authenticated:
 
-        # if user viewed the manhwa in past created=False
-        #  else create a view and created=True
-        view_obj, created = View.objects.get_or_create(
-            user=request.user,
-            manhwa_id=pk,
-        )
-        if created:
-            Manhwa.objects.filter(pk=pk).update(
-                views_count=F('views_count')+1
-            )
-
         user_reacted_subquery = CommentReAction.objects.filter(
             user_id=request.user.id,
             comment_id=OuterRef('pk')
@@ -203,3 +192,27 @@ def add_comment_manhwa(request, pk):
 
     return JsonResponse(response)
 
+
+@require_POST
+def set_user_view_for_manhwa(request, pk):
+    response = {
+        'status': False,
+        'message': _('user is not authenticated')
+    }
+
+    if request.user.is_authenticated:
+
+        view_obj, created = View.objects.get_or_create(
+            user_id=request.user.id,
+            manhwa_id=pk
+        )
+
+        if created:
+            Manhwa.objects.filter(id=pk).update(views_count=F('views_count') + 1)
+            response['status'] = True
+            response['message'] = _('user view added to manhwa.')
+
+        else:
+            response['message'] = _('user viewed in past')
+
+    return JsonResponse(response)

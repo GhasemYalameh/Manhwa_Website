@@ -7,18 +7,37 @@ const manhwa_id = path_names[path_names.length - 2]
 const comment_text = document.getElementById('id_text').value
 
 function get_csrf_token(){
-    let cookieValue = null
-    if (document.cookie && document.cookie!==''){
-        const cookie = document.cookie.split(';')
-        for (const cookieItem of cookie){
-            const cookie = cookieItem.trim()
-            if (cookie.substring(0, 10)===('csrftoken=')){
-                cookieValue = decodeURIComponent(cookie.substring(10))
-            }
-        }
-    }
-    return cookieValue
+    const cookieString = document.cookie
+    if (!cookieString) return null;
+
+    const csrf_token =
+        cookieString
+            .split(';')
+            .find(cookie => cookie.trim().startsWith('csrftoken='));
+
+    if (!csrf_token) return null
+
+    return csrf_token.split('=')[1]
 }
+
+
+document.addEventListener('DOMContentLoaded', function (){
+
+    fetch('set-view/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': get_csrf_token()
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status) console.log(data.message)
+        else console.log(data.message)
+    })
+    .catch(error => console.error(error))
+})
+
 
 form.onsubmit = function (e){
     e.preventDefault() //provide refresh
