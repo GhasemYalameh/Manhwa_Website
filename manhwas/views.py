@@ -74,13 +74,21 @@ def manhwa_detail(request, pk):
 
 @require_POST
 def change_or_create_reaction(request, pk):
+
+    # user must logging
+    if not request.user.is_authenticated:
+        return JsonResponse({
+            'status': False,
+            'error': 'user is not logging.',
+            'message': _('you cant set reaction because your not logging')})
+
     data = json.loads(request.body)
     reaction = data.get('reaction')
 
     allow_reactions = [CommentReAction.LIKE, CommentReAction.DISLIKE]
 
     if reaction not in allow_reactions:
-        return JsonResponse({'status': False, 'error': 'reaction not true', 'message':_('reaction not true')})
+        return JsonResponse({'status': False, 'error': 'reaction not true', 'message': _('reaction not true')})
 
     try:
         # if reaction does exist
@@ -164,6 +172,16 @@ def change_or_create_reaction(request, pk):
 
 @require_POST
 def add_comment_manhwa(request, pk):
+
+    response = {
+        'status': False,
+    }
+
+    # if user not login . return false
+    if not request.user.is_authenticated:
+        response['message'] = _('you cant send comment. please login or signup if you dont have an account')
+        return JsonResponse(response)
+
     data = json.loads(request.body)
 
     form_data = {
@@ -186,14 +204,11 @@ def add_comment_manhwa(request, pk):
                 'message': _('comment successfully added.')
                 }
         except IntegrityError:
-            response = {'status': False, 'message': _('you can not send same text for comments.')}
+            response['message'] = _('you can not send same text for comments.')
 
     else:
-        response = {
-            'status': False,
-            'errors': form.errors,
-            'message': 'your text is not valid. please dont use html tags.'
-        }
+        response['errors'] = form.errors
+        response['message'] = _('your text is not valid. please dont use html tags.')
 
     return JsonResponse(response)
 
