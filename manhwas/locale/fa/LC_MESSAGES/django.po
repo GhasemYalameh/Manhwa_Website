@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-12 20:25+0330\n"
-"PO-Revision-Date: 2025-07-12 20:26+0330\n"
+"POT-Creation-Date: 2025-07-16 14:46+0330\n"
+"PO-Revision-Date: 2025-07-16 14:54+0330\n"
 "Last-Translator:   <>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
@@ -154,14 +154,48 @@ msgstr "ارسال"
 msgid "comments"
 msgstr "دیدگاه ها"
 
-#: .\views.py:24 .\views.py:25
+#: .\views.py:27 .\views.py:28
 msgid "No uploaded"
 msgstr "آپلود نشده"
 
-#: .\views.py:71
-msgid "your comment successfully added!"
+#: .\views.py:83
+#| msgid "reaction"
+msgid "reaction not true"
+msgstr "واکنش درست نیست"
+
+#: .\views.py:107
+#| msgid "reaction"
+msgid "reaction removed"
+msgstr "واکنش شما حذف شد."
+
+#: .\views.py:135
+#| msgid "reaction"
+msgid "reaction changed"
+msgstr "واکنش شما تعویض شد."
+
+#: .\views.py:158
+#| msgid "reaction"
+msgid "add reaction"
+msgstr "واکنش اضافه شد."
+
+#: .\views.py:186
+#| msgid "your comment successfully added!"
+msgid "comment successfully added."
 msgstr "دیدگاه شما ثبت شد!"
 
-#: .\views.py:73
-msgid "you cant send same text for your comments"
+#: .\views.py:189
+#| msgid "you cant send same text for your comments"
+msgid "you can not send same text for comments."
 msgstr "نمیتوانید متن تکراری برای کامنت ها ارسال کنید!"
+
+#: .\views.py:201
+msgid "user is not authenticated"
+msgstr ""
+
+#: .\views.py:214
+msgid "user view added to manhwa."
+msgstr ""
+
+#: .\views.py:217
+msgid "user viewed in past"
+msgstr ""
