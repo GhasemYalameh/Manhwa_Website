@@ -87,10 +87,11 @@ form.onsubmit = function (e){
                 const currentCommentsList = document.getElementById('comments-list')
                 document.getElementById('comments-list').innerHTML =
                     new_comment + currentCommentsList.innerHTML;
-
+                document.getElementById('id_text').value = ""
 
             }
-            document.getElementById('id_text').value = ""
+            showMessage(data.status===true ? 'success':'error', data.message)
+
 
             }
 
@@ -113,6 +114,7 @@ function reactionHandler(comment_id, reaction){
     .then(data => {
         if (data.status){
             changeCommentUi(comment_id, data)
+            showMessage(data.status===true ? 'success':'error', data.message)
         }
     })
 
@@ -133,5 +135,21 @@ function changeCommentUi(comment_id, data){
 
     like_btn.innerHTML = "lk:" + data.likes_count
     dislike_btn.innerHTML = "dlk:" + data.dis_likes_count
+
+}
+
+function  showMessage(message_type, message){
+    if (!message) return ;
+    const messageList = document.querySelector('.messages');
+    const li = document.createElement('li');
+    li.className = message_type==='success' ? 'success':'error';
+    li.textContent = message;
+
+    messageList.appendChild(li);
+
+    setTimeout(() => {
+        li.remove()
+    }, 2000)
+
 
 }

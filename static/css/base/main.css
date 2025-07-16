@@ -129,8 +129,11 @@ a{
 
 .messages {
     list-style: none;
+    position: fixed;
     padding: 0;
-    margin: 80px 0;
+    display: block;
+    width: 100%;
+    z-index: 1;
 }
 
 .messages li {
