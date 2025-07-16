@@ -33,7 +33,7 @@ def home_page(request):
                     default=Cast('last_episode', CharField())
                 ),
                 output_field=CharField())
-            ))
+            )).order_by('-datetime_created')
     return render(request, 'home.html', context={'manhwas': manhwas})
 
 
@@ -80,7 +80,7 @@ def change_or_create_reaction(request, pk):
     allow_reactions = [CommentReAction.LIKE, CommentReAction.DISLIKE]
 
     if reaction not in allow_reactions:
-        return JsonResponse({'status': False, 'message': _('reaction not true')})
+        return JsonResponse({'status': False, 'error': 'reaction not true', 'message':_('reaction not true')})
 
     try:
         # if reaction does exist
@@ -132,7 +132,7 @@ def change_or_create_reaction(request, pk):
             response = {
                 'status': True,
                 'reaction': 'like' if reaction == CommentReAction.LIKE else 'dislike',
-                'message': _('reaction changed'),
+                'message': _('your reaction changed'),
                 'likes_count': comment.likes_count,
                 'dis_likes_count': comment.dis_likes_count
             }
@@ -155,7 +155,7 @@ def change_or_create_reaction(request, pk):
         response = {
             'status': True,
             'reaction': 'like' if reaction == CommentReAction.LIKE else 'dislike',
-            'message': _('add reaction'),
+            'message': _('your reaction added'),
             'likes_count': comment.likes_count,
             'dis_likes_count': comment.dis_likes_count
         }
@@ -189,7 +189,11 @@ def add_comment_manhwa(request, pk):
             response = {'status': False, 'message': _('you can not send same text for comments.')}
 
     else:
-        response = {'status': False, 'errors': form.errors, 'message': 'form is not valid'}
+        response = {
+            'status': False,
+            'errors': form.errors,
+            'message': 'your text is not valid. please dont use html tags.'
+        }
 
     return JsonResponse(response)
 
@@ -198,7 +202,8 @@ def add_comment_manhwa(request, pk):
 def set_user_view_for_manhwa(request, pk):
     response = {
         'status': False,
-        'message': _('user is not authenticated')
+        'error': 'user is not authenticated',
+        'message': ''
     }
 
     if request.user.is_authenticated:

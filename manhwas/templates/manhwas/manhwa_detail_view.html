@@ -57,7 +57,7 @@
                     </div>
                     <div class="comment-content">
                         <h3>{{ comment.author.username }}</h3>
-                        <p>{{ comment.text }}</p>
+                        <p>{{ comment.text|linebreaks }}</p>
                         <div class="comment-bottom">
                             <span>{{ comment.datetime_modified|timesince }}</span>
                             <div class="comment-reactions">
