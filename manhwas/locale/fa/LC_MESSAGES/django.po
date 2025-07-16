@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-16 15:15+0330\n"
-"PO-Revision-Date: 2025-07-16 15:16+0330\n"
+"POT-Creation-Date: 2025-07-16 17:25+0330\n"
+"PO-Revision-Date: 2025-07-16 17:28+0330\n"
 "Last-Translator:   <>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
@@ -159,36 +159,47 @@ msgid "No uploaded"
 msgstr "آپلود نشده"
 
 #: .\views.py:83
+msgid "you cant set reaction because your not logging"
+msgstr "لطفا ابتدا وارد اکانت خود شوید."
+
+#: .\views.py:91
 msgid "reaction not true"
 msgstr "واکنش درست نیست"
 
-#: .\views.py:107
+#: .\views.py:115
 msgid "reaction removed"
 msgstr "واکنش شما حذف شد."
 
-#: .\views.py:135
-#| msgid "reaction changed"
+#: .\views.py:143
 msgid "your reaction changed"
 msgstr "واکنش شما تعویض شد."
 
-#: .\views.py:158
-#| msgid "reaction changed"
+#: .\views.py:166
 msgid "your reaction added"
 msgstr "واکنش شما اضافه شد."
 
-#: .\views.py:186
+#: .\views.py:182
+msgid ""
+"you cant send comment. please login or signup if you dont have an account"
+msgstr "لطفا ابتدا وارد اکانت خود شوید."
+
+#: .\views.py:204
 msgid "comment successfully added."
 msgstr "دیدگاه شما ثبت شد!"
 
-#: .\views.py:189
+#: .\views.py:207
 msgid "you can not send same text for comments."
 msgstr "نمیتوانید متن تکراری برای کامنت ها ارسال کنید!"
 
-#: .\views.py:219
+#: .\views.py:211
+msgid "your text is not valid. please dont use html tags."
+msgstr "متن شما معتبر نیست. از نوشتن تگ های html بپرهیزید."
+
+#: .\views.py:234
 msgid "user view added to manhwa."
 msgstr ""
 
-#: .\views.py:222
+#: .\views.py:237
 msgid "user viewed in past"
 msgstr ""
 
