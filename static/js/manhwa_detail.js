@@ -59,13 +59,15 @@ form.onsubmit = function (e){
         .then(response => response.json())
         .then( data => {
             if (data.status){
-                const new_comment = `
-                    <div class="comment-box">
+
+                const newComment = document.createElement('div');
+                newComment.classList.add('comment-box');
+                newComment.innerHTML = `
                         <div class="comment-img">
                         </div>
                         <div class="comment-content">
                             <h3>${data.author_name }</h3>
-                            <p>${data.body}</p>
+                            <p>${data.body.replace(/\n/g, '<br>')}</p>
                             <div class="comment-bottom">
                                 <span>${data.datetime_modified}</span>
                                 <div class="comment-reactions">
@@ -82,19 +84,14 @@ form.onsubmit = function (e){
                                 </div>
                             </div>
                         </div>
-                    </div>
-                `
-                const currentCommentsList = document.getElementById('comments-list')
-                document.getElementById('comments-list').innerHTML =
-                    new_comment + currentCommentsList.innerHTML;
+                `;
+
+                document.getElementById('comments-list').prepend(newComment);
                 document.getElementById('id_text').value = ""
 
             }
             showMessage(data.status===true ? 'success':'error', data.message)
-
-
             }
-
         )
 }
 
@@ -113,9 +110,9 @@ function reactionHandler(comment_id, reaction){
     .then(response => response.json())
     .then(data => {
         if (data.status){
-            changeCommentUi(comment_id, data)
-            showMessage(data.status===true ? 'success':'error', data.message)
+            changeCommentUi(comment_id, data);
         }
+        showMessage(data.status===true ? 'success':'error', data.message)
     })
 
 }
