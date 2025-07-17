@@ -150,6 +150,7 @@ body{
 
 .active{
     fill: #efe40c;
+    color:#1f1f1f;
 }
 .reactions{
     display: flex;
@@ -178,8 +179,6 @@ body{
 }
 
 .dislike-btn:hover {
-    /*border-color: #ef4444;*/
-    /*background: #fef2f2;*/
     color: #ef4444;
 }
 
