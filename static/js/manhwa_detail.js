@@ -118,8 +118,8 @@ function reactionHandler(comment_id, reaction){
 }
 
 function changeCommentUi(comment_id, data){
-    let like_btn = document.getElementById(`comment-${comment_id}-lk-count`)
-    let dislike_btn = document.getElementById(`comment-${comment_id}-dlk-count`)
+    let like_btn = document.querySelector(`.comment-like-${comment_id}`)
+    let dislike_btn = document.querySelector(`.comment-dislike-${comment_id}`)
 
     like_btn.classList.remove('active')
     dislike_btn.classList.remove('active')
@@ -130,8 +130,8 @@ function changeCommentUi(comment_id, data){
         dislike_btn.classList.add('active')
     }
 
-    like_btn.innerHTML = "lk:" + data.likes_count
-    dislike_btn.innerHTML = "dlk:" + data.dis_likes_count
+    document.querySelector(`#likeCount-${comment_id}`).textContent = data.likes_count
+    document.querySelector(`#dislikeCount-${comment_id}`).textContent = data.dis_likes_count
 
 }
 
