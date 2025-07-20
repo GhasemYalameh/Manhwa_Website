@@ -73,7 +73,7 @@ class ManhwaViewTest(TestCase):
         response = json.loads(response_string)
         self.assertFalse(response['status'])
 
-    def test_reaction_handler_like_handling(self):
+    def test_reaction_handler(self):
         # login
         self.client.login(
             phone_number='09123456789',
@@ -89,20 +89,33 @@ class ManhwaViewTest(TestCase):
                     content_type='application/json'
                 )
 
-                # decode JsonResponse
-                response_bytes = response.content
-                response_string = response_bytes.decode('utf-8')
-                response = json.loads(response_string)
+                # view return status True
+                data = response.json()
+                self.assertTrue(data['status'])
 
-                self.assertTrue(response['status'])
+                # first time reaction_obj==True and second time is False.
+                reaction_obj = CommentReAction.objects.filter(
+                    user=self.user,
+                    comment=self.comment,
+                    reaction=reaction
+                ).exists()
 
-                if time == 0:  # first time add reaction
-                    reaction_obj = CommentReAction.objects.all().first()
-                    self.assertEqual(reaction_obj.reaction, reaction)
-
-                else:  # second time delete reaction
-                    reaction_obj = CommentReAction.objects.filter(pk=0).exists()
+                if time == 0:
+                    self.assertTrue(reaction_obj)
+                else:
                     self.assertFalse(reaction_obj)
+
+    def test_invalid_reaction(self):
+        self.client.login(
+            phone_number='09123456789',
+            password='mohsenpass1234'
+        )
+        response = self.client.post(
+            reverse('set_reaction', args=[self.comment.id]),
+            json.dumps({'reaction': 'invalid reaction'}),
+            content_type='application/json'
+        )
+        self.assertFalse(response.json()['status'])
 
 
 class ManhwaUrlTest(TestCase):
