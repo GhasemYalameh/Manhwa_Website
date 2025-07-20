@@ -149,6 +149,27 @@ class ManhwaViewTest(TestCase):
         data = response.json()
         self.assertFalse(data['status'])
 
+    def test_add_comment(self):
+        self.client.login(
+            phone_number='09123456789',
+            password='mohsenpass1234'
+        )
+        response = self.client.post(
+            reverse('add_comment_manhwa', args=[self.manhwa.id]),
+            json.dumps({'body': 'some text for test comment'}),
+            content_type='application/json'
+        )
+        data = response.json()
+        self.assertTrue(data['status'])
+
+        comment_obj = Comment.objects.filter(
+            author=self.user,
+            manhwa=self.manhwa,
+            id=data['comment_id']
+        ).exists()
+        self.assertTrue(comment_obj)
+
+
 
 class ManhwaUrlTest(TestCase):
     def setUp(self) -> None:
