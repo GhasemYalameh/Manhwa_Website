@@ -73,7 +73,7 @@ class ManhwaViewTest(TestCase):
         response = json.loads(response_string)
         self.assertFalse(response['status'])
 
-    def test_reaction_handler(self):
+    def test_add_delete_reaction_handler(self):
         # login
         self.client.login(
             phone_number='09123456789',
@@ -116,6 +116,29 @@ class ManhwaViewTest(TestCase):
             content_type='application/json'
         )
         self.assertFalse(response.json()['status'])
+
+    def test_change_reaction(self):
+        self.client.login(
+            phone_number='09123456789',
+            password='mohsenpass1234'
+        )
+
+        reactions = [CommentReAction.LIKE, CommentReAction.DISLIKE]
+        for reaction in reactions:
+            response = self.client.post(
+                reverse('set_reaction', args=[self.comment.id]),
+                json.dumps({'reaction': reaction}),
+                content_type='application/json'
+            )
+            self.assertTrue(response.json()['status'])
+
+            reaction_obj = CommentReAction.objects.filter(
+                user=self.user,
+                comment=self.comment,
+                reaction=reaction
+            ).exists()
+            self.assertTrue(reaction_obj)
+            self.assertEqual(CommentReAction.objects.count(), 1)  # just one reaction for comment
 
 
 class ManhwaUrlTest(TestCase):
