@@ -140,6 +140,15 @@ class ManhwaViewTest(TestCase):
             self.assertTrue(reaction_obj)
             self.assertEqual(CommentReAction.objects.count(), 1)  # just one reaction for comment
 
+    def test_add_comment_not_authenticated(self):
+        response = self.client.post(
+            reverse('add_comment_manhwa', args=[self.manhwa.id]),
+            json.dumps({'someData': ''}),
+            content_type='application/json'
+        )
+        data = response.json()
+        self.assertFalse(data['status'])
+
 
 class ManhwaUrlTest(TestCase):
     def setUp(self) -> None:
