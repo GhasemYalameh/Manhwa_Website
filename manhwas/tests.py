@@ -9,7 +9,7 @@ from django.utils import timezone
 from config.settings import MEDIA_ROOT
 
 from accounts.models import CustomUser
-from .models import Genre, Studio, Manhwa, Comment, CommentReAction
+from .models import Genre, Studio, Manhwa, Comment, CommentReAction, View
 
 
 def get_image():
@@ -184,6 +184,30 @@ class ManhwaViewTest(TestCase):
                     self.assertTrue(data['status'])  # valid text
                 case 2:
                     self.assertFalse(data['status'])  # send same text
+
+    def test_add_view_to_manhwa(self):
+        self.client.force_login(self.user)
+
+        response = self.client.post(
+            reverse('set_user_view_for_manhwa', args=[self.manhwa.id]),
+            json.dumps({}),
+            content_type='application/json'
+        )
+        data = response.json()
+        self.assertTrue(data['status'])
+
+        is_exist_view = View.objects.filter(
+            user=self.user,
+            manhwa=self.manhwa,
+        ).exists()
+        manhwa_obj = Manhwa.objects.get(
+            id=self.manhwa.id,
+            studio=self.studio
+        )
+
+        self.assertEqual(self.manhwa.views_count, 0)  # before adding view
+        self.assertTrue(is_exist_view)  # view object successfully created
+        self.assertEqual(manhwa_obj.views_count, 1)  # view count must increase +1
 
 
 class ManhwaUrlTest(TestCase):
