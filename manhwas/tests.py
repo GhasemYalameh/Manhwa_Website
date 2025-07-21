@@ -163,12 +163,8 @@ class ManhwaViewTest(TestCase):
         self.assertTrue(comment_obj)
 
     def test_add_comment_invalid_text(self):
-        # self.client.login(
-        #     phone_number='09123456789',
-        #     password='mohsenpass1234'
-        # )
         self.client.force_login(self.user)
-        text_invalid = ['<script>alert("hello")</script>', 'same text', 'same text']
+        text_invalid = ['<script>alert("hello")</script>', self.comment.text]
         for index, text in enumerate(text_invalid):
             response = self.client.post(
                 reverse('add_comment_manhwa', args=[self.manhwa.id]),
@@ -181,9 +177,7 @@ class ManhwaViewTest(TestCase):
                 case 0:
                     self.assertFalse(data['status'])  # invalid test
                 case 1:
-                    self.assertTrue(data['status'])  # valid text
-                case 2:
-                    self.assertFalse(data['status'])  # send same text
+                    self.assertFalse(data['status'])  # send same text (two comment with same author & text)
 
     def test_add_view_to_manhwa(self):
         self.client.force_login(self.user)
