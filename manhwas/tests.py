@@ -6,7 +6,6 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
 from django.shortcuts import reverse
 from django.utils import timezone
-from config.settings import MEDIA_ROOT
 
 from accounts.models import CustomUser
 from .models import Genre, Studio, Manhwa, Comment, CommentReAction, View
@@ -249,8 +248,94 @@ class ManhwaUrlTest(TestCase):
         response = self.client.get(reverse('home'))
         self.assertEqual(response.status_code, 200)
 
+    def test_home_page_template_use(self):
+        response = self.client.get(reverse('home'))
+        self.assertTemplateUsed(response, 'home.html')
+
+    def test_manhwa_detail_page_url(self):
+        response = self.client.get(f'/detail/{self.manhwa.id}/')
+        self.assertEqual(response.status_code, 200)
+
+    def test_manhwa_detail_page_url_by_name(self):
+        response = self.client.get(reverse('manhwa_detail', args=[self.manhwa.id]))
+        self.assertEqual(response.status_code, 200)
+
     def test_manhwa_detail_template_use(self):
         response = self.client.get(reverse('manhwa_detail', args=[self.manhwa.id]))
         self.assertTemplateUsed(response, 'manhwas/manhwa_detail_view.html')
 
+    def test_add_comment_url(self):
+        response = self.client.post(
+            f'/manhwa/{self.manhwa.id}/add-comment/',
+            json.dumps({'body': ''}),
+            content_type='application/json'
+        )
+        print(response)
+        self.assertEqual(response.status_code, 200)
 
+    def test_add_comment_url_by_name(self):
+        response = self.client.post(
+            reverse('add_comment_manhwa', args=[self.manhwa.id]),
+            json.dumps({}),
+            content_type='application/json'
+        )
+        self.assertEqual(response.status_code, 200)
+
+    def test_get_request_not_valid_for_add_comment(self):
+        response = self.client.get(reverse('add_comment_manhwa', args=[self.manhwa.id]))
+        self.assertEqual(response.status_code, 405)
+
+    def test_reaction_handler_url(self):
+        comment = Comment.objects.create(
+            author=self.user,
+            manhwa=self.manhwa,
+            text='some text'
+        )
+        response = self.client.post(
+            f'/comment-reaction/{comment.id}/',
+            json.dumps({}),
+            content_type='application/json'
+        )
+        self.assertEqual(response.status_code, 200)
+
+    def test_reaction_handler_url_by_name(self):
+        comment = Comment.objects.create(
+            author=self.user,
+            manhwa=self.manhwa,
+            text='some text'
+        )
+        response = self.client.post(
+            reverse('set_reaction', args=[comment.id]),
+            json.dumps({}),
+            content_type='application/json'
+        )
+        self.assertEqual(response.status_code, 200)
+
+    def test_get_request_not_valid_for_reaction_handler(self):
+        comment = Comment.objects.create(
+            author=self.user,
+            manhwa=self.manhwa,
+            text='some text'
+        )
+        response = self.client.get(reverse('set_reaction', args=[comment.id]))
+        self.assertEqual(response.status_code, 405)
+
+    def test_set_user_view_url(self):
+        response = self.client.post(
+            f'/detail/{self.manhwa.id}/set-view/',
+            json.dumps({}),
+            content_type='application/json'
+        )
+        self.assertEqual(response.status_code, 200)
+
+    def test_set_user_view_url_by_name(self):
+        response = self.client.post(
+            reverse('set_user_view_for_manhwa', args=[self.manhwa.id]),
+            json.dumps({}),
+            content_type='application/json'
+        )
+        self.assertEqual(response.status_code, 200)
+
+    def test_get_request_not_valid_set_user_view(self):
+        response = self.client.get(reverse('set_user_view_for_manhwa', args=[self.manhwa.id]))
+        self.assertEqual(response.status_code, 405)
