@@ -142,18 +142,13 @@ class Comment(models.Model):
         unique_together = ('manhwa', 'author', 'text')  # try except for same text and spam robot
         ordering = ('-datetime_created',)
 
-    # def clean(self):
-    #     text = self.text
-    #     is_html = search(r'<[^>]+>', text)
-    #     if is_html:
-    #         raise ValidationError({'text': 'text cant be included html tags.'})
-    #
-    # def save(self, *args, **kwargs):
-    #     self.full_clean()
-    #     return super().save(*args, **kwargs)
-
     def __str__(self):
         return f'comment id ={self.id}'
+
+
+class CommentReply(models.Model):
+    main_comment = models.ForeignKey(Comment, on_delete=models.CASCADE, related_name='replies')
+    replied_comment = models.ForeignKey(Comment, on_delete=models.CASCADE)
 
 
 class CommentReAction(models.Model):
