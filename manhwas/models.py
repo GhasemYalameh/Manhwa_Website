@@ -1,13 +1,13 @@
-import os.path
-
 from django.db import models
 from django.utils.text import slugify
-from django.contrib.auth import get_user_model
 from django.utils.translation import gettext as _
+from django.core.exceptions import ValidationError
+from django_ckeditor_5.fields import CKEditor5Field
 
 from config import settings
 
-from django_ckeditor_5.fields import CKEditor5Field
+import os.path
+from re import search
 
 
 def manhwa_file_upload_to(instance, filename):
@@ -141,6 +141,16 @@ class Comment(models.Model):
     class Meta:
         unique_together = ('manhwa', 'author', 'text')  # try except for same text and spam robot
         ordering = ('-datetime_created',)
+
+    def clean(self):
+        text = self.text
+        is_html = search(r'<[^>]+>', text)
+        if is_html:
+            raise ValidationError({'text': 'text cant be included html tags.'})
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        return super().save(*args, **kwargs)
 
     def __str__(self):
         return f'comment id ={self.id}'
