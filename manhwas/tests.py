@@ -1,4 +1,5 @@
-import os.path
+from PIL import Image
+from io import BytesIO
 import json
 
 from django.core.files.uploadedfile import SimpleUploadedFile
@@ -12,35 +13,39 @@ from .models import Genre, Studio, Manhwa, Comment, CommentReAction
 
 
 def get_image():
-    image_path = os.path.join(
-        MEDIA_ROOT, 'Manhwa', 'attack-on-titan',
-        'season-1', 'Covers', 'photo_2025-07-05_09-15-30.jpg'
-    )
-    with open(image_path, 'rb') as f:
-        file = f.read()
+    image = Image.new('RGB', (100, 100), (255, 0, 0))
+
+    # تبدیل به فایل برای جنگو
+    img_io = BytesIO()
+    image.save(img_io, format='JPEG')
+    img_io.seek(0)
+
     return SimpleUploadedFile(
         name='manhwa_img.jpg',
-        content=file,
+        content=img_io.getvalue(),
         content_type='image/jpeg'
     )
 
 
 class ManhwaViewTest(TestCase):
 
-    def setUp(self) -> None:
-        self.user = CustomUser.objects.create_user(
+    @classmethod
+    def setUpTestData(cls):
+        cls.user = CustomUser.objects.create_user(
             phone_number='09123456789',
             username='mohsen',
             password='mohsenpass1234',
         )
-        self.studio = Studio.objects.create(
+        cls.studio = Studio.objects.create(
             title='studio title',
             description='studio description.'
         )
-        self.genre = Genre.objects.create(
+        cls.genre = Genre.objects.create(
             title='genre title',
             description='genre description.'
         )
+
+    def setUp(self) -> None:
         self.manhwa = Manhwa.objects.create(
             en_title='manhwa1',
             summary='manhwa1 summary',
@@ -75,10 +80,7 @@ class ManhwaViewTest(TestCase):
 
     def test_add_delete_reaction_handler(self):
         # login
-        self.client.login(
-            phone_number='09123456789',
-            password='mohsenpass1234'
-        )
+        self.client.force_login(self.user)
 
         reactions = [CommentReAction.LIKE, CommentReAction.DISLIKE]
         for reaction in reactions:  # first lk and then dlk
@@ -106,10 +108,7 @@ class ManhwaViewTest(TestCase):
                     self.assertFalse(reaction_obj)
 
     def test_invalid_reaction(self):
-        self.client.login(
-            phone_number='09123456789',
-            password='mohsenpass1234'
-        )
+        self.client.force_login(self.user)
         response = self.client.post(
             reverse('set_reaction', args=[self.comment.id]),
             json.dumps({'reaction': 'invalid reaction'}),
@@ -118,10 +117,7 @@ class ManhwaViewTest(TestCase):
         self.assertFalse(response.json()['status'])
 
     def test_change_reaction(self):
-        self.client.login(
-            phone_number='09123456789',
-            password='mohsenpass1234'
-        )
+        self.client.force_login(self.user)
 
         reactions = [CommentReAction.LIKE, CommentReAction.DISLIKE]
         for reaction in reactions:
@@ -150,10 +146,7 @@ class ManhwaViewTest(TestCase):
         self.assertFalse(data['status'])
 
     def test_add_comment(self):
-        self.client.login(
-            phone_number='09123456789',
-            password='mohsenpass1234'
-        )
+        self.client.force_login(self.user)
         response = self.client.post(
             reverse('add_comment_manhwa', args=[self.manhwa.id]),
             json.dumps({'body': 'some text for test comment'}),
@@ -169,23 +162,48 @@ class ManhwaViewTest(TestCase):
         ).exists()
         self.assertTrue(comment_obj)
 
+    def test_add_comment_invalid_text(self):
+        # self.client.login(
+        #     phone_number='09123456789',
+        #     password='mohsenpass1234'
+        # )
+        self.client.force_login(self.user)
+        text_invalid = ['<script>alert("hello")</script>', 'same text', 'same text']
+        for index, text in enumerate(text_invalid):
+            response = self.client.post(
+                reverse('add_comment_manhwa', args=[self.manhwa.id]),
+                json.dumps({'body': text}),
+                content_type='application/json'
+            )
+            data = response.json()
+
+            match index:
+                case 0:
+                    self.assertFalse(data['status'])  # invalid test
+                case 1:
+                    self.assertTrue(data['status'])  # valid text
+                case 2:
+                    self.assertFalse(data['status'])  # send same text
 
 
 class ManhwaUrlTest(TestCase):
-    def setUp(self) -> None:
-        self.user = CustomUser.objects.create(
+    @classmethod
+    def setUpTestData(cls):
+        cls.user = CustomUser.objects.create(
             phone_number='09123456789',
             username='mohsen',
             password='mohsenpass1234',
         )
-        self.studio = Studio.objects.create(
+        cls.studio = Studio.objects.create(
             title='studio title',
             description='studio description.'
         )
-        self.genre = Genre.objects.create(
+        cls.genre = Genre.objects.create(
             title='genre title',
             description='genre description.'
         )
+
+    def setUp(self) -> None:
         self.manhwa = Manhwa.objects.create(
             en_title='manhwa1',
             summary='manhwa1 summary',
