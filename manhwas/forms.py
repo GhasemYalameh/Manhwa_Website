@@ -15,6 +15,6 @@ class CommentForm(forms.ModelForm):
         text = self.cleaned_data['text']
         is_html = search(r'<[^>]+>', text)
         if is_html:
-            raise ValidationError({'text': 'text cant be included html tags.'})
+            raise ValidationError('text cant be included html tags.')
 
         return text
