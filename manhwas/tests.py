@@ -209,6 +209,15 @@ class ManhwaViewTest(TestCase):
         self.assertTrue(is_exist_view)  # view object successfully created
         self.assertEqual(manhwa_obj.views_count, 1)  # view count must increase +1
 
+    def test_add_view_to_manhwa_not_authenticated(self):
+        response = self.client.post(
+            reverse('set_user_view_for_manhwa', args=[self.manhwa.id]),
+            json.dumps({}),
+            content_type='application/json'
+        )
+        data = response.json()
+        self.assertFalse(data['status'])
+
 
 class ManhwaUrlTest(TestCase):
     @classmethod
