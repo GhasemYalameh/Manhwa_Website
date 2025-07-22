@@ -145,7 +145,7 @@ class ManhwaViewTest(TestCase):
     def test_add_comment(self):
         response = self.client.post(
             reverse('add_comment_manhwa', args=[self.manhwa.id]),
-            json.dumps({'body': 'some text for test comment'}),
+            json.dumps({'text': 'some text for test comment'}),
             content_type='application/json'
         )
         data = response.json()
@@ -163,7 +163,7 @@ class ManhwaViewTest(TestCase):
         for index, text in enumerate(text_invalid):
             response = self.client.post(
                 reverse('add_comment_manhwa', args=[self.manhwa.id]),
-                json.dumps({'body': text}),
+                json.dumps({'text': text}),
                 content_type='application/json'
             )
             data = response.json()
@@ -226,7 +226,7 @@ class ManhwaViewTest(TestCase):
     def test_add_replied_comment(self):
         response = self.client.post(
             reverse('add_comment_manhwa', args=[self.manhwa.id]),
-            json.dumps({'body': 'some replied comment text', 'replied_to': self.comment.id}),
+            json.dumps({'text': 'some replied comment text', 'replied_to': self.comment.id}),
             content_type='application/json'
         )
         data = response.json()

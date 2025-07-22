@@ -207,7 +207,7 @@ def add_comment_manhwa(request, pk):
     data = json.loads(request.body)
 
     form_data = {
-        'text': data.get('body')
+        'text': data.get('text')
     }
     form = CommentForm(form_data)
 
@@ -221,7 +221,7 @@ def add_comment_manhwa(request, pk):
                 'status': True,
                 'comment_id': obj.id,
                 'author_name': request.user.username,
-                'body': data.get('body'),
+                'body': data.get('text'),
                 'datetime_modified': timesince(obj.datetime_modified),
                 'message': _('comment successfully added.')
                 }

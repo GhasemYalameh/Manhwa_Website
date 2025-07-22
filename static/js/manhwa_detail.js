@@ -53,7 +53,7 @@ form.onsubmit = function (e){
                 'X-CSRFToken': get_csrf_token()
             },
             body: JSON.stringify({
-                body: comment_text,
+                text: comment_text,
             })
         })
         .then(response => response.json())
