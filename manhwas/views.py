@@ -2,7 +2,7 @@ from django.db import IntegrityError
 from django.db.models import Avg, F, Value, Max, When, Case, CharField, Subquery, OuterRef, Exists
 from django.db.models.functions import Coalesce, Concat, Cast
 from django.http import JsonResponse
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render, get_object_or_404, redirect
 from django.utils.timesince import timesince
 from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
@@ -180,6 +180,18 @@ def change_or_create_reaction(request, pk):
     return JsonResponse(response)
 
 
+def add_replied_comment_manhwa(response, replied_to):
+    if not response.get('status'):
+        return JsonResponse(response)
+
+    replied_obj = CommentReply.objects.create(
+        main_comment_id=replied_to,
+        replied_comment_id=response['comment_id']
+    )
+    response['replied_obj_id'] = replied_obj.id
+    return JsonResponse(response)
+
+
 @require_POST
 def add_comment_manhwa(request, pk):
 
@@ -220,7 +232,7 @@ def add_comment_manhwa(request, pk):
         response['errors'] = form.errors
         response['message'] = _('your text is not valid. please dont use html tags.')
 
-    return JsonResponse(response)
+    return add_replied_comment_manhwa(response, data['replied_to']) if data.get('replied_to') else JsonResponse(response)
 
 
 @require_POST
