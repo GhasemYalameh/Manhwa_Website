@@ -61,12 +61,14 @@ class ManhwaViewTest(TestCase):
             text='comment of manhwa1',
         )
 
+        self.client.force_login(self.user)
+
     def test_manhwa_creation(self):
         self.assertEqual(self.manhwa.en_title, 'manhwa1')
         self.assertIn(self.genre, self.manhwa.genres.all())
 
     def test_reaction_handler_not_authenticated(self):
-
+        self.client.logout()
         response = self.client.post(
             reverse('set_reaction', args=[self.comment.id]),
             json.dumps({'reaction': 'lk'}),
@@ -78,9 +80,6 @@ class ManhwaViewTest(TestCase):
         self.assertFalse(response['status'])
 
     def test_add_delete_reaction_handler(self):
-        # login
-        self.client.force_login(self.user)
-
         reactions = [CommentReAction.LIKE, CommentReAction.DISLIKE]
         for reaction in reactions:  # first lk and then dlk
             for time in range(2):  # two times send request to test toggle reaction
@@ -107,7 +106,6 @@ class ManhwaViewTest(TestCase):
                     self.assertFalse(reaction_obj)
 
     def test_invalid_reaction(self):
-        self.client.force_login(self.user)
         response = self.client.post(
             reverse('set_reaction', args=[self.comment.id]),
             json.dumps({'reaction': 'invalid reaction'}),
@@ -116,8 +114,6 @@ class ManhwaViewTest(TestCase):
         self.assertFalse(response.json()['status'])
 
     def test_change_reaction(self):
-        self.client.force_login(self.user)
-
         reactions = [CommentReAction.LIKE, CommentReAction.DISLIKE]
         for reaction in reactions:
             response = self.client.post(
@@ -136,6 +132,8 @@ class ManhwaViewTest(TestCase):
             self.assertEqual(CommentReAction.objects.count(), 1)  # just one reaction for comment
 
     def test_add_comment_not_authenticated(self):
+        self.client.logout()
+
         response = self.client.post(
             reverse('add_comment_manhwa', args=[self.manhwa.id]),
             json.dumps({'someData': ''}),
@@ -145,7 +143,6 @@ class ManhwaViewTest(TestCase):
         self.assertFalse(data['status'])
 
     def test_add_comment(self):
-        self.client.force_login(self.user)
         response = self.client.post(
             reverse('add_comment_manhwa', args=[self.manhwa.id]),
             json.dumps({'body': 'some text for test comment'}),
@@ -162,7 +159,6 @@ class ManhwaViewTest(TestCase):
         self.assertTrue(comment_obj)
 
     def test_add_comment_invalid_text(self):
-        self.client.force_login(self.user)
         text_invalid = ['<script>alert("hello")</script>', self.comment.text]
         for index, text in enumerate(text_invalid):
             response = self.client.post(
@@ -179,8 +175,6 @@ class ManhwaViewTest(TestCase):
                     self.assertFalse(data['status'])  # send same text (two comment with same author & text)
 
     def test_add_view_to_manhwa(self):
-        self.client.force_login(self.user)
-
         response = self.client.post(
             reverse('set_user_view_for_manhwa', args=[self.manhwa.id]),
             json.dumps({}),
@@ -203,6 +197,8 @@ class ManhwaViewTest(TestCase):
         self.assertEqual(manhwa_obj.views_count, 1)  # view count must increase +1
 
     def test_add_view_to_manhwa_not_authenticated(self):
+        self.client.logout()
+
         response = self.client.post(
             reverse('set_user_view_for_manhwa', args=[self.manhwa.id]),
             json.dumps({}),
@@ -212,7 +208,6 @@ class ManhwaViewTest(TestCase):
         self.assertFalse(data['status'])
 
     def test_manhwa_detail_not_contains_replied_comment(self):
-        self.client.force_login(self.user)
         comment = Comment.objects.create(
             author=self.user,
             manhwa=self.manhwa,
@@ -287,7 +282,6 @@ class ManhwaUrlTest(TestCase):
             json.dumps({'body': ''}),
             content_type='application/json'
         )
-        print(response)
         self.assertEqual(response.status_code, 200)
 
     def test_add_comment_url_by_name(self):
