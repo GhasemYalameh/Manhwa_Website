@@ -1,14 +1,14 @@
 from django.db import IntegrityError
 from django.http import JsonResponse
 from django.shortcuts import render, get_object_or_404
-from django.db.models import Avg, F, Value, Max, When, Case, CharField, Subquery, OuterRef
+from django.db.models import Avg, F, Value, Max, When, Case, CharField, Subquery, OuterRef, Exists
 from django.db.models.functions import Coalesce, Concat, Cast
 from django.utils.timesince import timesince
 from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
 
 from .forms import CommentForm
-from .models import Manhwa, View, CommentReAction, Comment
+from .models import Manhwa, View, CommentReAction, Comment, CommentReply
 
 import json
 
@@ -53,14 +53,24 @@ def manhwa_detail(request, pk):
             comment_id=OuterRef('pk')
         ).values('reaction')
 
+        is_replied_subquery = Exists(CommentReply.objects.filter(replied_comment_id=OuterRef('pk')))
+
         comments = Comment.objects.filter(manhwa_id=pk).select_related('author').annotate(
+
             user_reaction=Coalesce(
                 Subquery(user_reacted_subquery),
-                Value('no-reaction')
-            )
-        )
+                Value('no-reaction')),
+
+            is_replied=is_replied_subquery
+
+        ).filter(is_replied=False)
+
     else:
-        comments = Comment.objects.filter(manhwa_id=pk).select_related('author').all()
+        is_replied_subquery = Exists(CommentReply.objects.filter(replied_comment_id=OuterRef('pk')))
+        comments = Comment.objects.filter(manhwa_id=pk).select_related('author').annotate(
+            is_replied=is_replied_subquery
+
+        ).filter(is_replied=False)
 
     return render(
         request,
