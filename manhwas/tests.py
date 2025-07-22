@@ -235,6 +235,7 @@ class ManhwaViewTest(TestCase):
             main_comment=self.comment,
             replied_comment_id=data.get('comment_id')
         ).exists()
+        self.assertTrue(data['status'])
         self.assertTrue(is_replied)
 
 

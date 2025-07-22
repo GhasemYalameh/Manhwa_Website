@@ -205,7 +205,8 @@ def add_comment_manhwa(request, pk):
         return JsonResponse(response)
 
     data = json.loads(request.body)
-
+    print('data: ', data)
+    print('request_post: ', request.POST)
     form_data = {
         'text': data.get('text')
     }
