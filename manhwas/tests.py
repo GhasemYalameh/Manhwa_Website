@@ -223,6 +223,20 @@ class ManhwaViewTest(TestCase):
         self.assertContains(response, self.comment.text)
         self.assertNotContains(response, comment.text)
 
+    def test_add_replied_comment(self):
+        response = self.client.post(
+            reverse('add_comment_manhwa', args=[self.manhwa.id]),
+            json.dumps({'body': 'some replied comment text', 'replied_to': self.comment.id}),
+            content_type='application/json'
+        )
+        data = response.json()
+
+        is_replied = CommentReply.objects.filter(
+            main_comment=self.comment,
+            replied_comment_id=data.get('comment_id')
+        ).exists()
+        self.assertTrue(is_replied)
+
 
 class ManhwaUrlTest(TestCase):
     @classmethod
