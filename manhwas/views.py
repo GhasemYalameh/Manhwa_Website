@@ -1,8 +1,8 @@
 from django.db import IntegrityError
-from django.http import JsonResponse
-from django.shortcuts import render, get_object_or_404
 from django.db.models import Avg, F, Value, Max, When, Case, CharField, Subquery, OuterRef, Exists
 from django.db.models.functions import Coalesce, Concat, Cast
+from django.http import JsonResponse
+from django.shortcuts import render, get_object_or_404
 from django.utils.timesince import timesince
 from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST

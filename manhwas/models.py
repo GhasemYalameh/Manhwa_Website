@@ -1,13 +1,11 @@
 from django.db import models
 from django.utils.text import slugify
 from django.utils.translation import gettext as _
-from django.core.exceptions import ValidationError
 from django_ckeditor_5.fields import CKEditor5Field
 
 from config import settings
 
 import os.path
-from re import search
 
 
 def manhwa_file_upload_to(instance, filename):

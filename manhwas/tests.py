@@ -3,12 +3,12 @@ from io import BytesIO
 import json
 
 from django.core.files.uploadedfile import SimpleUploadedFile
-from django.test import TestCase
 from django.shortcuts import reverse
+from django.test import TestCase
 from django.utils import timezone
 
-from accounts.models import CustomUser
 from .models import Genre, Studio, Manhwa, Comment, CommentReAction, View, CommentReply
+from accounts.models import CustomUser
 
 
 def get_image():
