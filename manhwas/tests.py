@@ -8,7 +8,7 @@ from django.shortcuts import reverse
 from django.utils import timezone
 
 from accounts.models import CustomUser
-from .models import Genre, Studio, Manhwa, Comment, CommentReAction, View
+from .models import Genre, Studio, Manhwa, Comment, CommentReAction, View, CommentReply
 
 
 def get_image():
@@ -210,6 +210,23 @@ class ManhwaViewTest(TestCase):
         )
         data = response.json()
         self.assertFalse(data['status'])
+
+    def test_manhwa_detail_not_contains_replied_comment(self):
+        self.client.force_login(self.user)
+        comment = Comment.objects.create(
+            author=self.user,
+            manhwa=self.manhwa,
+            text='replied comment for test'
+        )
+
+        CommentReply.objects.create(
+            main_comment=self.comment,
+            replied_comment=comment
+        )
+        response = self.client.get(reverse('manhwa_detail', args=[self.manhwa.id]))
+
+        self.assertContains(response, self.comment.text)
+        self.assertNotContains(response, comment.text)
 
 
 class ManhwaUrlTest(TestCase):
