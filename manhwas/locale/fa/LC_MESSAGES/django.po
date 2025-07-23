@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-16 17:25+0330\n"
-"PO-Revision-Date: 2025-07-16 17:28+0330\n"
+"POT-Creation-Date: 2025-07-23 13:35+0330\n"
+"PO-Revision-Date: 2025-07-23 13:38+0330\n"
 "Last-Translator:   <>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
@@ -18,107 +18,107 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
 "X-Translated-Using: django-rosetta 0.10.2\n"
 
-#: .\models.py:33 .\models.py:41
+#: .\models.py:31 .\models.py:39
 msgid "title"
 msgstr "نام"
 
-#: .\models.py:42
+#: .\models.py:40
 msgid "description"
 msgstr "توضیحات"
 
-#: .\models.py:61 .\templates\manhwas\manhwa_detail_view.html:26
+#: .\models.py:59 .\templates\manhwas\manhwa_detail_view.html:26
 msgid "persian title"
 msgstr "نام فارسی"
 
-#: .\models.py:62 .\templates\manhwas\manhwa_detail_view.html:25
+#: .\models.py:60 .\templates\manhwas\manhwa_detail_view.html:25
 msgid "english title"
 msgstr "نام انگلیسی"
 
-#: .\models.py:64
+#: .\models.py:62
 msgid "season"
 msgstr "فصل"
 
-#: .\models.py:65
+#: .\models.py:63
 msgid "day of the week"
 msgstr "روز هفته"
 
-#: .\models.py:66
+#: .\models.py:64
 msgid "manhwa cover"
 msgstr "تصویر مانهوا"
 
-#: .\models.py:67
+#: .\models.py:65
 msgid "publication datetime"
 msgstr "تاریخ انتشار"
 
-#: .\models.py:68
+#: .\models.py:66
 msgid "genre"
 msgstr "ژانر"
 
-#: .\models.py:69
+#: .\models.py:67
 msgid "studio"
 msgstr "استودیو"
 
-#: .\models.py:70 .\templates\manhwas\manhwa_detail_view.html:27
+#: .\models.py:68 .\templates\manhwas\manhwa_detail_view.html:27
 msgid "views count"
 msgstr "تعداد بازدید"
 
-#: .\models.py:72 .\models.py:115 .\models.py:138
+#: .\models.py:70 .\models.py:113 .\models.py:136
 msgid "datetime created"
 msgstr "تاریخ ساخت"
 
-#: .\models.py:73 .\models.py:116 .\models.py:139
+#: .\models.py:71 .\models.py:114 .\models.py:137
 msgid "datetime modified"
 msgstr "تاریخ ویرایش"
 
-#: .\models.py:87 .\models.py:101 .\models.py:162
+#: .\models.py:85 .\models.py:99 .\models.py:165
 msgid "user"
 msgstr "کاربر"
 
-#: .\models.py:89 .\models.py:102 .\models.py:133
+#: .\models.py:87 .\models.py:100 .\models.py:131
 msgid "manhwa"
 msgstr "مانهوا"
 
-#: .\models.py:90
+#: .\models.py:88
 msgid "datetime viewed"
 msgstr "تاریخ بازدید"
 
-#: .\models.py:103
+#: .\models.py:101
 msgid "rating"
 msgstr "امتیاز"
 
-#: .\models.py:110
+#: .\models.py:108
 msgid "episodes"
 msgstr "قسمت ها"
 
-#: .\models.py:111
+#: .\models.py:109
 msgid "number of episode"
 msgstr "شماره قسمت"
 
-#: .\models.py:112
+#: .\models.py:110
 msgid "episode file"
 msgstr "فایل قسمت"
 
-#: .\models.py:113
+#: .\models.py:111
 msgid "download count"
 msgstr "تعداد دانلود"
 
-#: .\models.py:131
+#: .\models.py:129
 msgid "author"
 msgstr "نویسنده"
 
-#: .\models.py:135
+#: .\models.py:133
 msgid "Likes count"
 msgstr "تعداد موافق (لایک)"
 
-#: .\models.py:136
+#: .\models.py:134
 msgid "disLikes count"
 msgstr "تعداد مخالف (دیسلایک)"
 
-#: .\models.py:164
+#: .\models.py:167
 msgid "comment"
 msgstr "دیدگاه ها"
 
-#: .\models.py:165
+#: .\models.py:168
 msgid "reaction"
 msgstr "واکنش"
 
@@ -142,15 +142,15 @@ msgstr "قسمت"
 msgid "write your comment : "
 msgstr "دیدگاه خود را بنویسید : "
 
-#: .\templates\manhwas\manhwa_detail_view.html:45
-msgid "text"
-msgstr "متن"
+#: .\templates\manhwas\manhwa_detail_view.html:56
+msgid "write your comment here"
+msgstr "دیدگاه خود را اینجا بنویسید "
 
-#: .\templates\manhwas\manhwa_detail_view.html:47
+#: .\templates\manhwas\manhwa_detail_view.html:57
 msgid "send"
 msgstr "ارسال"
 
-#: .\templates\manhwas\manhwa_detail_view.html:51
+#: .\templates\manhwas\manhwa_detail_view.html:61
 msgid "comments"
 msgstr "دیدگاه ها"
 
@@ -158,50 +158,58 @@ msgstr "دیدگاه ها"
 msgid "No uploaded"
 msgstr "آپلود نشده"
 
-#: .\views.py:83
+#: .\views.py:93
 msgid "you cant set reaction because your not logging"
 msgstr "لطفا ابتدا وارد اکانت خود شوید."
 
-#: .\views.py:91
+#: .\views.py:101
 msgid "reaction not true"
 msgstr "واکنش درست نیست"
 
-#: .\views.py:115
+#: .\views.py:125
 msgid "reaction removed"
 msgstr "واکنش شما حذف شد."
 
-#: .\views.py:143
+#: .\views.py:153
 msgid "your reaction changed"
 msgstr "واکنش شما تعویض شد."
 
-#: .\views.py:166
+#: .\views.py:176
 msgid "your reaction added"
 msgstr "واکنش شما اضافه شد."
 
-#: .\views.py:182
+#: .\views.py:192
+#| msgid "comment successfully added."
+msgid "your comment successfully replied."
+msgstr "پاسخ شما ثبت شد."
+
+#: .\views.py:205
 msgid ""
 "you cant send comment. please login or signup if you dont have an account"
 msgstr "لطفا ابتدا وارد اکانت خود شوید."
 
-#: .\views.py:204
+#: .\views.py:227
 msgid "comment successfully added."
 msgstr "دیدگاه شما ثبت شد!"
 
-#: .\views.py:207
+#: .\views.py:230
 msgid "you can not send same text for comments."
 msgstr "نمیتوانید متن تکراری برای کامنت ها ارسال کنید!"
 
-#: .\views.py:211
+#: .\views.py:234
 msgid "your text is not valid. please dont use html tags."
 msgstr "متن شما معتبر نیست. از نوشتن تگ های html بپرهیزید."
 
-#: .\views.py:234
+#: .\views.py:257
 msgid "user view added to manhwa."
 msgstr ""
 
-#: .\views.py:237
+#: .\views.py:260
 msgid "user viewed in past"
 msgstr ""
+
+#~ msgid "text"
+#~ msgstr "متن"
 
 #~ msgid "add reaction"
 #~ msgstr "واکنش اضافه شد."

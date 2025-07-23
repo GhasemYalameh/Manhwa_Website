@@ -189,6 +189,7 @@ def add_replied_comment_manhwa(response, replied_to):
         replied_comment_id=response['comment_id']
     )
     response['replied_obj_id'] = replied_obj.id
+    response['message'] = _('your comment successfully replied.')
     return JsonResponse(response)
 
 
@@ -205,8 +206,7 @@ def add_comment_manhwa(request, pk):
         return JsonResponse(response)
 
     data = json.loads(request.body)
-    print('data: ', data)
-    print('request_post: ', request.POST)
+
     form_data = {
         'text': data.get('text')
     }
