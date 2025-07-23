@@ -264,9 +264,9 @@ def set_user_view_for_manhwa(request, pk):
 
 @require_POST
 def show_replied_comment(request, pk):
-    data = json.loads(request.body)
+    data = request.POST
     comment_object = get_object_or_404(
-        Comment.objects.prefetch_related('replies'),
+        Comment.objects.prefetch_related('replies__replied_comment__author').select_related('author'),
         manhwa_id=pk,
         id=data['comment_id']
     )

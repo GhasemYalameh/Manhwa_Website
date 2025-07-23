@@ -256,8 +256,7 @@ class ManhwaViewTest(TestCase):
 
         response = self.client.post(
             reverse('manhwa_comment_replies', args=[self.manhwa.id]),
-            json.dumps({'comment_id': self.comment.id}),
-            content_type='application/json'
+            {'comment_id': self.comment.id}
         )
         self.assertContains(response, replied_comment.text)
         self.assertContains(response, self.comment.text)

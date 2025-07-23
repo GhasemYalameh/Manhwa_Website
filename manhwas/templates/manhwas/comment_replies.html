@@ -5,13 +5,13 @@ Comment Replies
 {% endblock %}
 {% block content %}
     <h1>main comment</h1>
-    <h2>{{ comment.author }}</h2>
+    <h2>{{ comment.author.username }}</h2>
     <p>{{ comment.text }}</p><br>
     <p>==================================================================</p>
     <br><h1>replies</h1>
     {% for reply in comment.replies.all %}
         <br>
-        <h3>{{ reply.replied_comment.author }}</h3>
+        <h3>{{ reply.replied_comment.author.username }}</h3>
         <p>{{ reply.replied_comment.text }}</p>
         <p>------------------------------------------------------------------------</p>
     {% endfor %}
