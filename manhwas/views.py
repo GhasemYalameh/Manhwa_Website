@@ -260,3 +260,14 @@ def set_user_view_for_manhwa(request, pk):
             response['message'] = _('user viewed in past')
 
     return JsonResponse(response)
+
+
+@require_POST
+def show_replied_comment(request, pk):
+    data = json.loads(request.body)
+    comment_object = get_object_or_404(
+        Comment.objects.prefetch_related('replies'),
+        manhwa_id=pk,
+        id=data['comment_id']
+    )
+    return render(request, 'manhwas/comment_replies.html', context={'comment': comment_object})

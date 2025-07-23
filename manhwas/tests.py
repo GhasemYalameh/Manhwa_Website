@@ -238,6 +238,31 @@ class ManhwaViewTest(TestCase):
         self.assertTrue(data['status'])
         self.assertTrue(is_replied)
 
+    def test_show_comment_replies(self):
+        not_replied_comment = Comment.objects.create(
+            author=self.user,
+            text='not replied comment text',
+            manhwa=self.manhwa
+        )
+        replied_comment = Comment.objects.create(
+            author=self.user,
+            text='replied comment text',
+            manhwa=self.manhwa
+        )
+        CommentReply.objects.create(
+            main_comment=self.comment,
+            replied_comment=replied_comment
+        )
+
+        response = self.client.post(
+            reverse('manhwa_comment_replies', args=[self.manhwa.id]),
+            json.dumps({'comment_id': self.comment.id}),
+            content_type='application/json'
+        )
+        self.assertContains(response, replied_comment.text)
+        self.assertContains(response, self.comment.text)
+        self.assertNotContains(response, not_replied_comment.text)
+
 
 class ManhwaUrlTest(TestCase):
     @classmethod
