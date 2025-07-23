@@ -90,6 +90,9 @@ class View(models.Model):
     class Meta:
         unique_together = ('manhwa', 'user')
 
+    def __str__(self):
+        return f'user: {self.user.phone_number} , manhwa: {self.manhwa.en_title}'
+
 
 class Rate(models.Model):
     RATING_CHOICES = (
@@ -118,7 +121,7 @@ class Episode(models.Model):
         ordering = ('number', )
 
     def __str__(self):
-        return str(self.number)
+        return f'{self.manhwa.en_title}: {self.number}'
 
 
 class Comment(models.Model):
@@ -141,12 +144,15 @@ class Comment(models.Model):
         ordering = ('-datetime_created',)
 
     def __str__(self):
-        return f'comment id ={self.id}'
+        return f'comment: {self.id} || {self.author.phone_number} || {self.manhwa.en_title}'
 
 
 class CommentReply(models.Model):
     main_comment = models.ForeignKey(Comment, on_delete=models.CASCADE, related_name='replies')
     replied_comment = models.ForeignKey(Comment, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f'the {self.replied_comment.author.phone_number} replied to {self.main_comment.author.phone_number}'
 
 
 class CommentReAction(models.Model):
