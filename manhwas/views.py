@@ -1,5 +1,5 @@
 from django.db import IntegrityError
-from django.db.models import Avg, F, Value, Max, When, Case, CharField, Subquery, OuterRef, Exists
+from django.db.models import Avg, Count, F, Value, Max, When, Case, CharField, Subquery, OuterRef, Exists
 from django.db.models.functions import Coalesce, Concat, Cast
 from django.http import JsonResponse
 from django.shortcuts import render, get_object_or_404, redirect
@@ -55,13 +55,14 @@ def manhwa_detail(request, pk):
 
         is_replied_subquery = Exists(CommentReply.objects.filter(replied_comment_id=OuterRef('pk')))
 
-        comments = Comment.objects.filter(manhwa_id=pk).select_related('author').annotate(
+        comments = Comment.objects.filter(manhwa_id=pk).select_related('author').prefetch_related('replies').annotate(
 
             user_reaction=Coalesce(
                 Subquery(user_reacted_subquery),
                 Value('no-reaction')),
 
-            is_replied=is_replied_subquery
+            is_replied=is_replied_subquery,
+            replies_count=Count('replies')
 
         ).filter(is_replied=False)
 
@@ -77,7 +78,7 @@ def manhwa_detail(request, pk):
         'manhwas/manhwa_detail_view.html',
         context={
             'manhwa': manhwa,
-            'comments': comments
+            'comments': comments.order_by('-datetime_created')
         }
       )
 
