@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     'crispy_bootstrap5',
     'debug_toolbar',
     'rosetta',
+    'rest_framework',
     # 'jalali_date',
     'django_ckeditor_5',
 
