@@ -2,15 +2,20 @@ from django.db import IntegrityError
 from django.db.models import Avg, Count, F, Value, Max, When, Case, CharField, Subquery, OuterRef, Exists
 from django.db.models.functions import Coalesce, Concat, Cast
 from django.http import JsonResponse
-from django.shortcuts import render, get_object_or_404, redirect
+from django.shortcuts import render, get_object_or_404
 from django.utils.timesince import timesince
 from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
+
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
 
 from .forms import CommentForm
 from .models import Manhwa, View, CommentReAction, Comment, CommentReply
 
 import json
+
+from .serializers import ManhwaSerializer
 
 
 def home_page(request):
@@ -272,3 +277,19 @@ def show_replied_comment(request, pk):
         id=data['comment_id']
     )
     return render(request, 'manhwas/comment_replies.html', context={'comment': comment_object})
+
+
+@api_view()
+def api_manhwa_list(request):
+    query_set = Manhwa.objects.all()
+    serializer = ManhwaSerializer(query_set, many=True)
+    return Response(serializer.data)
+
+
+@api_view()
+def api_manhwa_detail(request, pk):
+    manhwa = get_object_or_404(Manhwa, pk=pk)
+    serializer = ManhwaSerializer(manhwa)
+    return Response(serializer.data)
+
+

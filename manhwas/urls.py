@@ -8,5 +8,7 @@ urlpatterns = [
     path('detail/<int:pk>/show-replied-comment/', views.show_replied_comment, name='manhwa_comment_replies'),
     path('manhwa/<int:pk>/add-comment/', views.add_comment_manhwa, name='add_comment_manhwa'),
     path('comment-reaction/<int:pk>/', views.change_or_create_reaction, name='set_reaction'),
+    path('api/manhwa-list/', views.api_manhwa_list, name='api_manhwa_list'),
+    path('api/manhwa-detail/<int:pk>/', views.api_manhwa_detail, name='api_manhwa_detail'),
 
 ]
