@@ -15,7 +15,7 @@ def manhwa_file_upload_to(instance, filename):
     season = str(manhwa_season)
 
     # manhwas/title/season/episodes/filename
-    return os.path.join('Manhwa', slugify(manhwa_title), slugify('Season '+season), 'Episodes', filename)
+    return os.path.join('Manhwa', slugify(manhwa_title), slugify('Season ' + season), 'Episodes', filename)
 
 
 def manhwa_cover_upload_to(instance, filename):
@@ -24,7 +24,7 @@ def manhwa_cover_upload_to(instance, filename):
     season = str(manhwa_season)
 
     # manhwas/title/season/covers/filename
-    return os.path.join('Manhwa', slugify(manhwa_title), slugify("Season "+season), 'Covers', filename)
+    return os.path.join('Manhwa', slugify(manhwa_title), slugify("Season " + season), 'Covers', filename)
 
 
 class Genre(models.Model):
@@ -91,7 +91,7 @@ class View(models.Model):
         unique_together = ('manhwa', 'user')
 
     def __str__(self):
-        return f'user: {self.user.phone_number} , manhwa: {self.manhwa.en_title}'
+        return f'user: {self.user.phone_number} manhwa: {self.manhwa.en_title}'
 
 
 class Rate(models.Model):
@@ -99,7 +99,12 @@ class Rate(models.Model):
         (1, '1'), (2, '2'), (3, '3'),
         (4, '4'), (5, '5'),
     )
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='rates', verbose_name=_('user'))
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='rates',
+        verbose_name=_('user')
+    )
     manhwa = models.ForeignKey(Manhwa, on_delete=models.CASCADE, related_name='rates', verbose_name=_('manhwa'))
     rating = models.PositiveSmallIntegerField(choices=RATING_CHOICES, verbose_name=_('rating'))
 
@@ -118,7 +123,7 @@ class Episode(models.Model):
 
     class Meta:
         unique_together = ('number', 'manhwa')
-        ordering = ('number', )
+        ordering = ('number',)
 
     def __str__(self):
         return f'{self.manhwa.en_title}: {self.number}'
@@ -175,4 +180,3 @@ class CommentReAction(models.Model):
 
     class Meta:
         unique_together = ('user', 'comment')
-

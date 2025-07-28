@@ -281,7 +281,7 @@ def show_replied_comment(request, pk):
 
 @api_view()
 def api_manhwa_list(request):
-    query_set = Manhwa.objects.all()
+    query_set = Manhwa.objects.prefetch_related('comments__author').all()
     serializer = ManhwaSerializer(query_set, many=True)
     return Response(serializer.data)
 
