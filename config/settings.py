@@ -65,6 +65,9 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 
+    # middleware for automatically set sit language
+    # 'django.middleware.locale.LocaleMiddleware',
+
     "debug_toolbar.middleware.DebugToolbarMiddleware",
 ]
 

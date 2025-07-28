@@ -6,6 +6,7 @@ from django.shortcuts import render, get_object_or_404
 from django.utils.timesince import timesince
 from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
+from rest_framework import status
 
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
@@ -15,7 +16,7 @@ from .models import Manhwa, View, CommentReAction, Comment, CommentReply
 
 import json
 
-from .serializers import ManhwaSerializer
+from .serializers import ManhwaSerializer, CommentSerializer
 
 
 def home_page(request):
@@ -279,17 +280,11 @@ def show_replied_comment(request, pk):
     return render(request, 'manhwas/comment_replies.html', context={'comment': comment_object})
 
 
-@api_view(['GET', 'POST'])
+@api_view()
 def api_manhwa_list(request):
-    if request.method == 'GET':
-        query_set = Manhwa.objects.prefetch_related('comments__author').all()
-        serializer = ManhwaSerializer(query_set, many=True)
-        return Response(serializer.data)
-
-    elif request.method == 'POST':
-        serializer = ManhwaSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        return Response('all ok!')
+    query_set = Manhwa.objects.prefetch_related('comments__author').all()
+    serializer = ManhwaSerializer(query_set, many=True)
+    return Response(serializer.data)
 
 
 @api_view()
@@ -298,4 +293,15 @@ def api_manhwa_detail(request, pk):
     serializer = ManhwaSerializer(manhwa)
     return Response(serializer.data)
 
+
+@api_view(['Get', 'POST'])
+def api_create_comment_manhwa(request):
+    if request.method == 'POST':
+        serializer = CommentSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save(author=request.user)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    elif request.method == 'GET':
+        return Response('wellcome')
 
