@@ -4,6 +4,8 @@ from .models import Manhwa, Genre, Comment
 
 
 class CommentSerializer(serializers.ModelSerializer):
+    author = serializers.StringRelatedField()
+
     class Meta:
         model = Comment
         fields = ('id', 'author', 'text', 'likes_count', 'dis_likes_count')

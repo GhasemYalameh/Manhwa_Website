@@ -279,11 +279,17 @@ def show_replied_comment(request, pk):
     return render(request, 'manhwas/comment_replies.html', context={'comment': comment_object})
 
 
-@api_view()
+@api_view(['GET', 'POST'])
 def api_manhwa_list(request):
-    query_set = Manhwa.objects.prefetch_related('comments__author').all()
-    serializer = ManhwaSerializer(query_set, many=True)
-    return Response(serializer.data)
+    if request.method == 'GET':
+        query_set = Manhwa.objects.prefetch_related('comments__author').all()
+        serializer = ManhwaSerializer(query_set, many=True)
+        return Response(serializer.data)
+
+    elif request.method == 'POST':
+        serializer = ManhwaSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        return Response('all ok!')
 
 
 @api_view()
