@@ -300,8 +300,25 @@ def api_create_comment_manhwa(request):
         serializer = CommentSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.save(author=request.user)
+        if request.data.get('replied_to'):
+            try:
+                CommentReply.objects.create(
+                    main_comment_id=request.data.get('replied_to'),
+                    replied_comment_id=serializer.data['id']
+                )
+            except IntegrityError:
+                return Response({'replied_to': _('comment with this id not exist')}, status=status.HTTP_400_BAD_REQUEST)
+
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     elif request.method == 'GET':
         return Response('wellcome')
 
+
+@api_view()
+def api_manhwa_comments(request, pk):
+    comment_query = Comment.objects.prefetch_related('replies').select_related('author').filter(manhwa_id=pk).annotate(
+        is_replied_comment=Exists(CommentReply.objects.filter(replied_comment_id=OuterRef('pk')))
+    ).filter(is_replied_comment=False)
+    serializer = CommentSerializer(comment_query, many=True)
+    return Response(serializer.data)

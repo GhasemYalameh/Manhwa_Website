@@ -10,11 +10,15 @@ from .models import Manhwa, Genre, Comment
 
 
 class CommentSerializer(serializers.ModelSerializer):
-    author = serializers.StringRelatedField()
+    author = serializers.CharField(source='author.username', read_only=True)
+    replies_count = serializers.SerializerMethodField()
 
     class Meta:
         model = Comment
-        fields = ('id', 'author', 'text', 'manhwa', 'likes_count', 'dis_likes_count')
+        fields = ('id', 'author', 'text', 'manhwa', 'likes_count', 'dis_likes_count', 'replies_count')
+
+    def get_replies_count(self, obj):
+        return obj.replies.count()
 
     def validate_text(self, value):
         is_html = search(r'<[^>]+>', value)

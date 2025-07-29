@@ -13,5 +13,6 @@ urlpatterns = [
     path('api/manhwa-list/', views.api_manhwa_list, name='api_manhwa_list'),
     path('api/manhwa-detail/<int:pk>/', views.api_manhwa_detail, name='api_manhwa_detail'),
     path('api/comment-create/', views.api_create_comment_manhwa, name='api_create_comment_manhwa'),
+    path('api/manhwa-comments/<int:pk>/', views.api_manhwa_comments, name='api_manhwa_comments'),
 
 ]
