@@ -13,7 +13,7 @@ from rest_framework.response import Response
 
 from .forms import CommentForm
 from .models import Manhwa, View, CommentReAction, Comment, CommentReply
-from .serializers import ManhwaSerializer, CommentSerializer, RepliedCommentSerializer
+from .serializers import ManhwaSerializer, CommentSerializer, CommentDetailSerializer
 
 import json
 
@@ -329,10 +329,10 @@ def api_get_manhwa_comments(request, pk):
 @api_view()
 def api_get_comment_replies(request, manhwa_id, comment_id):
     query_set = get_object_or_404(
-        Comment.objects.select_related('author').prefetch_related('replies__replied_comment__author', 'replies__replied_comment__replies'),
+        Comment.objects.select_related('author').prefetch_related('replies__replied_comment__author'),
         manhwa_id=manhwa_id,
         pk=comment_id
     )
 
-    serializer = RepliedCommentSerializer(query_set)
+    serializer = CommentDetailSerializer(query_set)
     return Response(serializer.data)
