@@ -6,17 +6,18 @@ from django.shortcuts import render, get_object_or_404
 from django.utils.timesince import timesince
 from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
-from rest_framework import status
 
+from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
 from .forms import CommentForm
 from .models import Manhwa, View, CommentReAction, Comment, CommentReply
+from .serializers import ManhwaSerializer, CommentSerializer, RepliedCommentSerializer
 
 import json
 
-from .serializers import ManhwaSerializer, CommentSerializer
+
 
 
 def home_page(request):
@@ -295,12 +296,13 @@ def api_manhwa_detail(request, pk):
 
 
 @api_view(['Get', 'POST'])
-def api_create_comment_manhwa(request):
+def api_create_manhwa_comment(request):
     if request.method == 'POST':
         serializer = CommentSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.save(author=request.user)
-        if request.data.get('replied_to'):
+
+        if request.data.get('replied_to'):  # if comment type is replied to another comment
             try:
                 CommentReply.objects.create(
                     main_comment_id=request.data.get('replied_to'),
@@ -316,9 +318,21 @@ def api_create_comment_manhwa(request):
 
 
 @api_view()
-def api_manhwa_comments(request, pk):
+def api_get_manhwa_comments(request, pk):
     comment_query = Comment.objects.prefetch_related('replies').select_related('author').filter(manhwa_id=pk).annotate(
         is_replied_comment=Exists(CommentReply.objects.filter(replied_comment_id=OuterRef('pk')))
     ).filter(is_replied_comment=False)
     serializer = CommentSerializer(comment_query, many=True)
+    return Response(serializer.data)
+
+
+@api_view()
+def api_get_comment_replies(request, manhwa_id, comment_id):
+    query_set = get_object_or_404(
+        Comment.objects.select_related('author').prefetch_related('replies__replied_comment__author', 'replies__replied_comment__replies'),
+        manhwa_id=manhwa_id,
+        pk=comment_id
+    )
+
+    serializer = RepliedCommentSerializer(query_set)
     return Response(serializer.data)

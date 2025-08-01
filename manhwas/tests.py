@@ -26,6 +26,153 @@ def get_image():
     )
 
 
+class ManhwaApiTest(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.user = CustomUser.objects.create_user(
+            phone_number='09123456789',
+            username='mohsen',
+            password='mohsenpass1234',
+        )
+        cls.studio = Studio.objects.create(
+            title='studio title',
+            description='studio description.'
+        )
+        cls.genre = Genre.objects.create(
+            title='genre title',
+            description='genre description.'
+        )
+
+    def setUp(self) -> None:
+        self.manhwa = Manhwa.objects.create(
+            en_title='manhwa title',
+            summary='manhwa summary',
+            day_of_week=Manhwa.SATURDAY,
+            cover=get_image(),
+            publication_datetime=timezone.now(),
+            studio=self.studio,
+        )
+        self.manhwa.genres.add(self.genre)
+
+        self.comment = Comment.objects.create(
+            author=self.user,
+            manhwa=self.manhwa,
+            text='comment of manhwa',
+        )
+
+        self.client.force_login(self.user)
+
+    def test_add_comment_not_authenticated(self):
+        self.client.logout()
+
+        response = self.client.post(
+            reverse('add_comment_manhwa', args=[self.manhwa.id]),
+            json.dumps({'someData': ''}),
+            content_type='application/json'
+        )
+        data = response.json()
+        self.assertFalse(data['status'])
+
+    def test_api_create_comment_manhwa(self):
+        # send post request to create-comment api
+        response = self.client.post(
+            reverse('api_create_manhwa_comment'),
+            json.dumps({
+                'text': 'some text for test comment',
+                'manhwa': self.manhwa.id
+            }),
+            content_type='application/json'
+        )
+
+        comment_data = response.json()
+        self.assertEqual(response.status_code, 201)  # status code 201 (CREATED)
+
+        comment_obj = Comment.objects.filter(
+            author=self.user,
+            manhwa=self.manhwa,
+            id=comment_data['id']
+        ).exists()
+        is_replied = CommentReply.objects.filter(replied_comment_id=comment_data['id']).exists()
+
+        self.assertTrue(comment_obj)  # Comment exist in DB
+        self.assertFalse(is_replied)  # CommentReply not created in DB
+
+    def test_api_create_comment_manhwa_invalid_text(self):
+        text_invalid = ['<script>alert("hello")</script>', self.comment.text]
+        for index, text in enumerate(text_invalid):
+
+            response = self.client.post(
+                reverse('api_create_manhwa_comment'),
+                json.dumps({'text': text, 'manhwa': self.manhwa.id}),
+                content_type='application/json'
+            )
+
+            data = response.json()  # comment data or errors
+            self.assertEqual(response.status_code, 400)  # invalid text , BAD request
+
+            match index:
+                case 0:  # html tag error in text field
+                    self.assertIn('text', data.keys())
+                    self.assertNotIn('non_field_error', data.keys())
+
+                case 1:  # text not be same
+                    self.assertIn('non_field_error', data.keys())
+                    self.assertNotIn('text', data.keys())
+
+    def test_api_create_comment_manhwa_replied(self):
+        # send post request to create-comment api (replied)
+        response = self.client.post(
+            reverse('api_create_manhwa_comment'),
+            json.dumps({
+                'text': 'some replied comment text',
+                'manhwa': self.manhwa.id,
+                'replied_to': self.comment.id
+            }),
+            content_type='application/json'
+        )
+
+        data = response.json()
+
+        comment_created = Comment.objects.filter(
+            manhwa_id=self.manhwa.id,
+            author=self.user,
+            text='some replied comment text'
+        ).exists()
+        is_replied = CommentReply.objects.filter(
+            main_comment=self.comment,
+            replied_comment_id=data.get('id')
+        ).exists()
+
+        self.assertEqual(response.status_code, 201)  # 201 CREATED
+        self.assertTrue(comment_created)  # Comment created
+        self.assertTrue(is_replied)  # CommentReply created
+
+    def test_get_comment_replies(self):
+        comment = Comment.objects.create(
+            author=self.user,
+            manhwa=self.manhwa,
+            text='some text'
+        )
+        comment2 = Comment.objects.create(
+            author=self.user,
+            manhwa=self.manhwa,
+            text='some2 text'
+        )
+        replied_comment = CommentReply.objects.create(
+            main_comment_id=self.manhwa.id,
+            replied_comment_id=comment.id
+        )
+
+        response = self.client.get(
+            reverse('api_get_comment_replies', args=[self.manhwa.id, self.comment.id]),
+        )
+        data = response.json()
+        comment_ids = [comment['id'] for comment in data['replies']]
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(comment.id, comment_ids)
+        self.assertNotIn(comment2.id, comment_ids)
+
+
 class ManhwaViewTest(TestCase):
 
     @classmethod

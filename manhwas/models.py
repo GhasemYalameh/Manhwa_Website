@@ -148,6 +148,11 @@ class Comment(models.Model):
         unique_together = ('manhwa', 'author', 'text')  # try except for same text and spam robot
         ordering = ('-datetime_created',)
 
+    @property
+    def comment_replies(self):
+        replies = self.replies.all()
+        return [reply.replied_comment for reply in replies]
+
     def __str__(self):
         return f'comment: {self.id} || {self.author.phone_number} || {self.manhwa.en_title}'
 
