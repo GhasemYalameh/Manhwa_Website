@@ -174,7 +174,7 @@ class CommentReactionManager(models.Manager):
         if reaction not exist, will create it.
 
         returns: (reaction_boj, action)
-        reaction may be: 'updated', 'deleted', 'created'
+        action may be: 'updated', 'deleted', 'created'
         """
         with transaction.atomic():
             try:

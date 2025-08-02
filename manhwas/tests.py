@@ -523,7 +523,7 @@ class ManhwaUrlTest(TestCase):
         )
         self.assertEqual(response.status_code, 200)
 
-    def test_get_request_not_valid_for_add_comment(self):
+    def test_GET_request_not_valid_for_add_comment(self):
         response = self.client.get(reverse('add_comment_manhwa', args=[self.manhwa.id]))
         self.assertEqual(response.status_code, 405)
 
@@ -553,7 +553,7 @@ class ManhwaUrlTest(TestCase):
         )
         self.assertEqual(response.status_code, 200)
 
-    def test_get_request_not_valid_for_reaction_handler(self):
+    def test_GET_request_not_valid_for_reaction_handler(self):
         comment = Comment.objects.create(
             author=self.user,
             manhwa=self.manhwa,
