@@ -353,20 +353,22 @@ def api_reaction_handler(request):
 
     comment_id = serializer.validated_data.get('comment_id')
     reaction = serializer.validated_data.get('reaction')
+    try:
+        reaction_obj, action = CommentReAction.objects.toggle_reaction(
+            request.user,
+            comment_id=comment_id,
+            reaction=reaction
+        )
 
-    reaction_obj, action = CommentReAction.objects.toggle_reaction(
-        request.user,
-        comment_id=comment_id,
-        reaction=reaction
-    )
+        reaction_data = None
+        if action != 'deleted':
+            reaction_data = CommentReactionSerializer(reaction_obj).data
 
-    reaction_data = None
-    if action != 'deleted':
-        reaction_data = CommentReactionSerializer(reaction_obj).data
-
-    response = {
-        'action': action,
-        'reaction': reaction_data,
-    }
+        response = {
+            'action': action,
+            'reaction': reaction_data,
+        }
+    except Exception as e:
+        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     return Response(response, status=status.HTTP_200_OK)
