@@ -1,4 +1,5 @@
-from django.db import models
+from django.db import models, transaction
+from django.db.models import F
 from django.utils.text import slugify
 from django.utils.translation import gettext as _
 from django_ckeditor_5.fields import CKEditor5Field
@@ -165,6 +166,26 @@ class CommentReply(models.Model):
         return f'the {self.replied_comment.author.phone_number} replied to {self.main_comment.author.phone_number}'
 
 
+class CommentReactionManager(models.Manager):
+    def toggle_reaction(self, user, comment_id, reaction):
+        reaction_obj, created = self.get_or_create(
+            user=user,
+            comment=comment_id,
+            defaults={'reaction': reaction}
+        )
+        action = 'create'
+        if not created:
+            if reaction_obj.reaction == reaction:  # unlike or undislike
+                reaction_obj.delete()
+                action = 'delete'
+            else:
+                reaction_obj.reaction = reaction  # change reaction
+                reaction_obj.save()
+                action = 'change'
+
+        return reaction_obj, action
+
+
 class CommentReAction(models.Model):
     LIKE = 'lk'
     DISLIKE = 'dlk'
@@ -183,5 +204,51 @@ class CommentReAction(models.Model):
     comment = models.ForeignKey(Comment, on_delete=models.CASCADE, related_name='reactions', verbose_name=_('comment'))
     reaction = models.CharField(max_length=10, choices=COMMENT_REACTIONS, verbose_name=_('reaction'))
 
+    objects = CommentReactionManager()
+
     class Meta:
         unique_together = ('user', 'comment')
+
+    def save(self, *args, **kwargs):
+        is_updated = self.pk is not None
+        old_reaction = None
+
+        with transaction.atomic():
+            if is_updated:
+                old_comment_reaction = CommentReAction.objects.get(pk=self.pk)
+                old_reaction = old_comment_reaction.reaction
+
+            super().save(*args, **kwargs)
+
+            if old_reaction:  # if obj updating
+                if old_reaction == self.LIKE and self.reaction == self.DISLIKE:
+                    self.comment.__class__.objects.filter(pk=self.comment.id).update(
+                        likes_count=F('likes_count') - 1,
+                        dis_likes_count=F('dis_likes_count') + 1
+                    )
+                elif old_reaction == self.DISLIKE and self.reaction == self.LIKE:
+                    self.comment.__class__.objects.filter(pk=self.comment.id).update(
+                        likes_count=F('likes_count') + 1,
+                        dis_likes_count=F('dis_likes_count') - 1
+                    )
+
+            else:
+                # if obj is new
+                if self.reaction == self.LIKE:
+                    self.comment.__class__.objects.filter(pk=self.comment.id).update(likes_count=F('likes_count') + 1)
+
+                else:
+                    self.comment.__class__.objects.filter(pk=self.comment.id).update(
+                        dis_likes_count=F('dis_likes_count') + 1)
+
+    def delete(self, *args, **kwargs):
+        reaction = self.reaction
+        comment_id = self.comment.id
+
+        with transaction.atomic():
+            super().delete(*args, **kwargs)
+
+            if reaction == self.LIKE:
+                self.comment.__class__.objects.filter(pk=comment_id).update(likes_count=F('likes_count') - 1)
+            else:
+                self.comment.__class__.objects.filter(pk=comment_id).update(dis_likes_count=F('dis_likes_count') - 1)
