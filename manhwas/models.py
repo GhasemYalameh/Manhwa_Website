@@ -170,7 +170,7 @@ class CommentReactionManager(models.Manager):
     def toggle_reaction(self, user, comment_id, reaction):
         reaction_obj, created = self.get_or_create(
             user=user,
-            comment=comment_id,
+            comment_id=comment_id,
             defaults={'reaction': reaction}
         )
         action = 'create'

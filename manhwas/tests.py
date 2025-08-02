@@ -198,6 +198,25 @@ class ManhwaApiTest(TestCase):
         self.assertEqual(self.comment.likes_count, 0)
         self.assertEqual(self.comment.dis_likes_count, 0)
 
+    def test_comment_reaction_manager(self):
+        self.assertEqual(self.comment.likes_count, 0)
+        self.assertEqual(self.comment.dis_likes_count, 0)
+
+        reaction_obj = CommentReAction.objects.toggle_reaction(self.user, self.comment.id, CommentReAction.LIKE)
+        self.comment.refresh_from_db()
+        self.assertEqual(self.comment.likes_count, 1)
+        self.assertEqual(self.comment.dis_likes_count, 0)
+
+        reaction_obj = CommentReAction.objects.toggle_reaction(self.user, self.comment.id, CommentReAction.DISLIKE)
+        self.comment.refresh_from_db()
+        self.assertEqual(self.comment.likes_count, 0)
+        self.assertEqual(self.comment.dis_likes_count, 1)
+
+        reaction_obj = CommentReAction.objects.toggle_reaction(self.user, self.comment.id, CommentReAction.DISLIKE)
+        self.comment.refresh_from_db()
+        self.assertEqual(self.comment.likes_count, 0)
+        self.assertEqual(self.comment.dis_likes_count, 0)
+
 
 class ManhwaViewTest(TestCase):
 
