@@ -173,7 +173,7 @@ class CommentReactionManager(models.Manager):
         if reaction was same, will delete it.
         if reaction not exist, will create it.
 
-        returns: (reaction_boj, action)
+        returns: (reaction_obj, action)
         action may be: 'updated', 'deleted', 'created'
         """
         with transaction.atomic():

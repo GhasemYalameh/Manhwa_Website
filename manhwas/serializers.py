@@ -6,7 +6,7 @@ from django.db import IntegrityError
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext as _
 
-from .models import Manhwa, Genre, Comment
+from .models import Manhwa, Comment, CommentReAction
 
 
 class CommentSerializer(serializers.ModelSerializer):
@@ -61,3 +61,22 @@ class ManhwaSerializer(serializers.ModelSerializer):
         return obj.comments.count()
 
 
+class CommentReactionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CommentReAction
+        fields = ('id', 'user', 'comment', 'reaction')
+        read_only_fields = ('id', 'user',)
+
+
+class CommentReectionToggleSerializer(serializers.Serializer):
+    comment_id = serializers.IntegerField()
+    reaction = serializers.ChoiceField(choices=CommentReAction.COMMENT_REACTIONS)
+
+    def validate_comment_id(self, value):
+        """check existing of comment"""
+        try:
+            Comment.objects.get(pk=value)
+        except Comment.DoesNotExist:
+            raise serializers.ValidationError("comment not fount")
+
+        return value

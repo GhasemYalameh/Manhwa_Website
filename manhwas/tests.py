@@ -217,6 +217,28 @@ class ManhwaApiTest(TestCase):
         self.assertEqual(self.comment.likes_count, 0)
         self.assertEqual(self.comment.dis_likes_count, 0)
 
+    def test_api_toggle_reaction(self):
+        # create and then update reaction
+        for reaction, action in (('lk', 'created'), ('dlk', 'updated')):
+            response = self.client.post(
+                reverse('api_toggle_reaction_comment'),
+                json.dumps({'comment_id': self.comment.id, 'reaction': reaction}),
+                content_type='application/json'
+            )
+            data = response.json()
+            self.assertEqual(data['reaction']['reaction'], reaction)
+            self.assertEqual(data['action'], action)
+
+        # delete reaction
+        response = self.client.post(
+            reverse('api_toggle_reaction_comment'),
+            json.dumps({'comment_id': self.comment.id, 'reaction': 'dlk'}),
+            content_type='application/json'
+        )
+        data = response.json()
+        self.assertEqual(data['reaction'], None)
+        self.assertEqual(data['action'], 'deleted')
+
 
 class ManhwaViewTest(TestCase):
 

@@ -13,7 +13,14 @@ from rest_framework.response import Response
 
 from .forms import CommentForm
 from .models import Manhwa, View, CommentReAction, Comment, CommentReply
-from .serializers import ManhwaSerializer, CommentSerializer, CommentDetailSerializer
+from .serializers import (
+    ManhwaSerializer,
+    CommentSerializer,
+    CommentDetailSerializer,
+    CommentReectionToggleSerializer,
+    CommentReactionSerializer
+)
+
 
 import json
 
@@ -336,3 +343,30 @@ def api_get_comment_replies(request, manhwa_id, comment_id):
 
     serializer = CommentDetailSerializer(query_set)
     return Response(serializer.data)
+
+
+@api_view(['POST'])
+def api_reaction_handler(request):
+    serializer = CommentReectionToggleSerializer(data=request.data)
+
+    serializer.is_valid(raise_exception=True)
+
+    comment_id = serializer.validated_data.get('comment_id')
+    reaction = serializer.validated_data.get('reaction')
+
+    reaction_obj, action = CommentReAction.objects.toggle_reaction(
+        request.user,
+        comment_id=comment_id,
+        reaction=reaction
+    )
+
+    reaction_data = None
+    if action != 'deleted':
+        reaction_data = CommentReactionSerializer(reaction_obj).data
+
+    response = {
+        'action': action,
+        'reaction': reaction_data,
+    }
+
+    return Response(response, status=status.HTTP_200_OK)

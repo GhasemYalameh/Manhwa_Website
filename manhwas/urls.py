@@ -15,5 +15,6 @@ urlpatterns = [
     path('api/comment-create/', views.api_create_manhwa_comment, name='api_create_manhwa_comment'),
     path('api/manhwa/<int:manhwa_id>/comment/<int:comment_id>', views.api_get_comment_replies, name='api_get_comment_replies'),
     path('api/manhwa-comments/<int:pk>/', views.api_get_manhwa_comments, name='api_get_manhwa_comments'),
+    path('api/comment-reaction/', views.api_reaction_handler, name='api_toggle_reaction_comment'),
 
 ]
