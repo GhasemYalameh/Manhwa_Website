@@ -168,22 +168,37 @@ class CommentReply(models.Model):
 
 class CommentReactionManager(models.Manager):
     def toggle_reaction(self, user, comment_id, reaction):
-        reaction_obj, created = self.get_or_create(
-            user=user,
-            comment_id=comment_id,
-            defaults={'reaction': reaction}
-        )
-        action = 'create'
-        if not created:
-            if reaction_obj.reaction == reaction:  # unlike or undislike
-                reaction_obj.delete()
-                action = 'delete'
-            else:
-                reaction_obj.reaction = reaction  # change reaction
-                reaction_obj.save()
-                action = 'change'
+        """
+        if reaction exist and reaction was different, will update it.
+        if reaction was same, will delete it.
+        if reaction not exist, will create it.
 
-        return reaction_obj, action
+        returns: (reaction_boj, action)
+        reaction may be: 'updated', 'deleted', 'created'
+        """
+        with transaction.atomic():
+            try:
+                reaction_obj = self.select_for_update().get(
+                    user=user,
+                    comment_id=comment_id
+                )
+
+                if reaction_obj.reaction == reaction:  # unlike or undislike
+                    reaction_obj.delete()
+                    action = 'deleted'
+                else:
+                    reaction_obj.reaction = reaction  # change reaction
+                    reaction_obj.save()
+                    action = 'updated'
+            except self.model.DoesNotExist:
+                reaction_obj = self.create(
+                    user=user,
+                    comment_id=comment_id,
+                    reaction=reaction
+                )
+                action = 'created'
+
+            return reaction_obj, action
 
 
 class CommentReAction(models.Model):
