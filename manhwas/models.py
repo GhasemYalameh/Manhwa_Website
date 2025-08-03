@@ -1,5 +1,5 @@
 from django.db import models, transaction
-from django.db.models import F
+from django.db.models import F, Avg, Count, Case, When
 from django.utils.text import slugify
 from django.utils.translation import gettext as _
 from django_ckeditor_5.fields import CKEditor5Field
@@ -111,6 +111,19 @@ class Rate(models.Model):
 
     class Meta:
         unique_together = ('user', 'manhwa')
+
+    @property
+    def rating_data(self):
+        query_set = self.__class__.objects.filter(manhwa_id=self.manhwa.id).aggregate(
+            avg_rating=Avg('rating'),
+            total_rates=Count('id'),
+            fives_count=Count(Case(When(rating=5, then=1))),
+            fours_count=Count(Case(When(rating=4, then=1))),
+            threes_count=Count(Case(When(rating=3, then=1))),
+            twos_count=Count(Case(When(rating=2, then=1))),
+            ones_count=Count(Case(When(rating=1, then=1)))
+        )
+        return query_set
 
 
 class Episode(models.Model):

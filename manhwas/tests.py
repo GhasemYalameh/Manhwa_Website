@@ -7,7 +7,7 @@ from django.shortcuts import reverse
 from django.test import TestCase
 from django.utils import timezone
 
-from .models import Genre, Studio, Manhwa, Comment, CommentReAction, View, CommentReply
+from .models import Genre, Rate, Studio, Manhwa, Comment, CommentReAction, View, CommentReply
 from accounts.models import CustomUser
 
 
@@ -238,6 +238,21 @@ class ManhwaApiTest(TestCase):
         data = response.json()
         self.assertEqual(data['reaction'], None)
         self.assertEqual(data['action'], 'deleted')
+
+    def test_rate_model_rating_data(self):
+        rate = Rate.objects.create(
+            manhwa_id=self.manhwa.id,
+            user=self.user,
+            rating=5
+        )
+        rating_data = rate.rating_data
+        self.assertEqual(rating_data['avg_rating'], 5)
+        self.assertEqual(rating_data['total_rates'], 1)
+        self.assertEqual(rating_data['fives_count'], 1)
+        self.assertEqual(rating_data['fours_count'], 0)
+        self.assertEqual(rating_data['threes_count'], 0)
+        self.assertEqual(rating_data['twos_count'], 0)
+        self.assertEqual(rating_data['ones_count'], 0)
 
 
 class ManhwaViewTest(TestCase):

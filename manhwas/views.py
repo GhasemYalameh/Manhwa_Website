@@ -14,17 +14,14 @@ from rest_framework.response import Response
 from .forms import CommentForm
 from .models import Manhwa, View, CommentReAction, Comment, CommentReply
 from .serializers import (
-    ManhwaSerializer,
-    CommentSerializer,
     CommentDetailSerializer,
+    CommentReactionSerializer,
     CommentReectionToggleSerializer,
-    CommentReactionSerializer
+    CommentSerializer,
+    ManhwaSerializer,
 )
 
-
 import json
-
-
 
 
 def home_page(request):
