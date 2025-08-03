@@ -9,6 +9,7 @@ from django.utils import timezone
 
 from .models import Genre, Rate, Studio, Manhwa, Comment, CommentReAction, View, CommentReply
 from accounts.models import CustomUser
+from .decorators import queries_counter
 
 
 def get_image():
@@ -240,12 +241,13 @@ class ManhwaApiTest(TestCase):
         self.assertEqual(data['action'], 'deleted')
 
     def test_rate_model_rating_data(self):
-        rate = Rate.objects.create(
-            manhwa_id=self.manhwa.id,
-            user=self.user,
-            rating=5
-        )
-        rating_data = rate.rating_data
+        with self.assertNumQueries(3):  # must be 3 queries
+            rate = Rate.objects.create(
+                manhwa_id=self.manhwa.id,
+                user=self.user,
+                rating=5
+            )
+            rating_data = rate.rating_data
         self.assertEqual(rating_data['avg_rating'], 5)
         self.assertEqual(rating_data['total_rates'], 1)
         self.assertEqual(rating_data['fives_count'], 1)
