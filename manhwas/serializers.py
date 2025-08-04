@@ -1,12 +1,13 @@
 from re import search
 
+from django.db.models import Exists, OuterRef
 from rest_framework import serializers
 
 from django.db import IntegrityError
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext as _
 
-from .models import Manhwa, Comment, CommentReAction
+from .models import Manhwa, Comment, CommentReAction, CommentReply
 
 
 class CommentSerializer(serializers.ModelSerializer):
@@ -57,8 +58,12 @@ class ManhwaSerializer(serializers.ModelSerializer):
         model = Manhwa
         fields = ['id', 'en_title', 'season', 'day_of_week', 'views_count', 'comments_count']  # + 'comments'
 
+    #  <------ N+1 Query issue ---------->
     def get_comments_count(self, obj: Manhwa):
-        return obj.comments.count()
+        return obj.comments.prefetch_related('comments').annotate(
+            is_replied=Exists(CommentReply.objects.filter(replied_comment_id=OuterRef('pk')))
+        ).filter(is_replied=False).count()
+    # <------- Handle this part ---------->
 
 
 class CommentReactionSerializer(serializers.ModelSerializer):
