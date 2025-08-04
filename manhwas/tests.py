@@ -9,7 +9,6 @@ from django.utils import timezone
 
 from .models import Genre, Rate, Studio, Manhwa, Comment, CommentReAction, View, CommentReply
 from accounts.models import CustomUser
-from .decorators import queries_counter
 
 
 def get_image():
