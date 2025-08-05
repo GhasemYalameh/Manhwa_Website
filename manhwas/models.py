@@ -191,27 +191,65 @@ class CommentReactionManager(models.Manager):
         """
         with transaction.atomic():
             try:
-                reaction_obj = self.select_for_update().get(
+                reaction_obj = self.select_for_update().get(  # lock update row
                     user=user,
                     comment_id=comment_id
                 )
+                old_reaction = reaction_obj.reaction
 
                 if reaction_obj.reaction == reaction:  # unlike or undislike
                     reaction_obj.delete()
+                    self._update_comment_reaction_counters(comment_id, old_reaction=old_reaction)
+                    reaction_obj = None
                     action = 'deleted'
+
                 else:
                     reaction_obj.reaction = reaction  # change reaction
-                    reaction_obj.save()
+                    reaction_obj.save(update_fields=['reaction'])
+                    self._update_comment_reaction_counters(comment_id, old_reaction=old_reaction, new_reaction=reaction)
                     action = 'updated'
+
             except self.model.DoesNotExist:
                 reaction_obj = self.create(
                     user=user,
                     comment_id=comment_id,
                     reaction=reaction
                 )
+                self._update_comment_reaction_counters(comment_id, new_reaction=reaction)
                 action = 'created'
 
             return reaction_obj, action
+
+    def _update_comment_reaction_counters(self, comment_id, old_reaction=None, new_reaction=None):
+        """
+        update likes_count, dis_likes_count, when need to update
+        if reaction is deleted, new_reaction must be None!
+        if reaction created, old_reaction must be None!
+        and if reaction changed, you must set both old_reaction & new_reaction
+        """
+        updates = {}
+
+        if old_reaction == self.model.LIKE:
+            updates['likes_count'] = F('likes_count') - 1
+        elif old_reaction == self.model.DISLIKE:
+            updates['dis_likes_count'] = F('dis_likes_count') - 1
+
+        if new_reaction == self.model.LIKE:
+            updates['likes_count'] = F('likes_count') + 1
+        elif new_reaction == self.model.DISLIKE:
+            updates['dis_likes_count'] = F('dis_likes_count') + 1
+
+        if updates:
+            Comment.objects.filter(pk=comment_id).update(**updates)
+
+    def sync_comment_reaction_counters(self, comment_id):
+        """update likes & dis_likes count fields from db and real count of reactions"""
+
+        reactions = self.filter(comment_id=comment_id).aggregate(
+            likes=Count(When(reaction='lk', then=1)),
+            dis_likes=Count(When(reaction='dlk', then=1))
+        )
+        Comment.objects.filter(pk=comment_id).update(likes_count=reactions.likes, dis_likes_count=reactions.dis_likes)
 
 
 class CommentReAction(models.Model):
@@ -236,47 +274,3 @@ class CommentReAction(models.Model):
 
     class Meta:
         unique_together = ('user', 'comment')
-
-    def save(self, *args, **kwargs):
-        is_updated = self.pk is not None
-        old_reaction = None
-
-        with transaction.atomic():
-            if is_updated:
-                old_comment_reaction = CommentReAction.objects.get(pk=self.pk)
-                old_reaction = old_comment_reaction.reaction
-
-            super().save(*args, **kwargs)
-
-            if old_reaction:  # if obj updating
-                if old_reaction == self.LIKE and self.reaction == self.DISLIKE:
-                    self.comment.__class__.objects.filter(pk=self.comment.id).update(
-                        likes_count=F('likes_count') - 1,
-                        dis_likes_count=F('dis_likes_count') + 1
-                    )
-                elif old_reaction == self.DISLIKE and self.reaction == self.LIKE:
-                    self.comment.__class__.objects.filter(pk=self.comment.id).update(
-                        likes_count=F('likes_count') + 1,
-                        dis_likes_count=F('dis_likes_count') - 1
-                    )
-
-            else:
-                # if obj is new
-                if self.reaction == self.LIKE:
-                    self.comment.__class__.objects.filter(pk=self.comment.id).update(likes_count=F('likes_count') + 1)
-
-                else:
-                    self.comment.__class__.objects.filter(pk=self.comment.id).update(
-                        dis_likes_count=F('dis_likes_count') + 1)
-
-    def delete(self, *args, **kwargs):
-        reaction = self.reaction
-        comment_id = self.comment.id
-
-        with transaction.atomic():
-            super().delete(*args, **kwargs)
-
-            if reaction == self.LIKE:
-                self.comment.__class__.objects.filter(pk=comment_id).update(likes_count=F('likes_count') - 1)
-            else:
-                self.comment.__class__.objects.filter(pk=comment_id).update(dis_likes_count=F('dis_likes_count') - 1)
