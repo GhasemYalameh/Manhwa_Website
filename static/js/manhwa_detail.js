@@ -24,19 +24,18 @@ function get_csrf_token(){
 
 
 document.addEventListener('DOMContentLoaded', async function (){
-
-    const response = await fetch('set-view/', {
+    const response = await fetch('/api/set-view/', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
             'X-CSRFToken': get_csrf_token()
-        }
+        },
+        body: JSON.stringify({
+            'manhwa_id': +manhwa_id
+        })
     })
-    const data = await response.json()
 
-    if (response.ok) console.log(data.message)
-    else console.log(data.message)
-
+    const data = await response.json();
 })
 
 form.addEventListener('submit', async function(e){

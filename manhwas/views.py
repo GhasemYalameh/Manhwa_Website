@@ -1,4 +1,4 @@
-from django.db import IntegrityError
+from django.db import IntegrityError, transaction
 from django.db.models import Avg, Count, F, Value, Max, When, Case, CharField, Subquery, OuterRef, Exists
 from django.db.models.functions import Coalesce, Concat, Cast
 from django.http import JsonResponse
@@ -19,6 +19,7 @@ from .serializers import (
     CommentReectionToggleSerializer,
     CommentSerializer,
     ManhwaSerializer,
+    ViewSerializer
 )
 
 import json
@@ -374,3 +375,23 @@ def api_reaction_handler(request):
         return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     return Response(response, status=status.HTTP_200_OK)
+
+
+@api_view(['POST'])
+def api_set_user_view_for_manhwa(request):
+    serializer = ViewSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
+
+    manhwa_id = serializer.validated_data.get('manhwa_id')
+
+    with transaction.atomic():
+        view_obj, created = View.objects.get_or_create(
+            manhwa_id=manhwa_id,
+            user=request.user
+        )
+
+        if created:
+            Manhwa.objects.filter(pk=manhwa_id).update(views_count=F('views_count') + 1)
+            return Response({'action': 'created'})
+
+        return Response({'action': 'was exists'})

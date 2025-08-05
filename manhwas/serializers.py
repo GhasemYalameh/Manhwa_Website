@@ -7,7 +7,7 @@ from django.db import IntegrityError
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext as _
 
-from .models import Manhwa, Comment, CommentReAction, CommentReply
+from .models import Manhwa, Comment, CommentReAction, CommentReply, View
 
 
 class CommentSerializer(serializers.ModelSerializer):
@@ -86,5 +86,17 @@ class CommentReectionToggleSerializer(serializers.Serializer):
             Comment.objects.get(pk=value)
         except Comment.DoesNotExist:
             raise serializers.ValidationError("comment not fount")
+
+        return value
+
+
+class ViewSerializer(serializers.Serializer):
+    manhwa_id = serializers.IntegerField()
+
+    def validate_manhwa_id(self, value):
+        try:
+            Manhwa.objects.get(pk=value)
+        except Manhwa.DoesNotExist:
+            raise serializers.ValidationError('manhwa not found')
 
         return value
