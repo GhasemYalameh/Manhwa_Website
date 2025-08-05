@@ -67,10 +67,13 @@ class ManhwaSerializer(serializers.ModelSerializer):
 
 
 class CommentReactionSerializer(serializers.ModelSerializer):
+    likes_count = serializers.IntegerField(source='comment.likes_count')
+    dis_likes_count = serializers.IntegerField(source='comment.dis_likes_count')
+
     class Meta:
         model = CommentReAction
-        fields = ('id', 'user', 'comment', 'reaction')
-        read_only_fields = ('id', 'user',)
+        fields = ('id', 'user', 'comment', 'reaction',  'likes_count', 'dis_likes_count')
+        read_only_fields = ('id', 'user', 'likes_count', 'dis_likes_count')
 
 
 class CommentReectionToggleSerializer(serializers.Serializer):

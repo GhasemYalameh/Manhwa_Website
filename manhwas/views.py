@@ -357,6 +357,10 @@ def api_reaction_handler(request):
             reaction=reaction
         )
 
+        # get reaction count from db
+        comment_data = Comment.objects.only('likes_count', 'dis_likes_count').get(pk=comment_id)
+        comment_data = {'likes_count': comment_data.likes_count, 'dis_likes_count': comment_data.dis_likes_count}
+
         reaction_data = None
         if action != 'deleted':
             reaction_data = CommentReactionSerializer(reaction_obj).data
@@ -364,6 +368,7 @@ def api_reaction_handler(request):
         response = {
             'action': action,
             'reaction': reaction_data,
+            'comment': comment_data
         }
     except Exception as e:
         return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

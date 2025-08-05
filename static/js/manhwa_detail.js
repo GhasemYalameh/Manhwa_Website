@@ -23,21 +23,20 @@ function get_csrf_token(){
 }
 
 
-document.addEventListener('DOMContentLoaded', function (){
+document.addEventListener('DOMContentLoaded', async function (){
 
-    fetch('set-view/', {
+    const response = await fetch('set-view/', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
             'X-CSRFToken': get_csrf_token()
         }
     })
-    .then(response => response.json())
-    .then(data => {
-        if (data.status) console.log(data.message)
-        else console.log(data.message)
-    })
-    .catch(error => console.error(error))
+    const data = await response.json()
+
+    if (response.ok) console.log(data.message)
+    else console.log(data.message)
+
 })
 
 form.addEventListener('submit', async function(e){
@@ -143,27 +142,105 @@ function cancelReply(){
     mainCommentId = null
 }
 
-function reactionHandler(comment_id, reaction){
 
-    fetch(`/comment-reaction/${comment_id}/`, {
-        method: 'POST',
-        headers:{
-            'Content-Type': 'application/json',
-            'X-CSRFToken': get_csrf_token()
-        },
-        body: JSON.stringify({
-            reaction: reaction
-        })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.status){
-            changeCommentUi(comment_id, data);
+document.querySelector('#comments-list').addEventListener('click', async function(e){
+    const btn = e.target.closest('.reaction-btn'); // clicked btn
+    if (!btn) return;
+
+    // datas
+    const commentId = btn.closest('.comment-content').dataset.commentId;
+    const reaction = btn.dataset.reactionType;
+    if (reaction === 'reply') return;
+
+    const oppositeBtn = (reaction === 'lk')  // other reaction btn
+            ? btn.closest('.reactions').querySelector('.dislike-btn')
+            : btn.closest('.reactions').querySelector('.like-btn')
+
+    // elements
+    const svg = btn.querySelector('svg');
+    const span = btn.querySelector('span');
+    const oppositeSpan = oppositeBtn.querySelector('span');
+    const oppositeSvg = oppositeBtn.querySelector('svg');
+
+    const reactionDiv = btn.closest('.reactions');
+    const isLikeActive = reactionDiv.querySelector('.like-btn svg').classList.contains('active');
+    const isDisLikeActive = reactionDiv.querySelector('.dislike-btn svg').classList.contains('active');
+
+
+    let action = null;
+    let last_reaction = null;
+    if (isLikeActive) last_reaction = 'lk';
+    else if (isDisLikeActive) last_reaction = 'dlk';
+
+    if (last_reaction === reaction){ // delete reaction
+        const intSpan = +span.textContent;
+        span.textContent = intSpan - 1;
+        svg.classList.remove('active');
+        action = 'delete';
+
+    }else if (last_reaction !== reaction && last_reaction !== null){ // change reaction
+        const intSpan = +span.textContent;  // current must increase
+        span.textContent = intSpan + 1;
+        svg.classList.add('active');
+
+        const intOtherSpan = +oppositeSpan.textContent ; // other span must decrease
+        oppositeSpan.textContent = intOtherSpan - 1;
+        oppositeSvg.classList.remove('active');
+
+        action = 'change';
+
+    }else if (last_reaction === null){  // add reaction
+        const intSpan = +span.textContent ; // current reaction must increase
+        span.textContent = intSpan + 1;
+        svg.classList.add('active');
+
+        action = 'add';
+    }
+
+    const response = await fetch(
+        '/api/comment-reaction/',{
+            method: 'POST',
+            headers:{
+                'Content-Type': 'application/json',
+                'X-CSRFToken': get_csrf_token()
+            },
+            body: JSON.stringify({
+                'reaction': reaction,
+                'comment_id': commentId
+            })
+
         }
-        showMessage(data.status===true ? 'success':'error', data.message)
-    })
+    )
+    const data = await response.json();
+    if (response.ok){
+        const likesCount = data.comment.likes_count;
+        const disLikesCount = data.comment.dis_likes_count;
 
-}
+        // update this reaction btn
+        span.textContent = (reaction === 'lk') ? likesCount : disLikesCount;
+
+        // update opposite btn
+        oppositeSpan.textContent = (reaction === 'lk') ? disLikesCount : likesCount;
+
+    }else{
+        // back reaction UI
+        reverseUI();
+    }
+
+    function reverseUI(){
+        if (action === 'add'){
+            svg.classList.remove('active');
+
+        }else if (action === 'change'){
+            svg.classList.remove('active');
+            oppositeSvg.classList.add('active');
+
+        }else if (action === 'delete'){
+            svg.classList.add('active');
+        }
+    }
+})
+
 
 function changeCommentUi(comment_id, data){
     let like_btn = document.querySelector(`.comment-like-${comment_id}`)
