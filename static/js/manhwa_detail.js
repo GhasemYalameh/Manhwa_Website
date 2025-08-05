@@ -142,7 +142,6 @@ function cancelReply(){
     mainCommentId = null
 }
 
-
 document.querySelector('#comments-list').addEventListener('click', async function(e){
     const btn = e.target.closest('.reaction-btn'); // clicked btn
     if (!btn) return;

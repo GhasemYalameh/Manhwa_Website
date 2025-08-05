@@ -40,7 +40,7 @@
         {% endfor %}<br><br>
 
         <h2 id="up-form" class="topic">{% trans 'write your comment : ' %}</h2>
-        <form id="comment-form" action="{% url 'add_comment_manhwa' manhwa.id %}" method="post">
+        <form id="comment-form"  method="post">
             {% csrf_token %}
             <div class="reply-container">
                 <button type="button" onclick="cancelReply()" class="reply-cancel">
