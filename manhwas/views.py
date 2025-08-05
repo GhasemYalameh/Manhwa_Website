@@ -175,7 +175,6 @@ def api_get_comment_replies(request, manhwa_id, comment_id):
 @permission_classes([IsAuthenticated])
 def api_reaction_handler(request):
     serializer = CommentReectionToggleSerializer(data=request.data)
-
     serializer.is_valid(raise_exception=True)
 
     comment_id = serializer.validated_data.get('comment_id')
@@ -188,12 +187,10 @@ def api_reaction_handler(request):
         )
 
         # get reaction count from db
-        comment_data = Comment.objects.only('likes_count', 'dis_likes_count').get(pk=comment_id)
+        comment_data = Comment.objects.only('id', 'likes_count', 'dis_likes_count').get(pk=comment_id)
         comment_data = {'likes_count': comment_data.likes_count, 'dis_likes_count': comment_data.dis_likes_count}
 
-        reaction_data = None
-        if action != 'deleted':
-            reaction_data = CommentReactionSerializer(reaction_obj).data
+        reaction_data = CommentReactionSerializer(reaction_obj).data if action != 'deleted' else None
 
         response = {
             'action': action,
