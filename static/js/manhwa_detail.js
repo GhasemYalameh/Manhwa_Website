@@ -240,25 +240,6 @@ document.querySelector('#comments-list').addEventListener('click', async functio
     }
 })
 
-
-function changeCommentUi(comment_id, data){
-    let like_btn = document.querySelector(`.comment-like-${comment_id}`)
-    let dislike_btn = document.querySelector(`.comment-dislike-${comment_id}`)
-
-    like_btn.classList.remove('active')
-    dislike_btn.classList.remove('active')
-
-    if (data.reaction === 'like'){
-        like_btn.classList.add('active')
-    }else if (data.reaction === 'dislike'){
-        dislike_btn.classList.add('active')
-    }
-
-    document.querySelector(`#likeCount-${comment_id}`).textContent = data.likes_count
-    document.querySelector(`#dislikeCount-${comment_id}`).textContent = data.dis_likes_count
-
-}
-
 function  showMessage(message_type, data){
 
     const errorDiv = document.getElementById('form-error-messages');
