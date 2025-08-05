@@ -172,48 +172,31 @@ class ManhwaApiTest(TestCase):
         self.assertIn(comment.id, comment_ids)
         self.assertNotIn(comment2.id, comment_ids)
 
-    def test_comment_reaction(self):
-        self.assertEqual(self.comment.likes_count, 0)
-        self.assertEqual(self.comment.dis_likes_count, 0)
-
-        reaction = CommentReAction.objects.create(
-            comment=self.comment,
-            user=self.user,
-            reaction=CommentReAction.DISLIKE
-        )
-        self.comment.refresh_from_db()
-        self.assertEqual(self.comment.likes_count, 0)
-        self.assertEqual(self.comment.dis_likes_count, 1)
-
-        reaction_obj = CommentReAction.objects.get(pk=reaction.id)
-        reaction_obj.reaction = CommentReAction.LIKE
-        reaction_obj.save()
-
-        self.comment.refresh_from_db()
-        self.assertEqual(self.comment.dis_likes_count, 0)
-        self.assertEqual(self.comment.likes_count, 1)
-
-        CommentReAction.objects.get(pk=reaction.id).delete()
-        self.comment.refresh_from_db()
-        self.assertEqual(self.comment.likes_count, 0)
-        self.assertEqual(self.comment.dis_likes_count, 0)
-
     def test_comment_reaction_manager(self):
         self.assertEqual(self.comment.likes_count, 0)
         self.assertEqual(self.comment.dis_likes_count, 0)
 
-        reaction_obj = CommentReAction.objects.toggle_reaction(self.user, self.comment.id, CommentReAction.LIKE)
+        # first like
+        reaction_obj, action = CommentReAction.objects.toggle_reaction(self.user, self.comment.id, CommentReAction.LIKE)
         self.comment.refresh_from_db()
+        self.assertEqual(reaction_obj.reaction, 'lk')
+        self.assertEqual(action, 'created')
         self.assertEqual(self.comment.likes_count, 1)
         self.assertEqual(self.comment.dis_likes_count, 0)
 
-        reaction_obj = CommentReAction.objects.toggle_reaction(self.user, self.comment.id, CommentReAction.DISLIKE)
+        # and then Dislike
+        reaction_obj, action = CommentReAction.objects.toggle_reaction(self.user, self.comment.id, CommentReAction.DISLIKE)
         self.comment.refresh_from_db()
+        self.assertEqual(reaction_obj.reaction, 'dlk')
+        self.assertEqual(action, 'updated')
         self.assertEqual(self.comment.likes_count, 0)
         self.assertEqual(self.comment.dis_likes_count, 1)
 
-        reaction_obj = CommentReAction.objects.toggle_reaction(self.user, self.comment.id, CommentReAction.DISLIKE)
+        # duplicate Dislike (delete reaction)
+        reaction_obj, action = CommentReAction.objects.toggle_reaction(self.user, self.comment.id, CommentReAction.DISLIKE)
         self.comment.refresh_from_db()
+        self.assertIsNone(reaction_obj)
+        self.assertEqual(action, 'deleted')
         self.assertEqual(self.comment.likes_count, 0)
         self.assertEqual(self.comment.dis_likes_count, 0)
 
@@ -254,6 +237,45 @@ class ManhwaApiTest(TestCase):
         self.assertEqual(rating_data['threes_count'], 0)
         self.assertEqual(rating_data['twos_count'], 0)
         self.assertEqual(rating_data['ones_count'], 0)
+
+    def test_all_api_query(self):
+        with self.assertNumQueries(4):
+            response = self.client.post(
+                reverse('api_create_manhwa_comment'),
+                json.dumps({
+                    'text': 'some text for test comment',
+                    'manhwa': self.manhwa.id
+                }),
+                content_type='application/json'
+            )
+        with self.assertNumQueries(5):
+            response = self.client.post(
+                reverse('api_create_manhwa_comment'),
+                json.dumps({
+                    'text': 'some replied comment text',
+                    'manhwa': self.manhwa.id,
+                    'replied_to': self.comment.id
+                }),
+                content_type='application/json'
+            )
+        with self.assertNumQueries(5):
+            reaction_obj = CommentReAction.objects.toggle_reaction(self.user, self.comment.id, CommentReAction.LIKE)
+
+        with self.assertNumQueries(5):
+            reaction_obj = CommentReAction.objects.toggle_reaction(self.user, self.comment.id, CommentReAction.DISLIKE)
+
+        with self.assertNumQueries(5):
+            reaction_obj = CommentReAction.objects.toggle_reaction(self.user, self.comment.id, CommentReAction.DISLIKE)
+
+        with self.assertNumQueries(9):
+            response = self.client.post(
+                reverse('api_toggle_reaction_comment'),
+                json.dumps({'comment_id': self.comment.id, 'reaction': 'lk'}),
+                content_type='application/json'
+            )
+            data = response.json()
+            self.assertEqual(data['reaction']['reaction'], 'lk')
+            self.assertEqual(data['action'], 'created')
 
 
 class ManhwaViewTest(TestCase):
