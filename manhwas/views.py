@@ -8,8 +8,9 @@ from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
 
 from rest_framework import status
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
 
 from .forms import CommentForm
 from .models import Manhwa, View, CommentReAction, Comment, CommentReply
@@ -121,6 +122,7 @@ def api_manhwa_detail(request, pk):
 
 
 @api_view(['POST'])
+@permission_classes([IsAuthenticated])
 def api_create_manhwa_comment(request):
     response = {'message': '', 'comment': None}
     if request.method == 'POST':
@@ -170,6 +172,7 @@ def api_get_comment_replies(request, manhwa_id, comment_id):
 
 
 @api_view(['POST'])
+@permission_classes([IsAuthenticated])
 def api_reaction_handler(request):
     serializer = CommentReectionToggleSerializer(data=request.data)
 
