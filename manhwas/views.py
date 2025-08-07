@@ -1,9 +1,7 @@
-from django.db import IntegrityError, transaction
+from django.db import IntegrityError, transaction, connection
 from django.db.models import Avg, Count, F, Value, Max, When, Case, CharField, Subquery, OuterRef, Exists
 from django.db.models.functions import Coalesce, Concat, Cast
-from django.http import JsonResponse
 from django.shortcuts import render, get_object_or_404
-from django.utils.timesince import timesince
 from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
 
@@ -12,18 +10,8 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 
-from .forms import CommentForm
-from .models import Manhwa, View, CommentReAction, Comment, CommentReply
-from .serializers import (
-    CommentDetailSerializer,
-    CommentReactionSerializer,
-    CommentReectionToggleSerializer,
-    CommentSerializer,
-    ManhwaSerializer,
-    ViewSerializer
-)
-
-import json
+from .models import Manhwa, View, CommentReAction, Comment, CommentReply, NewComment
+from . import serializers as srilzr
 
 
 def home_page(request):
@@ -110,14 +98,14 @@ def show_replied_comment(request, pk):
 @api_view()
 def api_manhwa_list(request):
     query_set = Manhwa.objects.prefetch_related('comments__author').all()
-    serializer = ManhwaSerializer(query_set, many=True)
+    serializer = srilzr.ManhwaSerializer(query_set, many=True)
     return Response(serializer.data)
 
 
 @api_view()
 def api_manhwa_detail(request, pk):
     manhwa = get_object_or_404(Manhwa, pk=pk)
-    serializer = ManhwaSerializer(manhwa)
+    serializer = srilzr.ManhwaSerializer(manhwa)
     return Response(serializer.data)
 
 
@@ -126,7 +114,7 @@ def api_manhwa_detail(request, pk):
 def api_create_manhwa_comment(request):
     response = {'message': '', 'comment': None}
     if request.method == 'POST':
-        serializer = CommentSerializer(data=request.data)
+        serializer = srilzr.CommentSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.save(author=request.user)
 
@@ -167,14 +155,14 @@ def api_get_comment_replies(request, manhwa_id, comment_id):
         pk=comment_id
     )
 
-    serializer = CommentDetailSerializer(query_set)
+    serializer = srilzr.CommentDetailSerializer(query_set)
     return Response(serializer.data)
 
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def api_reaction_handler(request):
-    serializer = CommentReectionToggleSerializer(data=request.data)
+    serializer = srilzr.CommentReectionToggleSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
 
     comment_id = serializer.validated_data.get('comment_id')
@@ -190,7 +178,7 @@ def api_reaction_handler(request):
         comment_data = Comment.objects.only('id', 'likes_count', 'dis_likes_count').get(pk=comment_id)
         comment_data = {'likes_count': comment_data.likes_count, 'dis_likes_count': comment_data.dis_likes_count}
 
-        reaction_data = CommentReactionSerializer(reaction_obj).data if action != 'deleted' else None
+        reaction_data = srilzr.CommentReactionSerializer(reaction_obj).data if action != 'deleted' else None
 
         response = {
             'action': action,
@@ -205,7 +193,7 @@ def api_reaction_handler(request):
 
 @api_view(['POST'])
 def api_set_user_view_for_manhwa(request):
-    serializer = ViewSerializer(data=request.data)
+    serializer = srilzr.ViewSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
 
     manhwa_id = serializer.validated_data.get('manhwa_id')
@@ -221,3 +209,71 @@ def api_set_user_view_for_manhwa(request):
             return Response({'action': 'created'})
 
         return Response({'action': 'was exists'})
+
+
+@api_view(['GET', 'POST'])
+def get_new_comments(request, manhwa_id):
+    query_set = NewComment.objects.select_related('author').filter(manhwa_id=manhwa_id)
+    serializer = srilzr.NewCommentSerializer(query_set, many=True)
+
+    if request.method == 'POST':
+        serializer = srilzr.NewCommentSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save(author=request.user, manhwa_id=manhwa_id)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    return Response(serializer.data)
+
+
+@api_view()
+def api_new_comment_childes(request, pk):
+    try:
+        comment = NewComment.objects.prefetch_related('childes').get(pk=pk)
+        serializer = srilzr.NewCommentSerializer(comment.childes.all(), many=True)
+        return Response(serializer.data)
+    except NewComment.DoesNotExist:
+        return Response('error', status=status.HTTP_400_BAD_REQUEST)
+
+
+def delete_db(model_class):
+    table_name = model_class._meta.db_table
+    with connection.cursor() as cursor:
+        cursor.execute(f"DELETE FROM {table_name}")
+        cursor.execute(f"DELETE FROM sqlite_sequence WHERE name='{table_name}'")
+
+
+@api_view(['GET', 'POST'])
+def moving_data_db(request):
+
+    if request.method == 'POST':
+        parents = {'':0}
+        not_replied = Comment.objects.annotate(
+            is_replied=Exists(CommentReply.objects.filter(replied_comment_id=OuterRef('pk')))
+        ).filter(is_replied=False)
+
+        delete_db(NewComment)
+
+        for comment_obj in not_replied:
+            comment = NewComment.objects.create(
+                author_id=comment_obj.author_id,
+                text=comment_obj.text,
+                manhwa_id=comment_obj.manhwa_id,
+            )
+            parents[str(comment_obj.id)] = comment.id
+
+        print(NewComment.objects.count(), 'created in new comment!')
+        print(parents)
+
+        for replied_obj in CommentReply.objects.all():
+            comment_obj = replied_obj.replied_comment
+            try:
+                NewComment.objects.create(
+                    author_id=comment_obj.author_id,
+                    text=comment_obj.text,
+                    manhwa_id=comment_obj.manhwa_id,
+                    parent_id=parents[str(replied_obj.main_comment_id)]
+                )
+            except Exception as e:
+                print('excepted:', replied_obj.id, str(e))
+
+    return Response({'ssss'})

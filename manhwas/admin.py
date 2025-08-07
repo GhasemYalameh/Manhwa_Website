@@ -3,7 +3,7 @@ from django.db.models import Count, OuterRef, Subquery
 from django.utils.html import format_html, urlencode
 from django.urls import reverse
 
-from .models import Manhwa, Episode, Studio, Genre, Rate, View, Comment, CommentReAction, CommentReply
+from .models import Manhwa, Episode, Studio, Genre, Rate, View, Comment, CommentReAction, CommentReply, NewComment
 
 
 class CommentInline(admin.TabularInline):
@@ -84,12 +84,17 @@ class EpisodeAdmin(admin.ModelAdmin):
     list_display = ('number', 'downloads_count', 'manhwa')
 
 
+class NewCommentAdmin(admin.ModelAdmin):
+    list_display = ('id', 'author', 'manhwa', 'parent', 'level')
+
+
 class CommentAdmin(admin.ModelAdmin):
-    list_display = ('author', 'manhwa', 'datetime_modified',)
+    list_display = ('id', 'author', 'manhwa', 'datetime_modified',)
+    ordering = ('id',)
 
 
 class CommentReplyAdmin(admin.ModelAdmin):
-    pass
+    list_display = ('id', 'main_comment', 'replied_comment')
 
 
 class CommentReActionAdmin(admin.ModelAdmin):
@@ -105,4 +110,4 @@ admin.site.register(View, ViewAdmin)
 admin.site.register(Comment, CommentAdmin)
 admin.site.register(CommentReAction, CommentReActionAdmin)
 admin.site.register(CommentReply, CommentReplyAdmin)
-
+admin.site.register(NewComment, NewCommentAdmin)

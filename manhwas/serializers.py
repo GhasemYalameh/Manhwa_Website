@@ -7,7 +7,35 @@ from django.db import IntegrityError
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext as _
 
-from .models import Manhwa, Comment, CommentReAction, CommentReply, View
+from .models import Manhwa, Comment, CommentReAction, CommentReply, View, NewComment
+
+
+class NewCommentSerializer(serializers.ModelSerializer):
+    author = serializers.CharField(source='author.username', read_only=True)
+
+    class Meta:
+        model = NewComment
+        fields = ('id', 'author', 'manhwa', 'text', 'parent', 'level', 'likes_count', 'dis_likes_count')
+        read_only_fields = ('id', 'manhwa', 'level', 'likes_count', 'dis_likes_count')
+
+    def validate_text(self, value):
+        is_html = search(r'<[^>]+>', value)
+        if is_html:
+            raise serializers.ValidationError('text cant be included html tags.')
+
+        return value
+
+    def create(self, validated_data):
+        try:
+            return Comment.objects.create(**validated_data)
+
+        except ValidationError as e:
+            raise serializers.ValidationError(e.message_dict)
+
+        except IntegrityError:
+            raise serializers.ValidationError({
+                'non_field_error': _('same text for comment not allowed.')
+            })
 
 
 class CommentSerializer(serializers.ModelSerializer):

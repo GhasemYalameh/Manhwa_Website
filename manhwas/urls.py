@@ -15,4 +15,7 @@ urlpatterns = [
     path('api/comment-reaction/', views.api_reaction_handler, name='api_toggle_reaction_comment'),
     path('api/set-view/', views.api_set_user_view_for_manhwa, name='api_set_view_manhwa'),
 
+    path('new/manhwa/<int:manhwa_id>/comments/', views.get_new_comments, name='new_comments'),
+    path('new/comment-chiled/<int:pk>', views.api_new_comment_childes, name='new_comment_childes'),
+    path('moving-db', views.moving_data_db, name='moving_db'),
 ]

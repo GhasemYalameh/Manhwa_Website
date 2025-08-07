@@ -1,3 +1,4 @@
+from django.core.exceptions import ValidationError
 from django.db import models, transaction
 from django.db.models import F, Avg, Count, Case, When
 from django.utils.text import slugify
@@ -141,6 +142,40 @@ class Episode(models.Model):
 
     def __str__(self):
         return f'{self.manhwa.en_title}: {self.number}'
+
+
+class NewComment(models.Model):
+    author = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='new_comments'
+        )
+    manhwa = models.ForeignKey(Manhwa, on_delete=models.CASCADE, related_name='new_comments')
+    text = models.TextField()
+
+    parent = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, default=None, related_name='childes')
+    level = models.PositiveSmallIntegerField(default=0, editable=False)  # level of comment depth
+
+    likes_count = models.PositiveIntegerField(default=0, editable=False)
+    dis_likes_count = models.PositiveIntegerField(default=0, editable=False)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def save(self, *args, **kwargs):
+        if self.parent:
+
+            if self.manhwa_id != self.manhwa_id:
+                raise ValidationError('parent & child must sign to same manhwa.')
+
+            self.level = self.parent.level + 1  # set comment level
+            if self.level >= 3:
+                raise ValidationError('depth of comment cant more than 3.')
+
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f'{self.id}'
 
 
 class Comment(models.Model):
