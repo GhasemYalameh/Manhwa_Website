@@ -47,42 +47,28 @@ def manhwa_detail(request, pk):
         pk=pk
     )
 
-    # if request.user.is_authenticated:
-
-        # user_reacted_subquery = CommentReAction.objects.filter(
-        #     user_id=request.user.id,
-        #     comment_id=OuterRef('pk')
-        # ).values('reaction')
-        #
-        # is_replied_subquery = Exists(CommentReply.objects.filter(replied_comment_id=OuterRef('pk')))
-        #
-        # comments = Comment.objects.filter(manhwa_id=pk).select_related('author').prefetch_related('replies').annotate(
-        #
-        #     user_reaction=Coalesce(
-        #         Subquery(user_reacted_subquery),
-        #         Value('no-reaction')),
-        #
-        #     is_replied=is_replied_subquery,
-        #     replies_count=Count('replies')
-        #
-        # ).filter(is_replied=False)
-    comments = NewComment.objects.select_related('author').prefetch_related('childes').filter(level=0).annotate(
+    comments_query = NewComment.objects.select_related('author').prefetch_related('childes').filter(level=0).annotate(
         replies_count=Count('childes')
-    ).order_by('-created_at')
+    )
 
-    # else:
-    #     is_replied_subquery = Exists(CommentReply.objects.filter(replied_comment_id=OuterRef('pk')))
-    #     comments = Comment.objects.filter(manhwa_id=pk).select_related('author').annotate(
-    #         is_replied=is_replied_subquery
-    #
-    #     ).filter(is_replied=False)
+    if request.user.is_authenticated:
 
+        user_reacted_subquery = CommentReAction.objects.filter(
+            user_id=request.user.id,
+            comment_id=OuterRef('pk')
+        ).values('reaction')
+
+        comments_query = comments_query.annotate(
+            user_reaction=Coalesce(
+                Subquery(user_reacted_subquery),
+                Value('no-reaction')),
+        ).order_by('-created_at')
     return render(
         request,
         'manhwas/manhwa_detail_view.html',
         context={
             'manhwa': manhwa,
-            'comments': comments
+            'comments': comments_query
         }
       )
 
@@ -178,7 +164,7 @@ def api_reaction_handler(request):
         )
 
         # get reaction count from db
-        comment_data = Comment.objects.only('id', 'likes_count', 'dis_likes_count').get(pk=comment_id)
+        comment_data = NewComment.objects.only('id', 'likes_count', 'dis_likes_count').get(pk=comment_id)
         comment_data = {'likes_count': comment_data.likes_count, 'dis_likes_count': comment_data.dis_likes_count}
 
         reaction_data = srilzr.CommentReactionSerializer(reaction_obj).data if action != 'deleted' else None

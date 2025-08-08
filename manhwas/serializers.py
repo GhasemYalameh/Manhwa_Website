@@ -108,8 +108,8 @@ class CommentReectionToggleSerializer(serializers.Serializer):
     def validate_comment_id(self, value):
         """check existing of comment"""
         try:
-            Comment.objects.get(pk=value)
-        except Comment.DoesNotExist:
+            NewComment.objects.get(pk=value)
+        except NewComment.DoesNotExist:
             raise serializers.ValidationError("comment not fount")
 
         return value

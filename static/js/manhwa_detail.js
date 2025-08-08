@@ -211,6 +211,7 @@ document.querySelector('#comments-list').addEventListener('click', async functio
         }
     )
     const data = await response.json();
+    console.log(data)
     if (response.ok){
         const likesCount = data.comment.likes_count;
         const disLikesCount = data.comment.dis_likes_count;

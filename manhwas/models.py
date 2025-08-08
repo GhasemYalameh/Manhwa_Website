@@ -275,7 +275,7 @@ class CommentReactionManager(models.Manager):
             updates['dis_likes_count'] = F('dis_likes_count') + 1
 
         if updates:
-            Comment.objects.filter(pk=comment_id).update(**updates)
+            NewComment.objects.filter(pk=comment_id).update(**updates)
 
     def sync_comment_reaction_counters(self, comment_id):
         """update likes & dis_likes count fields from db and real count of reactions"""
@@ -284,7 +284,7 @@ class CommentReactionManager(models.Manager):
             likes=Count(When(reaction='lk', then=1)),
             dis_likes=Count(When(reaction='dlk', then=1))
         )
-        Comment.objects.filter(pk=comment_id).update(likes_count=reactions.likes, dis_likes_count=reactions.dis_likes)
+        NewComment.objects.filter(pk=comment_id).update(likes_count=reactions.likes, dis_likes_count=reactions.dis_likes)
 
 
 class CommentReAction(models.Model):
