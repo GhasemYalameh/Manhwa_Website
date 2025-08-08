@@ -162,6 +162,10 @@ class NewComment(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    class Meta:
+        unique_together = ('manhwa', 'author', 'text')  # try except for same text and spam robot
+        ordering = ('-datetime_created',)
+
     def save(self, *args, **kwargs):
         if self.parent:
 
