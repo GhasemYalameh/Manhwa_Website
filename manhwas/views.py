@@ -47,7 +47,7 @@ def manhwa_detail(request, pk):
         pk=pk
     )
 
-    comments_query = NewComment.objects.select_related('author').prefetch_related('childes').filter(level=0).annotate(
+    comments_query = NewComment.objects.select_related('author').prefetch_related('childes').filter(level=0, manhwa_id=pk).annotate(
         replies_count=Count('childes')
     )
 
