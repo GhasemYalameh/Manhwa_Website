@@ -283,3 +283,12 @@ def moving_data_db(request):
                 print('excepted:', replied_obj.id, str(e))
 
     return Response({'ssss'})
+
+
+@api_view(['GET', 'POST'])
+def moving_reaction_db(request):
+
+    if request.method == 'POST':
+        delete_db(CommentReAction)
+
+    return Response({'dddd'})

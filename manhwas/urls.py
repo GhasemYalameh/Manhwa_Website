@@ -17,5 +17,6 @@ urlpatterns = [
 
     path('new/manhwa/<int:manhwa_id>/comments/', views.get_new_comments, name='new_comments'),
     path('new/comment-chiled/<int:pk>', views.api_new_comment_childes, name='new_comment_childes'),
-    path('moving-db', views.moving_data_db, name='moving_db'),
+    path('moving-db/', views.moving_data_db, name='moving_db'),
+    path('moving-reaction-db/', views.moving_reaction_db, name='moving_reaction_db'),
 ]

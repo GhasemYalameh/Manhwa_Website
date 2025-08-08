@@ -302,7 +302,7 @@ class CommentReAction(models.Model):
         related_name='comment_reactions',
         verbose_name=_('user')
     )
-    comment = models.ForeignKey(Comment, on_delete=models.CASCADE, related_name='reactions', verbose_name=_('comment'))
+    comment = models.ForeignKey(NewComment, on_delete=models.CASCADE, related_name='reactions', verbose_name=_('comment'))
     reaction = models.CharField(max_length=10, choices=COMMENT_REACTIONS, verbose_name=_('reaction'))
 
     objects = CommentReactionManager()
