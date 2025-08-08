@@ -150,7 +150,7 @@ class NewComment(models.Model):
         on_delete=models.CASCADE,
         related_name='new_comments'
         )
-    manhwa = models.ForeignKey(Manhwa, on_delete=models.CASCADE, related_name='new_comments')
+    manhwa = models.ForeignKey(Manhwa, on_delete=models.CASCADE, related_name='comments')
     text = models.TextField()
 
     parent = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, default=None, related_name='childes')

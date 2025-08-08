@@ -1,6 +1,5 @@
 from re import search
 
-from django.db.models import Exists, OuterRef
 from rest_framework import serializers
 
 from django.db import IntegrityError

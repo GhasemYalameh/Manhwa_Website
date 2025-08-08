@@ -33,7 +33,7 @@ class ManhwaAdmin(admin.ModelAdmin):
                     .values('count')
                 ),
                 comments_count=Subquery(
-                    Comment.objects
+                    NewComment.objects
                     .filter(manhwa=OuterRef('pk'))
                     .values('manhwa')
                     .annotate(count=Count('id'))
