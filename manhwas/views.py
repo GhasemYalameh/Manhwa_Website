@@ -47,39 +47,42 @@ def manhwa_detail(request, pk):
         pk=pk
     )
 
-    if request.user.is_authenticated:
+    # if request.user.is_authenticated:
 
-        user_reacted_subquery = CommentReAction.objects.filter(
-            user_id=request.user.id,
-            comment_id=OuterRef('pk')
-        ).values('reaction')
+        # user_reacted_subquery = CommentReAction.objects.filter(
+        #     user_id=request.user.id,
+        #     comment_id=OuterRef('pk')
+        # ).values('reaction')
+        #
+        # is_replied_subquery = Exists(CommentReply.objects.filter(replied_comment_id=OuterRef('pk')))
+        #
+        # comments = Comment.objects.filter(manhwa_id=pk).select_related('author').prefetch_related('replies').annotate(
+        #
+        #     user_reaction=Coalesce(
+        #         Subquery(user_reacted_subquery),
+        #         Value('no-reaction')),
+        #
+        #     is_replied=is_replied_subquery,
+        #     replies_count=Count('replies')
+        #
+        # ).filter(is_replied=False)
+    comments = NewComment.objects.select_related('author').prefetch_related('childes').filter(level=0).annotate(
+        replies_count=Count('childes')
+    ).order_by('-created_at')
 
-        is_replied_subquery = Exists(CommentReply.objects.filter(replied_comment_id=OuterRef('pk')))
-
-        comments = Comment.objects.filter(manhwa_id=pk).select_related('author').prefetch_related('replies').annotate(
-
-            user_reaction=Coalesce(
-                Subquery(user_reacted_subquery),
-                Value('no-reaction')),
-
-            is_replied=is_replied_subquery,
-            replies_count=Count('replies')
-
-        ).filter(is_replied=False)
-
-    else:
-        is_replied_subquery = Exists(CommentReply.objects.filter(replied_comment_id=OuterRef('pk')))
-        comments = Comment.objects.filter(manhwa_id=pk).select_related('author').annotate(
-            is_replied=is_replied_subquery
-
-        ).filter(is_replied=False)
+    # else:
+    #     is_replied_subquery = Exists(CommentReply.objects.filter(replied_comment_id=OuterRef('pk')))
+    #     comments = Comment.objects.filter(manhwa_id=pk).select_related('author').annotate(
+    #         is_replied=is_replied_subquery
+    #
+    #     ).filter(is_replied=False)
 
     return render(
         request,
         'manhwas/manhwa_detail_view.html',
         context={
             'manhwa': manhwa,
-            'comments': comments.order_by('-datetime_created')
+            'comments': comments
         }
       )
 
@@ -143,7 +146,7 @@ def api_get_manhwa_comments(request, pk):
     comment_query = Comment.objects.prefetch_related('replies').select_related('author').filter(manhwa_id=pk).annotate(
         is_replied_comment=Exists(CommentReply.objects.filter(replied_comment_id=OuterRef('pk')))
     ).filter(is_replied_comment=False)
-    serializer = CommentSerializer(comment_query, many=True)
+    serializer = srilzr.CommentSerializer(comment_query, many=True)
     return Response(serializer.data)
 
 
@@ -244,9 +247,8 @@ def delete_db(model_class):
 
 @api_view(['GET', 'POST'])
 def moving_data_db(request):
-
     if request.method == 'POST':
-        parents = {'':0}
+        parents = {'': 0}
         not_replied = Comment.objects.annotate(
             is_replied=Exists(CommentReply.objects.filter(replied_comment_id=OuterRef('pk')))
         ).filter(is_replied=False)
@@ -258,6 +260,8 @@ def moving_data_db(request):
                 author_id=comment_obj.author_id,
                 text=comment_obj.text,
                 manhwa_id=comment_obj.manhwa_id,
+                created_at=comment_obj.datetime_created,
+                updated_at=comment_obj.datetime_modified
             )
             parents[str(comment_obj.id)] = comment.id
 
@@ -271,7 +275,9 @@ def moving_data_db(request):
                     author_id=comment_obj.author_id,
                     text=comment_obj.text,
                     manhwa_id=comment_obj.manhwa_id,
-                    parent_id=parents[str(replied_obj.main_comment_id)]
+                    parent_id=parents[str(replied_obj.main_comment_id)],
+                    created_at=comment_obj.datetime_created,
+                    updated_at=comment_obj.datetime_modified
                 )
             except Exception as e:
                 print('excepted:', replied_obj.id, str(e))

@@ -85,7 +85,7 @@ class EpisodeAdmin(admin.ModelAdmin):
 
 
 class NewCommentAdmin(admin.ModelAdmin):
-    list_display = ('id', 'author', 'manhwa', 'parent', 'level')
+    list_display = ('id', 'author', 'manhwa', 'parent', 'level', 'created_at', 'updated_at')
 
 
 class CommentAdmin(admin.ModelAdmin):
