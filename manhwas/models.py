@@ -182,42 +182,6 @@ class NewComment(models.Model):
         return f'{self.id}'
 
 
-class Comment(models.Model):
-    author = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.CASCADE,
-        related_name='comments',
-        verbose_name=_('author')
-    )
-    manhwa = models.ForeignKey(Manhwa, on_delete=models.CASCADE, related_name='comments', verbose_name=_('manhwa'))
-    text = models.TextField()
-    likes_count = models.PositiveIntegerField(default=0, editable=False, verbose_name=_('Likes count'))
-    dis_likes_count = models.PositiveIntegerField(default=0, editable=False, verbose_name=_('disLikes count'))
-
-    datetime_created = models.DateTimeField(auto_now_add=True, verbose_name=_('datetime created'))
-    datetime_modified = models.DateTimeField(auto_now=True, verbose_name=_('datetime modified'))
-
-    class Meta:
-        unique_together = ('manhwa', 'author', 'text')  # try except for same text and spam robot
-        ordering = ('-datetime_created',)
-
-    @property
-    def comment_replies(self):
-        replies = self.replies.all()
-        return [reply.replied_comment for reply in replies]
-
-    def __str__(self):
-        return f'comment: {self.id} || {self.author.phone_number} || {self.manhwa.en_title}'
-
-
-class CommentReply(models.Model):
-    main_comment = models.ForeignKey(Comment, on_delete=models.CASCADE, related_name='replies')
-    replied_comment = models.ForeignKey(Comment, on_delete=models.CASCADE)
-
-    def __str__(self):
-        return f'the {self.replied_comment.author.phone_number} replied to {self.main_comment.author.phone_number}'
-
-
 class CommentReactionManager(models.Manager):
     def toggle_reaction(self, user, comment_id, reaction):
         """

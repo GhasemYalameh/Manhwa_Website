@@ -10,7 +10,7 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 
-from .models import Manhwa, View, CommentReAction, Comment, CommentReply, NewComment
+from .models import Manhwa, View, CommentReAction, NewComment
 from . import serializers as srilzr
 
 
@@ -127,14 +127,13 @@ def api_get_manhwa_comments(request, pk):
 @api_view()
 def api_get_comment_replies(request, manhwa_id, comment_id):
     query_set = get_object_or_404(
-        Comment.objects.select_related('author').prefetch_related('childes'),
+        NewComment.objects.select_related('author').prefetch_related('childes__author'),
         manhwa_id=manhwa_id,
         pk=comment_id
     )
-    # ------------------ for detail got error -----------------
+
     serializer = srilzr.CommentDetailSerializer(query_set)
     return Response(serializer.data)
-    # ---------------------------------------------------------
 
 
 @api_view(['POST'])

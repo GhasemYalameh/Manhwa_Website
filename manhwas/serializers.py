@@ -7,7 +7,7 @@ from django.db import IntegrityError
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext as _
 
-from .models import Manhwa, Comment, CommentReAction, NewComment
+from .models import Manhwa, CommentReAction, NewComment
 
 
 class NewCommentSerializer(serializers.ModelSerializer):
@@ -44,8 +44,8 @@ class CommentDetailSerializer(serializers.ModelSerializer):
     replies_count = serializers.SerializerMethodField()
 
     class Meta:
-        model = Comment
-        fields = ('id', 'author', 'text', 'likes_count', 'dis_likes_count', 'replies_count', 'replies')
+        model = NewComment
+        fields = ('id', 'author', 'text', 'parent', 'level', 'likes_count', 'dis_likes_count', 'replies_count', 'replies')
 
     def get_replies_count(self, obj):
         return obj.childes.count()

@@ -3,13 +3,7 @@ from django.db.models import Count, OuterRef, Subquery
 from django.utils.html import format_html, urlencode
 from django.urls import reverse
 
-from .models import Manhwa, Episode, Studio, Genre, Rate, View, Comment, CommentReAction, CommentReply, NewComment
-
-
-class CommentInline(admin.TabularInline):
-    model = Comment
-    fields = ['author', 'text']
-    extra = 0
+from .models import Manhwa, Episode, Studio, Genre, Rate, View, CommentReAction, NewComment
 
 
 class EpisodeInline(admin.TabularInline):
@@ -23,7 +17,7 @@ class ManhwaAdmin(admin.ModelAdmin):
     autocomplete_fields = ['genres']
     list_filter = ['genres', 'day_of_week', 'studio']
     search_fields = ['en_title']
-    inlines = [EpisodeInline, CommentInline]
+    inlines = [EpisodeInline]
 
     def get_queryset(self, request):
         return super(ManhwaAdmin, self)\
@@ -88,15 +82,6 @@ class NewCommentAdmin(admin.ModelAdmin):
     list_display = ('id', 'author', 'manhwa', 'parent', 'level', 'created_at', 'updated_at')
 
 
-class CommentAdmin(admin.ModelAdmin):
-    list_display = ('id', 'author', 'manhwa', 'datetime_modified',)
-    ordering = ('id',)
-
-
-class CommentReplyAdmin(admin.ModelAdmin):
-    list_display = ('id', 'main_comment', 'replied_comment')
-
-
 class CommentReActionAdmin(admin.ModelAdmin):
     list_display = ('user', 'comment', 'reaction')
 
@@ -107,7 +92,5 @@ admin.site.register(Studio, StudioAdmin)
 admin.site.register(Episode, EpisodeAdmin)
 admin.site.register(Rate, RateAdmin)
 admin.site.register(View, ViewAdmin)
-admin.site.register(Comment, CommentAdmin)
 admin.site.register(CommentReAction, CommentReActionAdmin)
-admin.site.register(CommentReply, CommentReplyAdmin)
 admin.site.register(NewComment, NewCommentAdmin)
