@@ -7,7 +7,7 @@ from django.db import IntegrityError
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext as _
 
-from .models import Manhwa, Comment, CommentReAction, CommentReply, View, NewComment
+from .models import Manhwa, Comment, CommentReAction, NewComment
 
 
 class NewCommentSerializer(serializers.ModelSerializer):
@@ -33,34 +33,6 @@ class NewCommentSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(e.message_dict)
 
         except IntegrityError as e:
-            print(str(e))
-            raise serializers.ValidationError({
-                'non_field_error': _('same text for comment not allowed.')
-            })
-
-
-class CommentSerializer(serializers.ModelSerializer):
-    author = serializers.CharField(source='author.username', read_only=True)
-
-    class Meta:
-        model = Comment
-        fields = ('id', 'author', 'text', 'manhwa', 'likes_count', 'dis_likes_count')
-
-    def validate_text(self, value):
-        is_html = search(r'<[^>]+>', value)
-        if is_html:
-            raise serializers.ValidationError('text cant be included html tags.')
-
-        return value
-
-    def create(self, validated_data):
-        try:
-            return Comment.objects.create(**validated_data)
-
-        except ValidationError as e:
-            raise serializers.ValidationError(e.message_dict)
-
-        except IntegrityError:
             raise serializers.ValidationError({
                 'non_field_error': _('same text for comment not allowed.')
             })
@@ -87,12 +59,8 @@ class ManhwaSerializer(serializers.ModelSerializer):
         model = Manhwa
         fields = ['id', 'en_title', 'season', 'day_of_week', 'views_count', 'comments_count']  # + 'comments'
 
-    #  <------ N+1 Query issue ---------->
     def get_comments_count(self, obj: Manhwa):
-        return obj.comments.prefetch_related('comments').annotate(
-            is_replied=Exists(CommentReply.objects.filter(replied_comment_id=OuterRef('pk')))
-        ).filter(is_replied=False).count()
-    # <------- Handle this part ---------->
+        return obj.comments.prefetch_related('comments').filter(level=0).count()
 
 
 class CommentReactionSerializer(serializers.ModelSerializer):
@@ -116,7 +84,7 @@ class CommentReectionToggleSerializer(serializers.Serializer):
         return value
 
 
-class ViewSerializer(serializers.Serializer):
+class ManhwaViewSerializer(serializers.Serializer):
     manhwa_id = serializers.IntegerField()
 
     def validate_manhwa_id(self, value):

@@ -171,7 +171,7 @@ def api_reaction_handler(request):
 
 @api_view(['POST'])
 def api_set_user_view_for_manhwa(request):
-    serializer = srilzr.ViewSerializer(data=request.data)
+    serializer = srilzr.ManhwaViewSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
 
     manhwa_id = serializer.validated_data.get('manhwa_id')
@@ -218,52 +218,3 @@ def delete_db(model_class):
     with connection.cursor() as cursor:
         cursor.execute(f"DELETE FROM {table_name}")
         cursor.execute(f"DELETE FROM sqlite_sequence WHERE name='{table_name}'")
-
-
-@api_view(['GET', 'POST'])
-def moving_data_db(request):
-    if request.method == 'POST':
-        parents = {'': 0}
-        not_replied = Comment.objects.annotate(
-            is_replied=Exists(CommentReply.objects.filter(replied_comment_id=OuterRef('pk')))
-        ).filter(is_replied=False)
-
-        delete_db(NewComment)
-
-        for comment_obj in not_replied:
-            comment = NewComment.objects.create(
-                author_id=comment_obj.author_id,
-                text=comment_obj.text,
-                manhwa_id=comment_obj.manhwa_id,
-                created_at=comment_obj.datetime_created,
-                updated_at=comment_obj.datetime_modified
-            )
-            parents[str(comment_obj.id)] = comment.id
-
-        print(NewComment.objects.count(), 'created in new comment!')
-        print(parents)
-
-        for replied_obj in CommentReply.objects.all():
-            comment_obj = replied_obj.replied_comment
-            try:
-                NewComment.objects.create(
-                    author_id=comment_obj.author_id,
-                    text=comment_obj.text,
-                    manhwa_id=comment_obj.manhwa_id,
-                    parent_id=parents[str(replied_obj.main_comment_id)],
-                    created_at=comment_obj.datetime_created,
-                    updated_at=comment_obj.datetime_modified
-                )
-            except Exception as e:
-                print('excepted:', replied_obj.id, str(e))
-
-    return Response({'ssss'})
-
-
-@api_view(['GET', 'POST'])
-def moving_reaction_db(request):
-
-    if request.method == 'POST':
-        delete_db(CommentReAction)
-
-    return Response({'dddd'})
