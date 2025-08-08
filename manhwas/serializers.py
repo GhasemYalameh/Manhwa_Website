@@ -40,7 +40,7 @@ class NewCommentSerializer(serializers.ModelSerializer):
 
 class CommentDetailSerializer(serializers.ModelSerializer):
     author = serializers.CharField(source='author.username', read_only=True)
-    replies = CommentSerializer(source='comment_replies', many=True, read_only=True)
+    replies = NewCommentSerializer(source='childes', many=True, read_only=True)
     replies_count = serializers.SerializerMethodField()
 
     class Meta:
@@ -48,7 +48,7 @@ class CommentDetailSerializer(serializers.ModelSerializer):
         fields = ('id', 'author', 'text', 'likes_count', 'dis_likes_count', 'replies_count', 'replies')
 
     def get_replies_count(self, obj):
-        return obj.replies.count()
+        return obj.childes.count()
 
 
 class ManhwaSerializer(serializers.ModelSerializer):
