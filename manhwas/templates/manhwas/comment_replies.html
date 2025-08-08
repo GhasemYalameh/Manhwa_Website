@@ -9,10 +9,10 @@ Comment Replies
     <p>{{ comment.text }}</p><br>
     <p>==================================================================</p>
     <br><h1>replies</h1>
-    {% for reply in comment.replies.all %}
+    {% for child in comment.childes.all %}
         <br>
-        <h3>{{ reply.replied_comment.author.username }}</h3>
-        <p>{{ reply.replied_comment.text }}</p>
+        <h3>{{ child.author.username }}</h3>
+        <p>{{ child.text }}</p>
         <p>------------------------------------------------------------------------</p>
     {% endfor %}
 

@@ -77,7 +77,7 @@ def manhwa_detail(request, pk):
 def show_replied_comment(request, pk):
     data = request.POST
     comment_object = get_object_or_404(
-        Comment.objects.prefetch_related('replies__replied_comment__author').select_related('author'),
+        NewComment.objects.prefetch_related('childes').select_related('author'),
         manhwa_id=pk,
         id=data['comment_id']
     )
