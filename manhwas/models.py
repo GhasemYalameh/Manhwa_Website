@@ -164,7 +164,7 @@ class NewComment(models.Model):
 
     class Meta:
         unique_together = ('manhwa', 'author', 'text')  # try except for same text and spam robot
-        ordering = ('-datetime_created',)
+        ordering = ('-created_at',)
 
     def save(self, *args, **kwargs):
         if self.parent:

@@ -52,7 +52,6 @@ class CommentDetailSerializer(serializers.ModelSerializer):
 
 
 class ManhwaSerializer(serializers.ModelSerializer):
-    # comments = CommentSerializer(many=True, read_only=True)
     comments_count = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
