@@ -54,7 +54,7 @@ form.addEventListener('submit', async function(e){
             body: JSON.stringify({
                 'text': comment_text,
                 'manhwa': manhwa_id,
-                'replied_to': mainCommentId===null ? null:mainCommentId
+                'parent': mainCommentId===null ? null:mainCommentId
             })
         })
 

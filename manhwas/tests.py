@@ -61,11 +61,11 @@ class ManhwaApiTest(TestCase):
             manhwa=self.manhwa,
             text='comment of manhwa',
         )
-        # self.new_comment = NewComment.objects.create(
-        #     author=self.user,
-        #     text='new comment tx',
-        #     manhwa_id=self.manhwa.id
-        # )
+        self.new_comment = NewComment.objects.create(
+            author=self.user,
+            text='new comment tx',
+            manhwa_id=self.manhwa.id
+        )
 
         self.client.force_login(self.user)
 
@@ -301,35 +301,18 @@ class ManhwaApiTest(TestCase):
             )
         print(response.data)
 
-    def test_get_new_comment_child(self):
-        comment = Comment.objects.create(text='b', author=self.user, manhwa_id=self.manhwa.id)
-        CommentReply.objects.create(main_comment_id=self.comment.id, replied_comment_id=comment.id)
+    def test_new_comment_serializer(self):
+        data = {
+            'text': 'hello   ',
+            'parent': self.new_comment.id,
+            'manhwa': self.manhwa.id
+                }
+        serializer = NewCommentSerializer(data=data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save(author=self.user)
 
-        not_replied_comments = Comment.objects.annotate(
-            is_replied=Exists(CommentReply.objects.filter(replied_comment_id=OuterRef('pk')))
-        ).filter(is_replied=False)
-
-        all_comments = Comment.objects.all()
-
-        for comment_obj in not_replied_comments:
-            NewComment.objects.create(
-                author_id=comment_obj.author_id,
-                text=comment_obj.text,
-                manhwa_id=comment_obj.manhwa_id,
-            )
-
-        for replied_obj in CommentReply.objects.all():
-            comment_obj = replied_obj.replied_comment
-            NewComment.objects.create(
-                author_id=comment_obj.author_id,
-                text=comment_obj.text,
-                manhwa_id=comment_obj.manhwa_id,
-                parent_id=replied_obj.main_comment_id
-            )
-
-        print(NewCommentSerializer(NewComment.objects.all(), many=True).data)
-        NewComment.objects.all().delete()
-        print(NewComment.objects.count())
+        al = NewCommentSerializer(NewComment.objects.all(), many=True)
+        print(al.data)
 
 
 class ManhwaViewTest(TestCase):

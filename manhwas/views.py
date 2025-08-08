@@ -103,23 +103,12 @@ def api_manhwa_detail(request, pk):
 def api_create_manhwa_comment(request):
     response = {'message': '', 'comment': None}
     if request.method == 'POST':
-        serializer = srilzr.CommentSerializer(data=request.data)
+        serializer = srilzr.NewCommentSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.save(author=request.user)
 
         response['comment'] = serializer.data
         response['message'] = 'comment successfully added.'
-
-        if request.data.get('replied_to'):  # if comment type is replied to another comment
-            try:
-                CommentReply.objects.create(
-                    main_comment_id=request.data.get('replied_to'),
-                    replied_comment_id=serializer.data['id']
-                )
-                response['message'] = 'comment successfully replied.'
-
-            except IntegrityError:
-                return Response({'replied_to': _('comment with this id not exist')}, status=status.HTTP_400_BAD_REQUEST)
 
         return Response(response, status=status.HTTP_201_CREATED)
 

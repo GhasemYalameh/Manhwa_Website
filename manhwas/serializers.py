@@ -16,7 +16,7 @@ class NewCommentSerializer(serializers.ModelSerializer):
     class Meta:
         model = NewComment
         fields = ('id', 'author', 'manhwa', 'text', 'parent', 'level', 'likes_count', 'dis_likes_count')
-        read_only_fields = ('id', 'manhwa', 'level', 'likes_count', 'dis_likes_count')
+        read_only_fields = ('id', 'level', 'likes_count', 'dis_likes_count')
 
     def validate_text(self, value):
         is_html = search(r'<[^>]+>', value)
@@ -27,12 +27,13 @@ class NewCommentSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         try:
-            return Comment.objects.create(**validated_data)
+            return NewComment.objects.create(**validated_data)
 
         except ValidationError as e:
             raise serializers.ValidationError(e.message_dict)
 
-        except IntegrityError:
+        except IntegrityError as e:
+            print(str(e))
             raise serializers.ValidationError({
                 'non_field_error': _('same text for comment not allowed.')
             })
