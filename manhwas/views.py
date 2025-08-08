@@ -112,29 +112,29 @@ def api_create_manhwa_comment(request):
 
         return Response(response, status=status.HTTP_201_CREATED)
 
-    elif request.method == 'GET':
-        return Response('wellcome')
-
 
 @api_view()
 def api_get_manhwa_comments(request, pk):
-    comment_query = Comment.objects.prefetch_related('replies').select_related('author').filter(manhwa_id=pk).annotate(
-        is_replied_comment=Exists(CommentReply.objects.filter(replied_comment_id=OuterRef('pk')))
-    ).filter(is_replied_comment=False)
-    serializer = srilzr.CommentSerializer(comment_query, many=True)
+    comment_query = NewComment.objects\
+        .prefetch_related('replies')\
+        .select_related('author')\
+        .filter(manhwa_id=pk, level=0)
+
+    serializer = srilzr.NewCommentSerializer(comment_query, many=True)
     return Response(serializer.data)
 
 
 @api_view()
 def api_get_comment_replies(request, manhwa_id, comment_id):
     query_set = get_object_or_404(
-        Comment.objects.select_related('author').prefetch_related('replies__replied_comment__author'),
+        Comment.objects.select_related('author').prefetch_related('childes'),
         manhwa_id=manhwa_id,
         pk=comment_id
     )
-
+    # ------------------ for detail got error -----------------
     serializer = srilzr.CommentDetailSerializer(query_set)
     return Response(serializer.data)
+    # ---------------------------------------------------------
 
 
 @api_view(['POST'])
