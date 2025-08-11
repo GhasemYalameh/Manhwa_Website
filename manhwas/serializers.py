@@ -11,11 +11,15 @@ from .models import Manhwa, CommentReAction, NewComment
 
 class NewCommentSerializer(serializers.ModelSerializer):
     author = serializers.CharField(source='author.username', read_only=True)
+    replies_count = serializers.SerializerMethodField()
 
     class Meta:
         model = NewComment
-        fields = ('id', 'author', 'manhwa', 'text', 'parent', 'level', 'likes_count', 'dis_likes_count')
-        read_only_fields = ('id', 'level', 'likes_count', 'dis_likes_count')
+        fields = ('id', 'author', 'manhwa', 'text', 'parent', 'level', 'likes_count', 'dis_likes_count', 'replies_count')
+        read_only_fields = ('id', 'level', 'likes_count', 'dis_likes_count', 'replies_count')
+
+    def get_replies_count(self, obj):
+        return obj.childes.count()
 
     def validate_text(self, value):
         is_html = search(r'<[^>]+>', value)
@@ -51,14 +55,11 @@ class CommentDetailSerializer(serializers.ModelSerializer):
 
 
 class ManhwaSerializer(serializers.ModelSerializer):
-    comments_count = serializers.SerializerMethodField(read_only=True)
+    comments_count = serializers.IntegerField(source='comments.count', read_only=True)
 
     class Meta:
         model = Manhwa
         fields = ['id', 'en_title', 'season', 'day_of_week', 'views_count', 'comments_count']  # + 'comments'
-
-    def get_comments_count(self, obj: Manhwa):
-        return obj.comments.prefetch_related('comments').filter(level=0).count()
 
 
 class CommentReactionSerializer(serializers.ModelSerializer):

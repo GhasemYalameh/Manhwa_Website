@@ -1,5 +1,13 @@
-from django.urls import path
+from django.urls import path, include
 from . import views
+from rest_framework_nested import routers
+
+router = routers.SimpleRouter()
+router.register('manhwas', views.ManhwaViewSet, basename='manhwa')  # list & retrieve (manhwa-list, manhwa-detail)
+
+manhwa_router = routers.NestedSimpleRouter(router, 'manhwas', lookup='manhwa')
+manhwa_router.register('comments', views.CommentViewSet, basename='manhwa-comments')
+
 
 urlpatterns = [
     path('', views.home_page, name='home'),
@@ -9,7 +17,7 @@ urlpatterns = [
 
     path('api/manhwa-list/', views.api_manhwa_list, name='api_manhwa_list'),
     path('api/manhwa-detail/<int:pk>/', views.api_manhwa_detail, name='api_manhwa_detail'),
-    path('api/comment-create/', views.api_create_manhwa_comment, name='api_create_manhwa_comment'),
+    path('api/comment-create/', views.CreateComment.as_view(), name='api_create_manhwa_comment'),
     path('api/manhwa/<int:manhwa_id>/comment/<int:comment_id>', views.api_get_comment_replies, name='api_get_comment_replies'),
     path('api/manhwa-comments/<int:pk>/', views.api_get_manhwa_comments, name='api_get_manhwa_comments'),
     path('api/comment-reaction/', views.api_reaction_handler, name='api_toggle_reaction_comment'),
@@ -17,4 +25,7 @@ urlpatterns = [
 
     path('new/manhwa/<int:manhwa_id>/comments/', views.get_new_comments, name='new_comments'),
     path('new/comment-chiled/<int:pk>', views.api_new_comment_childes, name='new_comment_childes'),
+
+
+    path('api/', include(router.urls + manhwa_router.urls)),
 ]

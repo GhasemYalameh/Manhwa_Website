@@ -5,8 +5,11 @@ from django.shortcuts import render, get_object_or_404
 from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
 
-from rest_framework import status
-from rest_framework.decorators import api_view, permission_classes
+from rest_framework import status, mixins
+from rest_framework.views import APIView
+from rest_framework.generics import CreateAPIView, ListCreateAPIView
+from rest_framework.decorators import api_view, permission_classes, action
+from rest_framework.viewsets import GenericViewSet, ReadOnlyModelViewSet
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 
@@ -98,11 +101,46 @@ def api_manhwa_detail(request, pk):
     return Response(serializer.data)
 
 
-@api_view(['POST'])
-@permission_classes([IsAuthenticated])
-def api_create_manhwa_comment(request):
-    response = {'message': '', 'comment': None}
-    if request.method == 'POST':
+class CommentViewSet(
+    mixins.CreateModelMixin,
+    mixins.ListModelMixin,
+    mixins.RetrieveModelMixin,
+    GenericViewSet
+):
+
+    serializer_class = srilzr.NewCommentSerializer
+
+    def get_queryset(self):
+        pk = self.kwargs.get('pk')
+        manhwa_pk = self.kwargs['manhwa_pk']
+
+        base_qs = NewComment.objects.prefetch_related('childes__author').select_related('author')
+
+        if self.action == 'list':
+            return base_qs.filter(manhwa_id=manhwa_pk, level=0)
+
+        elif self.action == 'replies':
+            return base_qs.filter(manhwa_id=manhwa_pk, parent_id=pk)
+
+        return base_qs.filter(manhwa_id=manhwa_pk, pk=pk)
+
+    @action(detail=True, methods=['get'])
+    def replies(self, request, manhwa_pk=None, pk=None):
+        replies_query_set = self.get_queryset()
+        serializer = self.get_serializer(replies_query_set, many=True)
+        return Response(serializer.data)
+
+
+class ManhwaViewSet(ReadOnlyModelViewSet):
+    serializer_class = srilzr.ManhwaSerializer
+    queryset = Manhwa.objects.prefetch_related('comments__author').all()
+
+
+class CreateComment(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        response = {'message': '', 'comment': None}
         serializer = srilzr.NewCommentSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.save(author=request.user)
@@ -111,6 +149,22 @@ def api_create_manhwa_comment(request):
         response['message'] = 'comment successfully added.'
 
         return Response(response, status=status.HTTP_201_CREATED)
+
+
+
+# @api_view(['POST'])
+# @permission_classes([IsAuthenticated])
+# def api_create_manhwa_comment(request):
+#     response = {'message': '', 'comment': None}
+#     if request.method == 'POST':
+#         serializer = srilzr.NewCommentSerializer(data=request.data)
+#         serializer.is_valid(raise_exception=True)
+#         serializer.save(author=request.user)
+#
+#         response['comment'] = serializer.data
+#         response['message'] = 'comment successfully added.'
+#
+#         return Response(response, status=status.HTTP_201_CREATED)
 
 
 @api_view()

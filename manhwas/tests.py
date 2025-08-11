@@ -8,7 +8,7 @@ from django.shortcuts import reverse
 from django.test import TestCase
 from django.utils import timezone
 
-from .models import Genre, Rate, Studio, Manhwa, Comment, CommentReAction, NewComment, CommentReply
+from .models import Genre, Rate, Studio, Manhwa, CommentReAction, NewComment
 from accounts.models import CustomUser
 from .serializers import NewCommentSerializer
 
@@ -56,11 +56,6 @@ class ManhwaApiTest(TestCase):
         )
         self.manhwa.genres.add(self.genre)
 
-        self.comment = Comment.objects.create(
-            author=self.user,
-            manhwa=self.manhwa,
-            text='comment of manhwa',
-        )
         self.new_comment = NewComment.objects.create(
             author=self.user,
             text='new comment tx',
@@ -93,18 +88,19 @@ class ManhwaApiTest(TestCase):
         comment_data = response.json()['comment']
         self.assertEqual(response.status_code, 201)  # status code 201 (CREATED)
 
-        comment_obj = Comment.objects.filter(
+        comment_obj = NewComment.objects.filter(
             author=self.user,
             manhwa=self.manhwa,
             id=comment_data['id']
-        ).exists()
-        is_replied = CommentReply.objects.filter(replied_comment_id=comment_data['id']).exists()
+        )
+        comment_exists = comment_obj.exists()
+        is_replied = comment_obj.first().level != 0
 
-        self.assertTrue(comment_obj)  # Comment exist in DB
+        self.assertTrue(comment_exists)  # Comment exist in DB
         self.assertFalse(is_replied)  # CommentReply not created in DB
 
     def test_api_create_comment_manhwa_invalid_text(self):
-        text_invalid = ['<script>alert("hello")</script>', self.comment.text]
+        text_invalid = ['<script>alert("hello")</script>', self.new_comment.text]
         for index, text in enumerate(text_invalid):
 
             response = self.client.post(
@@ -132,46 +128,38 @@ class ManhwaApiTest(TestCase):
             json.dumps({
                 'text': 'some replied comment text',
                 'manhwa': self.manhwa.id,
-                'replied_to': self.comment.id
+                'parent': self.new_comment.id
             }),
             content_type='application/json'
         )
 
-        data = response.json()
-        comment_data = data.get('comment')
-
-        comment_created = Comment.objects.filter(
+        comment_obj = NewComment.objects.filter(
             manhwa_id=self.manhwa.id,
             author=self.user,
             text='some replied comment text'
-        ).exists()
-        is_replied = CommentReply.objects.filter(
-            main_comment=self.comment,
-            replied_comment_id=comment_data.get('id')
-        ).exists()
+        )
+        comment_exists = comment_obj.exists()
+        is_replied = comment_obj.first().level != 0
 
         self.assertEqual(response.status_code, 201)  # 201 CREATED
-        self.assertTrue(comment_created)  # Comment created
+        self.assertTrue(comment_exists)  # Comment created
         self.assertTrue(is_replied)  # CommentReply created
 
     def test_get_comment_replies(self):
-        comment = Comment.objects.create(
+        comment = NewComment.objects.create(
             author=self.user,
             manhwa=self.manhwa,
-            text='some text'
+            text='some text',
+            parent_id=self.new_comment.id
         )
-        comment2 = Comment.objects.create(
+        comment2 = NewComment.objects.create(
             author=self.user,
             manhwa=self.manhwa,
             text='some2 text'
         )
-        replied_comment = CommentReply.objects.create(
-            main_comment_id=self.manhwa.id,
-            replied_comment_id=comment.id
-        )
 
         response = self.client.get(
-            reverse('api_get_comment_replies', args=[self.manhwa.id, self.comment.id]),
+            reverse('api_get_comment_replies', args=[self.manhwa.id, self.new_comment.id]),
         )
         data = response.json()
         comment_ids = [comment['id'] for comment in data['replies']]
@@ -180,39 +168,51 @@ class ManhwaApiTest(TestCase):
         self.assertNotIn(comment2.id, comment_ids)
 
     def test_comment_reaction_manager(self):
-        self.assertEqual(self.comment.likes_count, 0)
-        self.assertEqual(self.comment.dis_likes_count, 0)
+        self.assertEqual(self.new_comment.likes_count, 0)
+        self.assertEqual(self.new_comment.dis_likes_count, 0)
 
         # first like
-        reaction_obj, action = CommentReAction.objects.toggle_reaction(self.user, self.comment.id, CommentReAction.LIKE)
-        self.comment.refresh_from_db()
+        reaction_obj, action = CommentReAction.objects.toggle_reaction(
+            self.user,
+            self.new_comment.id,
+            CommentReAction.LIKE
+        )
+        self.new_comment.refresh_from_db()
         self.assertEqual(reaction_obj.reaction, 'lk')
         self.assertEqual(action, 'created')
-        self.assertEqual(self.comment.likes_count, 1)
-        self.assertEqual(self.comment.dis_likes_count, 0)
+        self.assertEqual(self.new_comment.likes_count, 1)
+        self.assertEqual(self.new_comment.dis_likes_count, 0)
 
         # and then Dislike
-        reaction_obj, action = CommentReAction.objects.toggle_reaction(self.user, self.comment.id, CommentReAction.DISLIKE)
-        self.comment.refresh_from_db()
+        reaction_obj, action = CommentReAction.objects.toggle_reaction(
+            self.user,
+            self.new_comment.id,
+            CommentReAction.DISLIKE
+        )
+        self.new_comment.refresh_from_db()
         self.assertEqual(reaction_obj.reaction, 'dlk')
         self.assertEqual(action, 'updated')
-        self.assertEqual(self.comment.likes_count, 0)
-        self.assertEqual(self.comment.dis_likes_count, 1)
+        self.assertEqual(self.new_comment.likes_count, 0)
+        self.assertEqual(self.new_comment.dis_likes_count, 1)
 
         # duplicate Dislike (delete reaction)
-        reaction_obj, action = CommentReAction.objects.toggle_reaction(self.user, self.comment.id, CommentReAction.DISLIKE)
-        self.comment.refresh_from_db()
+        reaction_obj, action = CommentReAction.objects.toggle_reaction(
+            self.user,
+            self.new_comment.id,
+            CommentReAction.DISLIKE
+        )
+        self.new_comment.refresh_from_db()
         self.assertIsNone(reaction_obj)
         self.assertEqual(action, 'deleted')
-        self.assertEqual(self.comment.likes_count, 0)
-        self.assertEqual(self.comment.dis_likes_count, 0)
+        self.assertEqual(self.new_comment.likes_count, 0)
+        self.assertEqual(self.new_comment.dis_likes_count, 0)
 
     def test_api_toggle_reaction(self):
         # create and then update reaction
         for reaction, action in (('lk', 'created'), ('dlk', 'updated')):
             response = self.client.post(
                 reverse('api_toggle_reaction_comment'),
-                json.dumps({'comment_id': self.comment.id, 'reaction': reaction}),
+                json.dumps({'comment_id': self.new_comment.id, 'reaction': reaction}),
                 content_type='application/json'
             )
             data = response.json()
@@ -222,7 +222,7 @@ class ManhwaApiTest(TestCase):
         # delete reaction
         response = self.client.post(
             reverse('api_toggle_reaction_comment'),
-            json.dumps({'comment_id': self.comment.id, 'reaction': 'dlk'}),
+            json.dumps({'comment_id': self.new_comment.id, 'reaction': 'dlk'}),
             content_type='application/json'
         )
         data = response.json()
@@ -247,7 +247,7 @@ class ManhwaApiTest(TestCase):
 
     def test_all_api_query(self):
         with self.assertNumQueries(4):
-            response = self.client.post(
+            self.client.post(
                 reverse('api_create_manhwa_comment'),
                 json.dumps({
                     'text': 'some text for test comment',
@@ -255,29 +255,29 @@ class ManhwaApiTest(TestCase):
                 }),
                 content_type='application/json'
             )
-        with self.assertNumQueries(5):
-            response = self.client.post(
+        with self.assertNumQueries(4):
+            self.client.post(
                 reverse('api_create_manhwa_comment'),
                 json.dumps({
                     'text': 'some replied comment text',
                     'manhwa': self.manhwa.id,
-                    'replied_to': self.comment.id
+                    'replied_to': self.new_comment.id
                 }),
                 content_type='application/json'
             )
         with self.assertNumQueries(5):
-            reaction_obj = CommentReAction.objects.toggle_reaction(self.user, self.comment.id, CommentReAction.LIKE)
+            CommentReAction.objects.toggle_reaction(self.user, self.new_comment.id, CommentReAction.LIKE)
 
         with self.assertNumQueries(5):
-            reaction_obj = CommentReAction.objects.toggle_reaction(self.user, self.comment.id, CommentReAction.DISLIKE)
+            CommentReAction.objects.toggle_reaction(self.user, self.new_comment.id, CommentReAction.DISLIKE)
 
         with self.assertNumQueries(5):
-            reaction_obj = CommentReAction.objects.toggle_reaction(self.user, self.comment.id, CommentReAction.DISLIKE)
+            CommentReAction.objects.toggle_reaction(self.user, self.new_comment.id, CommentReAction.DISLIKE)
 
         with self.assertNumQueries(9):
             response = self.client.post(
                 reverse('api_toggle_reaction_comment'),
-                json.dumps({'comment_id': self.comment.id, 'reaction': 'lk'}),
+                json.dumps({'comment_id': self.new_comment.id, 'reaction': 'lk'}),
                 content_type='application/json'
             )
             data = response.json()
@@ -285,21 +285,20 @@ class ManhwaApiTest(TestCase):
             self.assertEqual(data['action'], 'created')
 
     def test_new_comment_create_queries(self):
-        with self.assertNumQueries(3):
+        with self.assertNumQueries(4):
             response = self.client.post(
                 reverse('new_comments', args=[self.manhwa.id]),
-                json.dumps({'text': 'new text'}),
+                json.dumps({'text': 'new text', 'manhwa': self.manhwa.id}),
                 content_type='application/json'
             )
         comment = response.data
 
-        with self.assertNumQueries(4):
-            response = self.client.post(
+        with self.assertNumQueries(5):
+            self.client.post(
                 reverse('new_comments', args=[self.manhwa.id]),
-                json.dumps({'text': 'new text2', 'parent': comment['id']}),
+                json.dumps({'text': 'new text2', 'manhwa': self.manhwa.id, 'parent': comment['id']}),
                 content_type='application/json'
             )
-        print(response.data)
 
     def test_new_comment_serializer(self):
         data = {
@@ -312,7 +311,6 @@ class ManhwaApiTest(TestCase):
         serializer.save(author=self.user)
 
         al = NewCommentSerializer(NewComment.objects.all(), many=True)
-        print(al.data)
 
 
 class ManhwaViewTest(TestCase):
@@ -344,10 +342,10 @@ class ManhwaViewTest(TestCase):
         )
         self.manhwa.genres.add(self.genre)
 
-        self.comment = Comment.objects.create(
+        self.new_comment = NewComment.objects.create(
             author=self.user,
-            manhwa=self.manhwa,
-            text='comment of manhwa1',
+            text='some test new',
+            manhwa_id=self.manhwa.id
         )
 
         self.client.force_login(self.user)
@@ -357,43 +355,36 @@ class ManhwaViewTest(TestCase):
         self.assertIn(self.genre, self.manhwa.genres.all())
 
     def test_manhwa_detail_not_contains_replied_comment(self):
-        comment = Comment.objects.create(
+        comment = NewComment.objects.create(
             author=self.user,
             manhwa=self.manhwa,
-            text='replied comment for test'
+            text='replied comment for test',
+            parent_id=self.new_comment.id
         )
 
-        CommentReply.objects.create(
-            main_comment=self.comment,
-            replied_comment=comment
-        )
         response = self.client.get(reverse('manhwa_detail', args=[self.manhwa.id]))
 
-        self.assertContains(response, self.comment.text)
+        self.assertContains(response, self.new_comment.text)
         self.assertNotContains(response, comment.text)
 
     def test_show_comment_replies(self):
-        not_replied_comment = Comment.objects.create(
+        not_replied_comment = NewComment.objects.create(
             author=self.user,
             text='not replied comment text',
             manhwa=self.manhwa
         )
-        replied_comment = Comment.objects.create(
+        replied_comment = NewComment.objects.create(
             author=self.user,
             text='replied comment text',
-            manhwa=self.manhwa
-        )
-        CommentReply.objects.create(
-            main_comment=self.comment,
-            replied_comment=replied_comment
+            manhwa=self.manhwa,
+            parent_id=self.new_comment.id
         )
 
-        response = self.client.post(
-            reverse('manhwa_comment_replies', args=[self.manhwa.id]),
-            {'comment_id': self.comment.id}
-        )
+        response = self.client.get(
+            reverse('api_get_comment_replies', args=[self.manhwa.id, self.new_comment.id]))
+
         self.assertContains(response, replied_comment.text)
-        self.assertContains(response, self.comment.text)
+        self.assertContains(response, self.new_comment.text)
         self.assertNotContains(response, not_replied_comment.text)
 
 
