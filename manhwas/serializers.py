@@ -15,7 +15,7 @@ class NewCommentSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = NewComment
-        fields = ('id', 'author', 'manhwa', 'text', 'parent', 'level', 'likes_count', 'dis_likes_count', 'replies_count')
+        fields = ('id', 'author', 'text', 'parent', 'level', 'likes_count', 'dis_likes_count', 'replies_count')
         read_only_fields = ('id', 'level', 'likes_count', 'dis_likes_count', 'replies_count')
 
     def get_replies_count(self, obj):

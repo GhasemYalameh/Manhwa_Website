@@ -3,6 +3,7 @@ from django.db.models import Avg, Count, F, Value, Max, When, Case, CharField, S
 from django.db.models.functions import Coalesce, Concat, Cast
 from django.shortcuts import render, get_object_or_404
 from django.utils.translation import gettext as _
+from django.utils.functional import cached_property
 from django.views.decorators.http import require_POST
 
 from rest_framework import status, mixins
@@ -11,7 +12,7 @@ from rest_framework.generics import CreateAPIView, ListCreateAPIView
 from rest_framework.decorators import api_view, permission_classes, action
 from rest_framework.viewsets import GenericViewSet, ReadOnlyModelViewSet
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 
 from .models import Manhwa, View, CommentReAction, NewComment
 from . import serializers as srilzr
@@ -87,20 +88,6 @@ def show_replied_comment(request, pk):
     return render(request, 'manhwas/comment_replies.html', context={'comment': comment_object})
 
 
-@api_view()
-def api_manhwa_list(request):
-    query_set = Manhwa.objects.prefetch_related('comments__author').all()
-    serializer = srilzr.ManhwaSerializer(query_set, many=True)
-    return Response(serializer.data)
-
-
-@api_view()
-def api_manhwa_detail(request, pk):
-    manhwa = get_object_or_404(Manhwa, pk=pk)
-    serializer = srilzr.ManhwaSerializer(manhwa)
-    return Response(serializer.data)
-
-
 class CommentViewSet(
     mixins.CreateModelMixin,
     mixins.ListModelMixin,
@@ -110,19 +97,41 @@ class CommentViewSet(
 
     serializer_class = srilzr.NewCommentSerializer
 
+    @cached_property
+    def manhwa(self):
+        manhwa_pk = self.kwargs['manhwa_pk']
+        return get_object_or_404(Manhwa, pk=manhwa_pk)
+
+    def get_permissions(self):
+        # must be login for comment creation
+        return [IsAuthenticated() if self.action == 'create' else AllowAny()]
+
+    def perform_create(self, serializer):
+        serializer.save(author=self.request.user, manhwa=self.manhwa)
+
+    def create(self, request, *args, **kwargs):
+        response = super().create(request, *args, **kwargs)
+
+        response.data = {
+            'comment': response.data,
+            'message': 'comment successfully added.'
+        }
+        return response
+
     def get_queryset(self):
         pk = self.kwargs.get('pk')
-        manhwa_pk = self.kwargs['manhwa_pk']
 
-        base_qs = NewComment.objects.prefetch_related('childes__author').select_related('author')
+        base_qs = NewComment.objects.prefetch_related('childes__author').select_related('author').filter(
+            manhwa=self.manhwa
+        )
 
         if self.action == 'list':
-            return base_qs.filter(manhwa_id=manhwa_pk, level=0)
+            return base_qs.filter(level=0)
 
         elif self.action == 'replies':
-            return base_qs.filter(manhwa_id=manhwa_pk, parent_id=pk)
+            return base_qs.filter(parent_id=pk)
 
-        return base_qs.filter(manhwa_id=manhwa_pk, pk=pk)
+        return base_qs.filter(pk=pk)
 
     @action(detail=True, methods=['get'])
     def replies(self, request, manhwa_pk=None, pk=None):
@@ -134,60 +143,6 @@ class CommentViewSet(
 class ManhwaViewSet(ReadOnlyModelViewSet):
     serializer_class = srilzr.ManhwaSerializer
     queryset = Manhwa.objects.prefetch_related('comments__author').all()
-
-
-class CreateComment(APIView):
-    permission_classes = [IsAuthenticated]
-
-    def post(self, request):
-        response = {'message': '', 'comment': None}
-        serializer = srilzr.NewCommentSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        serializer.save(author=request.user)
-
-        response['comment'] = serializer.data
-        response['message'] = 'comment successfully added.'
-
-        return Response(response, status=status.HTTP_201_CREATED)
-
-
-
-# @api_view(['POST'])
-# @permission_classes([IsAuthenticated])
-# def api_create_manhwa_comment(request):
-#     response = {'message': '', 'comment': None}
-#     if request.method == 'POST':
-#         serializer = srilzr.NewCommentSerializer(data=request.data)
-#         serializer.is_valid(raise_exception=True)
-#         serializer.save(author=request.user)
-#
-#         response['comment'] = serializer.data
-#         response['message'] = 'comment successfully added.'
-#
-#         return Response(response, status=status.HTTP_201_CREATED)
-
-
-@api_view()
-def api_get_manhwa_comments(request, pk):
-    comment_query = NewComment.objects\
-        .prefetch_related('replies')\
-        .select_related('author')\
-        .filter(manhwa_id=pk, level=0)
-
-    serializer = srilzr.NewCommentSerializer(comment_query, many=True)
-    return Response(serializer.data)
-
-
-@api_view()
-def api_get_comment_replies(request, manhwa_id, comment_id):
-    query_set = get_object_or_404(
-        NewComment.objects.select_related('author').prefetch_related('childes__author'),
-        manhwa_id=manhwa_id,
-        pk=comment_id
-    )
-
-    serializer = srilzr.CommentDetailSerializer(query_set)
-    return Response(serializer.data)
 
 
 @api_view(['POST'])
@@ -240,31 +195,6 @@ def api_set_user_view_for_manhwa(request):
             return Response({'action': 'created'})
 
         return Response({'action': 'was exists'})
-
-
-@api_view(['GET', 'POST'])
-def get_new_comments(request, manhwa_id):
-    query_set = NewComment.objects.select_related('author').filter(manhwa_id=manhwa_id)
-    serializer = srilzr.NewCommentSerializer(query_set, many=True)
-
-    if request.method == 'POST':
-        serializer = srilzr.NewCommentSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        serializer.save(author=request.user, manhwa_id=manhwa_id)
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
-
-    return Response(serializer.data)
-
-
-@api_view()
-def api_new_comment_childes(request, pk):
-    try:
-        comment = NewComment.objects.prefetch_related('childes').get(pk=pk)
-        serializer = srilzr.NewCommentSerializer(comment.childes.all(), many=True)
-        return Response(serializer.data)
-    except NewComment.DoesNotExist:
-        return Response('error', status=status.HTTP_400_BAD_REQUEST)
-
 
 def delete_db(model_class):
     table_name = model_class._meta.db_table

@@ -68,7 +68,7 @@ class ManhwaApiTest(TestCase):
         self.client.logout()
 
         response = self.client.post(
-            reverse('api_create_manhwa_comment'),
+            reverse('manhwa-comments-list', args=[self.manhwa.id]),
             json.dumps({}),
             content_type='application/json'
         )
@@ -77,10 +77,9 @@ class ManhwaApiTest(TestCase):
     def test_api_create_comment_manhwa(self):
         # send post request to create-comment api
         response = self.client.post(
-            reverse('api_create_manhwa_comment'),
+            reverse('manhwa-comments-list', args=[self.manhwa.id]),
             json.dumps({
                 'text': 'some text for test comment',
-                'manhwa': self.manhwa.id
             }),
             content_type='application/json'
         )
@@ -104,8 +103,8 @@ class ManhwaApiTest(TestCase):
         for index, text in enumerate(text_invalid):
 
             response = self.client.post(
-                reverse('api_create_manhwa_comment'),
-                json.dumps({'text': text, 'manhwa': self.manhwa.id}),
+                reverse('manhwa-comments-list', args=[self.manhwa.id]),
+                json.dumps({'text': text}),
                 content_type='application/json'
             )
 
@@ -124,7 +123,7 @@ class ManhwaApiTest(TestCase):
     def test_api_create_comment_manhwa_replied(self):
         # send post request to create-comment api (replied)
         response = self.client.post(
-            reverse('api_create_manhwa_comment'),
+            reverse('manhwa-comments-list', args=[self.manhwa.id]),
             json.dumps({
                 'text': 'some replied comment text',
                 'manhwa': self.manhwa.id,
@@ -159,10 +158,10 @@ class ManhwaApiTest(TestCase):
         )
 
         response = self.client.get(
-            reverse('api_get_comment_replies', args=[self.manhwa.id, self.new_comment.id]),
+            reverse('manhwa-comments-replies', args=[self.manhwa.id, self.new_comment.id]),
         )
         data = response.json()
-        comment_ids = [comment['id'] for comment in data['replies']]
+        comment_ids = [replied_cmt['id'] for replied_cmt in data]
         self.assertEqual(response.status_code, 200)
         self.assertIn(comment.id, comment_ids)
         self.assertNotIn(comment2.id, comment_ids)
@@ -246,22 +245,20 @@ class ManhwaApiTest(TestCase):
         self.assertEqual(rating_data['ones_count'], 0)
 
     def test_all_api_query(self):
-        with self.assertNumQueries(4):
+        with self.assertNumQueries(5):
             self.client.post(
-                reverse('api_create_manhwa_comment'),
+                reverse('manhwa-comments-list', args=[self.manhwa.id]),
                 json.dumps({
                     'text': 'some text for test comment',
-                    'manhwa': self.manhwa.id
                 }),
                 content_type='application/json'
             )
-        with self.assertNumQueries(4):
+        with self.assertNumQueries(6):
             self.client.post(
-                reverse('api_create_manhwa_comment'),
+                reverse('manhwa-comments-list', args=[self.manhwa.id]),
                 json.dumps({
                     'text': 'some replied comment text',
-                    'manhwa': self.manhwa.id,
-                    'replied_to': self.new_comment.id
+                    'parent': self.new_comment.id
                 }),
                 content_type='application/json'
             )
@@ -283,34 +280,6 @@ class ManhwaApiTest(TestCase):
             data = response.json()
             self.assertEqual(data['reaction']['reaction'], 'lk')
             self.assertEqual(data['action'], 'created')
-
-    def test_new_comment_create_queries(self):
-        with self.assertNumQueries(4):
-            response = self.client.post(
-                reverse('new_comments', args=[self.manhwa.id]),
-                json.dumps({'text': 'new text', 'manhwa': self.manhwa.id}),
-                content_type='application/json'
-            )
-        comment = response.data
-
-        with self.assertNumQueries(5):
-            self.client.post(
-                reverse('new_comments', args=[self.manhwa.id]),
-                json.dumps({'text': 'new text2', 'manhwa': self.manhwa.id, 'parent': comment['id']}),
-                content_type='application/json'
-            )
-
-    def test_new_comment_serializer(self):
-        data = {
-            'text': 'hello   ',
-            'parent': self.new_comment.id,
-            'manhwa': self.manhwa.id
-                }
-        serializer = NewCommentSerializer(data=data)
-        serializer.is_valid(raise_exception=True)
-        serializer.save(author=self.user)
-
-        al = NewCommentSerializer(NewComment.objects.all(), many=True)
 
 
 class ManhwaViewTest(TestCase):
