@@ -33,7 +33,6 @@ document.addEventListener('DOMContentLoaded', async function (){
     })
 
     const data = await response.json();
-    console.log('view', data)
 })
 
 form.addEventListener('submit', async function(e){
@@ -209,7 +208,6 @@ document.querySelector('#comments-list').addEventListener('click', async functio
         }
     )
     const data = await response.json();
-    console.log(data)
     if (response.ok){
         const likesCount = data.comment.likes_count;
         const disLikesCount = data.comment.dis_likes_count;
@@ -269,7 +267,6 @@ function  showMessage(message_type, data){
                 else{
                     li.textContent = `${field}: ${errorMsg}`
                 }
-                console.log(li.textContent)
 
                 ul.appendChild(li)
             })

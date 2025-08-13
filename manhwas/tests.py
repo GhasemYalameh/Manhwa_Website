@@ -126,7 +126,6 @@ class ManhwaApiTest(TestCase):
             reverse('manhwa-comments-list', args=[self.manhwa.id]),
             json.dumps({
                 'text': 'some replied comment text',
-                'manhwa': self.manhwa.id,
                 'parent': self.new_comment.id
             }),
             content_type='application/json'
