@@ -84,7 +84,13 @@ form.addEventListener('submit', async function(e){
                                 <svg width="20px" height="20px" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2">
                                     <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>
                                 </svg>
+                                <span class="count">0</span>
                             </button>
+                            <form action="/detail/${manhwa_id}/show-replied-comment/" method="post">
+                                <input type="hidden" name="csrfmiddlewaretoken" value="${get_csrf_token()}">
+                                <input type="hidden" name="comment_id" value="${comment_data.id}">
+                                <button type="submit">show replies</button>
+                            </form>
                         </div>
                     </div>
                 </div>

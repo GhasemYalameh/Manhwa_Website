@@ -116,7 +116,7 @@ class CommentViewSet(
         elif self.action == 'replies':
             return base_qs.filter(parent_id=pk)
 
-        return base_qs.filter(pk=pk)
+        return base_qs.filter(pk=pk)  # create, detail
 
     @action(detail=True, methods=['get'])
     def replies(self, request, manhwa_pk=None, pk=None):
