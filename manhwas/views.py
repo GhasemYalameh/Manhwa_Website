@@ -1,21 +1,19 @@
-from django.db import IntegrityError, transaction, connection
+from django.db import transaction, connection
 from django.db.models import Avg, Count, F, Value, Max, When, Case, CharField, Subquery, OuterRef, Exists
 from django.db.models.functions import Coalesce, Concat, Cast
 from django.shortcuts import render, get_object_or_404
-from django.utils.translation import gettext as _
 from django.utils.functional import cached_property
+from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
 
 from rest_framework import status, mixins
-from rest_framework.views import APIView
-from rest_framework.generics import CreateAPIView, ListCreateAPIView
 from rest_framework.decorators import api_view, permission_classes, action
-from rest_framework.viewsets import GenericViewSet, ReadOnlyModelViewSet
-from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.response import Response
+from rest_framework.viewsets import GenericViewSet, ReadOnlyModelViewSet
 
-from .models import Manhwa, View, CommentReAction, NewComment
 from . import serializers as srilzr
+from .models import Manhwa, View, CommentReAction, NewComment
 
 
 def home_page(request):

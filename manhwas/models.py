@@ -10,6 +10,12 @@ from config import settings
 import os.path
 
 
+def N(number) -> str:
+    # if number less than 10
+    #  1-9  -> 01-09
+    return f'0{number}' if number < 10 else str(number)
+
+
 def manhwa_file_upload_to(instance, filename):
     # استفاده از slugify برای تمیز کردن عنوان و جلوگیری از مشکلات مسیر
     manhwa_title = instance.manhwa.en_title
@@ -68,6 +74,7 @@ class Manhwa(models.Model):
     genres = models.ManyToManyField(Genre, related_name='manhwas', verbose_name=_('genre'))
     studio = models.ForeignKey(Studio, on_delete=models.PROTECT, related_name='manhwas', verbose_name=_('studio'))
     views_count = models.PositiveIntegerField(default=0, verbose_name=_('views count'))
+    last_upload = models.CharField(default='Not Uploaded')
 
     datetime_created = models.DateTimeField(auto_now_add=True, verbose_name=_('datetime created'))
     datetime_modified = models.DateTimeField(auto_now=True, verbose_name=_('datetime modified'))
@@ -129,7 +136,7 @@ class Rate(models.Model):
 
 class Episode(models.Model):
     manhwa = models.ForeignKey(Manhwa, on_delete=models.PROTECT, related_name='episodes', verbose_name=_('episodes'))
-    number = models.PositiveIntegerField(default=1, verbose_name=_('number of episode'))
+    number = models.PositiveIntegerField(blank=True, verbose_name=_('number of episode'))
     file = models.FileField(upload_to=manhwa_file_upload_to, verbose_name=_('episode file'))
     downloads_count = models.PositiveIntegerField(default=0, verbose_name=_('download count'))
 
@@ -139,6 +146,22 @@ class Episode(models.Model):
     class Meta:
         unique_together = ('number', 'manhwa')
         ordering = ('number',)
+        
+    def save(self, *args, **kwargs):
+        last_episode = self.__class__.objects.filter(
+            manhwa_id=self.manhwa_id
+        ).order_by('-datetime_created').values('number').first()
+        self.number = 1 if last_episode is None else last_episode + 1
+
+        self.update_last_episode_on_manhwa(self.number)
+
+        super().save(*args, **kwargs)
+
+    def update_last_episode_on_manhwa(self, number):
+        manhwa = Manhwa.objects.get(pk=self.manhwa_id)
+        season, episode = N(manhwa.season), N(number)
+        last_upload = f'S{season}-E{episode}'
+        Manhwa.objects.filter(pk=self.manhwa_id).update(last_upload=last_upload)
 
     def __str__(self):
         return f'{self.manhwa.en_title}: {self.number}'

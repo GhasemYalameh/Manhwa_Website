@@ -273,7 +273,4 @@ function  showMessage(message_type, data){
         }
         errorDiv.appendChild(ul)
     }
-
-
-
 }
