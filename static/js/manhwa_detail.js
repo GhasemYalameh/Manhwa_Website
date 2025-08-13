@@ -24,18 +24,16 @@ function get_csrf_token(){
 
 
 document.addEventListener('DOMContentLoaded', async function (){
-    const response = await fetch('/api/set-view/', {
+    const response = await fetch(`/api/manhwas/${manhwa_id}/set_view/`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
             'X-CSRFToken': get_csrf_token()
         },
-        body: JSON.stringify({
-            'manhwa_id': +manhwa_id
-        })
     })
 
     const data = await response.json();
+    console.log('view', data)
 })
 
 form.addEventListener('submit', async function(e){
@@ -44,7 +42,7 @@ form.addEventListener('submit', async function(e){
     const comment_text = document.getElementById('id_text').value
 
     const response = await fetch(
-        '/api/comment-create/',
+        `/api/manhwas/${manhwa_id}/comments/`,
         {
             method: 'POST',
             headers: {
@@ -53,7 +51,6 @@ form.addEventListener('submit', async function(e){
             },
             body: JSON.stringify({
                 'text': comment_text,
-                'manhwa': manhwa_id,
                 'parent': mainCommentId===null ? null:mainCommentId
             })
         })
