@@ -144,6 +144,22 @@ class ManhwaViewSet(ReadOnlyModelViewSet):
     serializer_class = srilzr.ManhwaSerializer
     queryset = Manhwa.objects.prefetch_related('comments__author').all()
 
+    def get_permissions(self):
+        return [IsAuthenticated() if self.action == 'set_view' else AllowAny()]
+
+    @action(detail=True, methods=['post'])
+    def set_view(self, request, pk):
+        with transaction.atomic():
+            view_obj, created = View.objects.get_or_create(
+                user=request.user,
+                manhwa_id=pk
+            )
+            if created:
+                Manhwa.objects.filter(pk=pk).update(views_count=F('views_count') + 1)
+                return Response({'action': 'created'})
+
+            return Response({'action': 'was exists'})
+
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
@@ -175,6 +191,13 @@ def api_reaction_handler(request):
         return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     return Response(response, status=status.HTTP_200_OK)
+
+
+
+# class ManhwaViewApiView(CreateAPIView):
+#     serializer_class = srilzr.ManhwaViewSerializer
+#
+#     def post(self, request, *args, **kwargs):
 
 
 @api_view(['POST'])
