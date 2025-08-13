@@ -9,12 +9,13 @@ from .models import Manhwa, Episode, Studio, Genre, Rate, View, CommentReAction,
 class EpisodeInline(admin.TabularInline):
     model = Episode
     fields = ['number', 'file']
+    readonly_fields = ['number']
     extra = 0
 
 
 class ManhwaAdmin(admin.ModelAdmin):
     list_display = ('en_title', 'season', 'views_count', 'get_genres', 'episodes_count', 'comments_count')
-    autocomplete_fields = ['genres']
+    autocomplete_fields = ['genres', 'studio']
     list_filter = ['genres', 'day_of_week', 'studio']
     search_fields = ['en_title']
     inlines = [EpisodeInline]
@@ -52,7 +53,7 @@ class ManhwaAdmin(admin.ModelAdmin):
 
     @admin.display(description='Comments', ordering='comments_count')
     def comments_count(self, manhwa):
-        url = reverse('admin:manhwas_comment_changelist') + '?' + urlencode({'manhwa__id': manhwa.id})
+        url = reverse('admin:manhwas_newcomment_changelist') + '?' + urlencode({'manhwa__id': manhwa.id})
 
         return format_html('<a href="{}">{}</a>', url, manhwa.comments_count or 0)
 
@@ -72,10 +73,11 @@ class GenreAdmin(admin.ModelAdmin):
 
 class StudioAdmin(admin.ModelAdmin):
     list_display = ('title',)
+    search_fields = ['title']
 
 
 class EpisodeAdmin(admin.ModelAdmin):
-    list_display = ('number', 'downloads_count', 'manhwa')
+    list_display = ('manhwa', 'downloads_count', 'number',)
 
 
 class NewCommentAdmin(admin.ModelAdmin):

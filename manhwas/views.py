@@ -18,25 +18,12 @@ from .models import Manhwa, View, CommentReAction, NewComment
 
 def home_page(request):
     manhwas = Manhwa.objects.only(
-        'id',
-        'en_title',
-        'season',
-        'cover',
-        'views_count',
+        'id', 'en_title', 'season',
+        'cover', 'views_count', 'last_upload'
     ).annotate(
         avg_rating=Coalesce(Avg('rates__rating'), Value(0.0)),
-        last_episode=Max('episodes__number'),
-        last_upload=Case(
-            When(last_episode=0, then=Value(_('No uploaded'))),
-            When(last_episode__isnull=True, then=Value(_('No uploaded'))),
-            default=Concat(
-                Value('S'), Cast('season', CharField()), Value('-E'),
-                Case(
-                    When(last_episode__lt=10, then=Concat(Value('0'), Cast('last_episode', CharField()))),
-                    default=Cast('last_episode', CharField())
-                ),
-                output_field=CharField())
-            )).order_by('-datetime_created')
+    ).order_by('-datetime_created')
+
     return render(request, 'home.html', context={'manhwas': manhwas})
 
 

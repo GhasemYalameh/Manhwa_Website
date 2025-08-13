@@ -73,8 +73,8 @@ class Manhwa(models.Model):
     publication_datetime = models.DateTimeField(verbose_name=_('publication datetime'))
     genres = models.ManyToManyField(Genre, related_name='manhwas', verbose_name=_('genre'))
     studio = models.ForeignKey(Studio, on_delete=models.PROTECT, related_name='manhwas', verbose_name=_('studio'))
-    views_count = models.PositiveIntegerField(default=0, verbose_name=_('views count'))
-    last_upload = models.CharField(default='Not Uploaded')
+    views_count = models.PositiveIntegerField(default=0, editable=False, verbose_name=_('views count'))
+    last_upload = models.CharField(default='Not Uploaded', editable=False)
 
     datetime_created = models.DateTimeField(auto_now_add=True, verbose_name=_('datetime created'))
     datetime_modified = models.DateTimeField(auto_now=True, verbose_name=_('datetime modified'))
@@ -135,10 +135,10 @@ class Rate(models.Model):
 
 
 class Episode(models.Model):
-    manhwa = models.ForeignKey(Manhwa, on_delete=models.PROTECT, related_name='episodes', verbose_name=_('episodes'))
-    number = models.PositiveIntegerField(blank=True, verbose_name=_('number of episode'))
+    manhwa = models.ForeignKey(Manhwa, on_delete=models.PROTECT, related_name='episodes', verbose_name=_('manhwas'))
+    number = models.PositiveIntegerField(blank=True, editable=False, verbose_name=_('number of episode'))
     file = models.FileField(upload_to=manhwa_file_upload_to, verbose_name=_('episode file'))
-    downloads_count = models.PositiveIntegerField(default=0, verbose_name=_('download count'))
+    downloads_count = models.PositiveIntegerField(default=0, editable=False, verbose_name=_('download count'))
 
     datetime_created = models.DateTimeField(auto_now_add=True, verbose_name=_('datetime created'))
     datetime_modified = models.DateTimeField(auto_now=True, verbose_name=_('datetime modified'))
@@ -151,7 +151,7 @@ class Episode(models.Model):
         last_episode = self.__class__.objects.filter(
             manhwa_id=self.manhwa_id
         ).order_by('-datetime_created').values('number').first()
-        self.number = 1 if last_episode is None else last_episode + 1
+        self.number = 1 if last_episode is None else last_episode.get('number') + 1
 
         self.update_last_episode_on_manhwa(self.number)
 
