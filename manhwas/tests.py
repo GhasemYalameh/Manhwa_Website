@@ -415,23 +415,19 @@ class ManhwaUrlTest(TestCase):
 
     def test_api_create_manhwa_comment_url(self):
         response = self.client.post(
-            f'/api/comment-create/',
-            json.dumps({'text': 'kkk', 'manhwa': self.manhwa.id}),
+            f'/api/manhwas/{self.manhwa.id}/comments/',
+            json.dumps({'text': 'kkk'}),
             content_type='application/json'
         )
         self.assertEqual(response.status_code, 201)
 
     def test_add_comment_url_by_name(self):
         response = self.client.post(
-            reverse('api_create_manhwa_comment'),
-            json.dumps({'text': 'kkk', 'manhwa': self.manhwa.id}),
+            reverse('manhwa-comments-list', args=[self.manhwa.id]),
+            json.dumps({'text': 'kkk'}),
             content_type='application/json'
         )
         self.assertEqual(response.status_code, 201)
-
-    def test_GET_request_not_valid_for_create_comment(self):
-        response = self.client.get(reverse('api_create_manhwa_comment'))
-        self.assertEqual(response.status_code, 405)
 
     def test_reaction_handler_url(self):
         response = self.client.post(
@@ -455,20 +451,20 @@ class ManhwaUrlTest(TestCase):
 
     def test_set_user_view_url(self):
         response = self.client.post(
-            '/api/set-view/',
+            f'/api/manhwas/{self.manhwa.id}/set_view/',
             json.dumps({}),
             content_type='application/json'
         )
-        self.assertEqual(response.status_code, 400)  # returns BAD REQUEST
+        self.assertEqual(response.status_code, 200)  # returns Ok
 
     def test_set_user_view_url_by_name(self):
         response = self.client.post(
-            reverse('api_set_view_manhwa'),
+            reverse('manhwa-set-view', args=[self.manhwa.id]),
             json.dumps({}),
             content_type='application/json'
         )
-        self.assertEqual(response.status_code, 400)  # return BAD REQUEST
+        self.assertEqual(response.status_code, 200)  # return Ok
 
     def test_GET_request_not_valid_set_user_view(self):
-        response = self.client.get(reverse('api_set_view_manhwa'))
+        response = self.client.get(reverse('manhwa-set-view', args=[self.manhwa.id]))
         self.assertEqual(response.status_code, 405)

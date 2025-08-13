@@ -193,32 +193,6 @@ def api_reaction_handler(request):
     return Response(response, status=status.HTTP_200_OK)
 
 
-
-# class ManhwaViewApiView(CreateAPIView):
-#     serializer_class = srilzr.ManhwaViewSerializer
-#
-#     def post(self, request, *args, **kwargs):
-
-
-@api_view(['POST'])
-def api_set_user_view_for_manhwa(request):
-    serializer = srilzr.ManhwaViewSerializer(data=request.data)
-    serializer.is_valid(raise_exception=True)
-
-    manhwa_id = serializer.validated_data.get('manhwa_id')
-
-    with transaction.atomic():
-        view_obj, created = View.objects.get_or_create(
-            manhwa_id=manhwa_id,
-            user=request.user
-        )
-
-        if created:
-            Manhwa.objects.filter(pk=manhwa_id).update(views_count=F('views_count') + 1)
-            return Response({'action': 'created'})
-
-        return Response({'action': 'was exists'})
-
 def delete_db(model_class):
     table_name = model_class._meta.db_table
     with connection.cursor() as cursor:
