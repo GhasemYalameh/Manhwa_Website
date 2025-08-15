@@ -13,6 +13,7 @@ from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet, ReadOnlyModelViewSet
 
 from . import serializers as srilzr
+from .paginations import CustomPagination
 from .models import Manhwa, View, CommentReAction, NewComment
 
 
@@ -81,6 +82,7 @@ class CommentViewSet(
 ):
 
     serializer_class = srilzr.NewCommentSerializer
+    pagination_class = CustomPagination
 
     @cached_property
     def manhwa(self):
