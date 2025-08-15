@@ -18,90 +18,97 @@
 
 {% block content %}
     <div class="body">
-        <div class="manhwa-cover">
-            <img src="{{ manhwa.cover.url }}" alt="">
-        </div>
-        <br>
-        <h1>{% trans 'english title' %} : {{ manhwa.en_title }}</h1>
-        <h1>{% trans 'persian title' %} : {{ manhwa.fa_title }}</h1><br>
-        <p>{% trans 'views count' %} : {{ manhwa.views_count }}</p>
-        <br><br>
-        <span>{% trans 'genres' %} : </span>
-        {% for genre in manhwa.genres.all %}
-            <a href="#" class="genre">{{ genre.title }}</a>
-        {% endfor %}
-
-       <br><br>
-        <h3>{% trans 'summary' %} : </h3>
-        <p>{{ manhwa.summary|safe|linebreaks }}</p>
-        <br><br>
-        {% for episode in manhwa.episodes.all %}
-            <a href="#" class="episodes">{% trans 'Episode' %} : {{ episode.number }}</a>
-        {% endfor %}<br><br>
-
-        <h2 id="up-form" class="topic">{% trans 'write your comment : ' %}</h2>
-        <form id="comment-form"  method="post">
-            {% csrf_token %}
-            <div class="reply-container">
-                <button type="button" onclick="cancelReply()" class="reply-cancel">
-                    <svg width="20px" height="20px" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2">
-                        <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>
-                    </svg>
-                </button>
-                <div class="reply-content">
-                    <h4 id="main-comment-author"></h4>
-                    <p id="main-comment-text"></p>
-                </div>
+        <section class="tabs">
+            <button class="tab tab-detail tab-active">Detail</button>
+            <button class="tab tab-episodes">Episodes</button>
+            <button class="tab tab-comments">Comments</button>
+        </section>
+        <section class="detail">
+            <div class="manhwa-cover">
+                <img src="{{ manhwa.cover.url }}" alt="">
             </div>
-            <textarea placeholder="{% trans 'write your comment here' %}" class="text-area" name="text" cols="40" rows="6" required="" id="id_text"></textarea>
-            <button class="btn-block" type="submit">{% trans 'send' %}</button>
-            <div id="form-error-messages"></div>
-        </form>
-        <br>
-        <br>
-        <h2>{% trans 'comments' %} : </h2>
+            <br>
+            <h1>{% trans 'english title' %} : {{ manhwa.en_title }}</h1>
+            <h1>{% trans 'persian title' %} : {{ manhwa.fa_title }}</h1><br>
+            <p>{% trans 'views count' %} : {{ manhwa.views_count }}</p>
+            <br><br>
+            <span>{% trans 'genres' %} : </span>
+            {% for genre in manhwa.genres.all %}
+                <a href="#" class="genre">{{ genre.title }}</a>
+            {% endfor %}
 
-        <div id="comments-list" class="comments">
-            {% for comment in comments %}
-                <div class="comment-box">
-                    <div class="comment-img">
+           <br><br>
+            <h3>{% trans 'summary' %} : </h3>
+            <p>{{ manhwa.summary|safe|linebreaks }}</p>
+            <br><br>
+        </section>
+        <section class="episodes">
+            {% for episode in manhwa.episodes.all %}
+                <a href="#" class="episode">{% trans 'Episode' %} : {{ episode.number }}</a>
+            {% endfor %}<br><br>
+        </section>
+
+        <section class="comments">
+            <h2 id="up-form" class="topic">{% trans 'write your comment : ' %}</h2>
+            <form id="comment-form"  method="post">
+                {% csrf_token %}
+                <div class="reply-container">
+                    <button type="button" onclick="cancelReply()" class="reply-cancel">
+                        <svg width="20px" height="20px" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2">
+                            <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>
+                        </svg>
+                    </button>
+                    <div class="reply-content">
+                        <h4 id="main-comment-author"></h4>
+                        <p id="main-comment-text"></p>
                     </div>
-                    <div class="comment-content" data-comment-id="{{ comment.id }}">
-                        <h3>{{ comment.author.username }}</h3>
-                        <p>{{ comment.text|linebreaks }}</p>
-                        <div class="comment-bottom">
-                            <span>{{ comment.datetime_modified|timesince }}</span>
-                            <div class="reactions">
-                                <button class="reaction-btn like-btn" data-reaction-type="lk">
-                                    <svg class="icon-like {% if comment.user_reaction == 'lk' %}active{% endif %}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                        <path d="M7 22H4C3.46957 22 2.96086 21.7893 2.58579 21.4142C2.21071 21.0391 2 20.5304 2 20V13C2 12.4696 2.21071 11.9609 2.58579 11.5858C2.96086 11.2107 3.46957 11 4 11H7M14 9V5C14 4.20435 13.6839 3.44129 13.1213 2.87868C12.5587 2.31607 11.7956 2 11 2L7 11V22H18.28C18.7623 22.0055 19.2304 21.8364 19.5979 21.524C19.9654 21.2116 20.2077 20.7769 20.28 20.3L21.66 11.3C21.7035 11.0134 21.6842 10.7207 21.6033 10.4423C21.5225 10.1638 21.3821 9.90629 21.1919 9.68751C21.0016 9.46873 20.7661 9.29393 20.5016 9.17522C20.2371 9.0565 19.9499 8.99672 19.66 9H14Z"/>
-                                    </svg>
-                                    <span class="count">{{ comment.likes_count }}</span>
-                                </button>
-
-                                <button class="reaction-btn dislike-btn"  data-reaction-type="dlk">
-                                    <svg class="icon-dislike {% if comment.user_reaction == 'dlk' %}active{% endif %}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                        <path d="M17 2H20C20.5304 2 21.0391 2.21071 21.4142 2.58579C21.7893 2.96086 22 3.46957 22 4V11C22 11.5304 21.7893 12.0391 21.4142 12.4142C21.0391 12.7893 20.5304 13 20 13H17M10 15V19C10 19.7956 10.3161 20.5587 10.8787 21.1213C11.4413 21.6839 12.2044 22 13 22L17 13V2H5.72C5.23767 1.99451 4.76962 2.16361 4.40213 2.47596C4.03464 2.78831 3.79234 3.22307 3.72 3.7L2.34 12.7C2.29649 12.9866 2.31583 13.2793 2.39668 13.5577C2.47753 13.8362 2.61793 14.0937 2.80814 14.3125C2.99835 14.5313 3.23394 14.7061 3.49843 14.8248C3.76291 14.9435 4.05009 15.0033 4.34 15H10Z"/>
-                                    </svg>
-                                    <span class="count">{{ comment.dis_likes_count }}</span>
-                                </button>
-                                <button class="reaction-btn reply-btn" data-reaction-type="reply">
-                                    <svg width="20px" height="20px" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2">
-                                        <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>
-                                    </svg>
-                                    <span>{{ comment.replies_count }}</span>
-                                </button>
-                                <form action="{% url 'manhwa_comment_replies' manhwa.id %}" method="post">
-                                    {% csrf_token %}
-                                    <input type="hidden" name="comment_id" value="{{ comment.id }}">
-                                    <button type="submit">show replies</button>
-                                </form>
+                </div>
+                <textarea placeholder="{% trans 'write your comment here' %}" class="text-area" name="text" cols="40" rows="6" required="" id="id_text"></textarea>
+                <button class="btn-block" type="submit">{% trans 'send' %}</button>
+                <div id="form-error-messages"></div>
+            </form>
+            <section class="comment-list">
+                {% for comment in comments %}
+                    <div class="comment-box">
+                        <div class="comment-img"></div>
+                        <div class="comment-content" data-comment-id="{{ comment.id }}">
+                            <h3>{{ comment.author.username }}</h3>
+                            <p>{{ comment.text|linebreaks }}</p>
+                            <div class="comment-bottom">
+                                <span>{{ comment.datetime_modified|timesince }}</span>
+                                <div class="reactions">
+                                    <button class="reaction-btn like-btn" data-reaction-type="lk">
+                                        <svg class="icon-like {% if comment.user_reaction == 'lk' %}active{% endif %}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M7 22H4C3.46957 22 2.96086 21.7893 2.58579 21.4142C2.21071 21.0391 2 20.5304 2 20V13C2 12.4696 2.21071 11.9609 2.58579 11.5858C2.96086 11.2107 3.46957 11 4 11H7M14 9V5C14 4.20435 13.6839 3.44129 13.1213 2.87868C12.5587 2.31607 11.7956 2 11 2L7 11V22H18.28C18.7623 22.0055 19.2304 21.8364 19.5979 21.524C19.9654 21.2116 20.2077 20.7769 20.28 20.3L21.66 11.3C21.7035 11.0134 21.6842 10.7207 21.6033 10.4423C21.5225 10.1638 21.3821 9.90629 21.1919 9.68751C21.0016 9.46873 20.7661 9.29393 20.5016 9.17522C20.2371 9.0565 19.9499 8.99672 19.66 9H14Z"/>
+                                        </svg>
+                                        <span class="count">{{ comment.likes_count }}</span>
+                                    </button>
+                                    <button class="reaction-btn dislike-btn"  data-reaction-type="dlk">
+                                        <svg class="icon-dislike {% if comment.user_reaction == 'dlk' %}active{% endif %}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M17 2H20C20.5304 2 21.0391 2.21071 21.4142 2.58579C21.7893 2.96086 22 3.46957 22 4V11C22 11.5304 21.7893 12.0391 21.4142 12.4142C21.0391 12.7893 20.5304 13 20 13H17M10 15V19C10 19.7956 10.3161 20.5587 10.8787 21.1213C11.4413 21.6839 12.2044 22 13 22L17 13V2H5.72C5.23767 1.99451 4.76962 2.16361 4.40213 2.47596C4.03464 2.78831 3.79234 3.22307 3.72 3.7L2.34 12.7C2.29649 12.9866 2.31583 13.2793 2.39668 13.5577C2.47753 13.8362 2.61793 14.0937 2.80814 14.3125C2.99835 14.5313 3.23394 14.7061 3.49843 14.8248C3.76291 14.9435 4.05009 15.0033 4.34 15H10Z"/>
+                                        </svg>
+                                        <span class="count">{{ comment.dis_likes_count }}</span>
+                                    </button>
+                                    <button class="reaction-btn reply-btn" data-reaction-type="reply">
+                                        <svg width="20px" height="20px" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2">
+                                            <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>
+                                        </svg>
+                                        <span>{{ comment.replies_count }}</span>
+                                    </button>
+                                    <form action="{% url 'manhwa_comment_replies' manhwa.id %}" method="post">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="comment_id" value="{{ comment.id }}">
+                                        <button type="submit">show replies</button>
+                                    </form>
+                            </div>
                             </div>
                         </div>
                     </div>
-                </div>
-            {% endfor %}
-        </div>
+                {% endfor %}
+            </section>
+
+        </section>
+
     <br><br>
 
     </div>

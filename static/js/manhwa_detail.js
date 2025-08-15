@@ -35,6 +35,26 @@ document.addEventListener('DOMContentLoaded', async function (){
     const data = await response.json();
 })
 
+function setStyleNone(toNone, toBlock){
+    const translate = {
+        'tab-detail': 'detail',
+        'tab-episodes': 'episodes',
+        'tab-comments': 'comments'
+    }
+    const toNoneDiv = document.querySelector(`.${translate[toNone]}`)
+    const toBlockDiv = document.querySelector(`.${translate[toBlock]}`)
+    toNoneDiv.style.display = 'none'
+    toBlockDiv.style.display = 'block'
+}
+
+document.querySelector('.tabs').addEventListener('click', function (e){
+    const tab = e.target.closest('.tab')
+    const lastTab = document.querySelector('.tab-active')
+    lastTab.classList.remove('tab-active')
+    tab.classList.add('tab-active')
+    setStyleNone(lastTab.classList[1], tab.classList[1])
+})
+
 form.addEventListener('submit', async function(e){
     e.preventDefault()
 
