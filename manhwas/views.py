@@ -106,8 +106,8 @@ class CommentViewSet(
         if self.action == 'list':
             return base_qs.filter(level=0)
 
-        elif self.action == 'replies':
-            return base_qs.filter(pk=pk)
+        if self.action == 'replies':
+            return get_object_or_404(base_qs, pk=pk)
 
         return base_qs.filter(pk=pk)  # create, detail
 
@@ -132,7 +132,7 @@ class CommentViewSet(
     @action(detail=True, methods=['get'])
     def replies(self, request, manhwa_pk=None, pk=None):
         replies_query_set = self.get_queryset()
-        serializer = self.get_serializer(replies_query_set, many=True)
+        serializer = self.get_serializer(replies_query_set)
         return Response(serializer.data)
 
 

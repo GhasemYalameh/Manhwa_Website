@@ -5,11 +5,11 @@ Comment Replies
 {% endblock %}
 {% block content %}
     <h1>main comment</h1>
-    <h2>{{ comment.author.username }}</h2>
+    <h2>{{ comment.author }}</h2>
     <p>{{ comment.text }}</p><br>
     <p>==================================================================</p>
     <br><h1>replies</h1>
-    {% for child in comment %}
+    {% for child in comment.replies %}
         <br>
         <h3>{{ child.author }}</h3>
         <p>{{ child.text }}</p>
