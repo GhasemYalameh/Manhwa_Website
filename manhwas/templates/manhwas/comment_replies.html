@@ -9,9 +9,9 @@ Comment Replies
     <p>{{ comment.text }}</p><br>
     <p>==================================================================</p>
     <br><h1>replies</h1>
-    {% for child in comment.childes.all %}
+    {% for child in comment %}
         <br>
-        <h3>{{ child.author.username }}</h3>
+        <h3>{{ child.author }}</h3>
         <p>{{ child.text }}</p>
         <p>------------------------------------------------------------------------</p>
     {% endfor %}

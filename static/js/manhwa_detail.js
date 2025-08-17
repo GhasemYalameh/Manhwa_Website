@@ -1,12 +1,14 @@
-const form = document.getElementById('comment-form')
-const comments_list = document.getElementById('comments-list')
+const form = document.getElementById('comment-form');
+const comments_list = document.getElementById('comments-list');
 
-let mainCommentId = null
+let isCommentsLoaded = false;
+
+let mainCommentId = null;
 
 // form info
-const path_names = window.location.pathname.split('/')
-const manhwa_id = path_names[path_names.length - 2]
-const comment_text = document.getElementById('id_text').value
+const path_names = window.location.pathname.split('/');
+const manhwa_id = path_names[path_names.length - 2];
+const comment_text = document.getElementById('id_text').value;
 
 function get_csrf_token(){
     const cookieString = document.cookie
@@ -47,12 +49,31 @@ function setStyleNone(toNone, toBlock){
     toBlockDiv.style.display = 'block'
 }
 
-document.querySelector('.tabs').addEventListener('click', function (e){
+async function load_comments(){
+    if (isCommentsLoaded) return;
+
+    const response = await fetch(
+        `/detail/${manhwa_id}/`,{
+            method: 'GET',
+            headers: {
+                'Tab-Load': 'comments'
+            }
+        })
+    const data = await response.json()
+    document.querySelector('.comment-list').innerHTML = data.html
+    isCommentsLoaded = true
+}
+
+document.querySelector('.tabs').addEventListener('click', async function (e){
     const tab = e.target.closest('.tab')
     const lastTab = document.querySelector('.tab-active')
+    if (tab.classList.contains('tab-comments')){
+        await load_comments()
+    }
     lastTab.classList.remove('tab-active')
     tab.classList.add('tab-active')
     setStyleNone(lastTab.classList[1], tab.classList[1])
+
 })
 
 form.addEventListener('submit', async function(e){
@@ -115,7 +136,7 @@ form.addEventListener('submit', async function(e){
                     </div>
                 </div>
             `;
-            document.getElementById('comments-list').prepend(newComment);
+            document.querySelector('.comment-list').prepend(newComment);
         }
         else{
             document.querySelector('.reply-container').style.display = 'none'
@@ -165,7 +186,7 @@ function cancelReply(){
     mainCommentId = null
 }
 
-document.querySelector('#comments-list').addEventListener('click', async function(e){
+document.querySelector('.comment-list').addEventListener('click', async function(e){
     const btn = e.target.closest('.reaction-btn'); // clicked btn
     if (!btn) return;
 

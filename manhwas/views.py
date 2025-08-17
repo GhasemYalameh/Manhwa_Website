@@ -1,10 +1,13 @@
+import requests
 from django.db import transaction, connection
 from django.db.models import Avg, Count, F, Value, Max, When, Case, CharField, Subquery, OuterRef, Exists
 from django.db.models.functions import Coalesce, Concat, Cast
 from django.shortcuts import render, get_object_or_404
+from django.template.loader import render_to_string
 from django.utils.functional import cached_property
 from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
+from django.http import JsonResponse
 
 from rest_framework import status, mixins
 from rest_framework.decorators import api_view, permission_classes, action
@@ -36,42 +39,44 @@ def manhwa_detail(request, pk):
         ),
         pk=pk
     )
+    # if request from AJAX
+    if request.headers.get('Tab-Load') == 'comments':
+        comments_query = NewComment.objects.\
+            select_related('author').\
+            prefetch_related('childes').\
+            filter(level=0, manhwa_id=pk).annotate(
+                replies_count=Count('childes'))
 
-    comments_query = NewComment.objects.select_related('author').prefetch_related('childes').filter(level=0, manhwa_id=pk).annotate(
-        replies_count=Count('childes')
-    )
+        if request.user.is_authenticated:
 
-    if request.user.is_authenticated:
+            user_reacted_subquery = CommentReAction.objects.filter(
+                user_id=request.user.id,
+                comment_id=OuterRef('pk')
+            ).values('reaction')
 
-        user_reacted_subquery = CommentReAction.objects.filter(
-            user_id=request.user.id,
-            comment_id=OuterRef('pk')
-        ).values('reaction')
+            comments_query = comments_query.annotate(
+                user_reaction=Coalesce(
+                    Subquery(user_reacted_subquery),
+                    Value('no-reaction')),
+            ).order_by('-created_at')
 
-        comments_query = comments_query.annotate(
-            user_reaction=Coalesce(
-                Subquery(user_reacted_subquery),
-                Value('no-reaction')),
-        ).order_by('-created_at')
+        html = render_to_string('manhwas/_comments.html', context={'comments': comments_query, 'manhwa_id': manhwa.id})
+        return JsonResponse({'html': html})
+
     return render(
         request,
         'manhwas/manhwa_detail_view.html',
         context={
             'manhwa': manhwa,
-            'comments': comments_query
         }
       )
 
 
-@require_POST
-def show_replied_comment(request, pk):
-    data = request.POST
-    comment_object = get_object_or_404(
-        NewComment.objects.prefetch_related('childes').select_related('author'),
-        manhwa_id=pk,
-        id=data['comment_id']
-    )
-    return render(request, 'manhwas/comment_replies.html', context={'comment': comment_object})
+def show_replied_comment(request, manhwa_id, comment_id):
+    url = request.build_absolute_uri(f'/api/manhwas/{manhwa_id}/comments/{comment_id}/replies/')
+    response = requests.get(url)
+    data = response.json()
+    return render(request, 'manhwas/comment_replies.html', context={'comment': data})
 
 
 class CommentViewSet(
