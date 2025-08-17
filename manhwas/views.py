@@ -85,8 +85,6 @@ class CommentViewSet(
     mixins.RetrieveModelMixin,
     GenericViewSet
 ):
-
-    serializer_class = srilzr.NewCommentSerializer
     pagination_class = CustomPagination
 
     @cached_property
@@ -97,6 +95,26 @@ class CommentViewSet(
     def get_permissions(self):
         # must be login for comment creation
         return [IsAuthenticated() if self.action == 'create' else AllowAny()]
+
+    def get_queryset(self):
+        pk = self.kwargs.get('pk')
+
+        base_qs = NewComment.objects.prefetch_related('childes__author').select_related('author').filter(
+            manhwa=self.manhwa
+        )
+
+        if self.action == 'list':
+            return base_qs.filter(level=0)
+
+        elif self.action == 'replies':
+            return base_qs.filter(pk=pk)
+
+        return base_qs.filter(pk=pk)  # create, detail
+
+    def get_serializer_class(self):
+        if self.action == 'replies':
+            return srilzr.CommentDetailSerializer
+        return srilzr.NewCommentSerializer
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user, manhwa=self.manhwa)
@@ -110,20 +128,6 @@ class CommentViewSet(
         }
         return response
 
-    def get_queryset(self):
-        pk = self.kwargs.get('pk')
-
-        base_qs = NewComment.objects.prefetch_related('childes__author').select_related('author').filter(
-            manhwa=self.manhwa
-        )
-
-        if self.action == 'list':
-            return base_qs.filter(level=0)
-
-        elif self.action == 'replies':
-            return base_qs.filter(parent_id=pk)
-
-        return base_qs.filter(pk=pk)  # create, detail
 
     @action(detail=True, methods=['get'])
     def replies(self, request, manhwa_pk=None, pk=None):
