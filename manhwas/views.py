@@ -97,7 +97,7 @@ class CommentViewSet(
     def get_queryset(self):
         pk = self.kwargs.get('pk')
 
-        base_qs = Comment.objects.prefetch_related('childes__author').select_related('author').filter(
+        base_qs = Comment.objects.prefetch_related('children__author').select_related('author').filter(
             manhwa=self.manhwa
         )
 
@@ -112,7 +112,9 @@ class CommentViewSet(
     def get_serializer_class(self):
         if self.action == 'replies':
             return srilzr.CommentDetailSerializer
-        return srilzr.CommentSerializer
+        elif self.action in ('retrieve', 'list'):
+            return srilzr.RetrieveCommentSerializer
+        return srilzr.CreateCommentSerializer
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user, manhwa=self.manhwa)

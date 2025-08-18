@@ -9,17 +9,12 @@ from django.utils.translation import gettext as _
 from .models import Manhwa, CommentReAction, Comment
 
 
-class CommentSerializer(serializers.ModelSerializer):
+class CreateCommentSerializer(serializers.ModelSerializer):
     author = serializers.CharField(source='author.username', read_only=True)
-    replies_count = serializers.SerializerMethodField()
 
     class Meta:
         model = Comment
-        fields = ('id', 'author', 'text', 'parent', 'level', 'likes_count', 'dis_likes_count', 'replies_count')
-        read_only_fields = ('id', 'level', 'likes_count', 'dis_likes_count', 'replies_count')
-
-    def get_replies_count(self, obj):
-        return obj.childes.count()
+        fields = ('author', 'text', 'parent',)
 
     def validate_text(self, value):
         is_html = search(r'<[^>]+>', value)
@@ -41,9 +36,21 @@ class CommentSerializer(serializers.ModelSerializer):
             })
 
 
+class RetrieveCommentSerializer(serializers.ModelSerializer):
+    author = serializers.CharField(source='author.username', read_only=True)
+    replies_count = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Comment
+        fields = ('id', 'author', 'text', 'parent', 'level', 'likes_count', 'dis_likes_count', 'replies_count')
+
+    def get_replies_count(self, obj):
+        return obj.children.count()
+
+
 class CommentDetailSerializer(serializers.ModelSerializer):
     author = serializers.CharField(source='author.username', read_only=True)
-    replies = CommentSerializer(source='childes', many=True, read_only=True)
+    replies = RetrieveCommentSerializer(source='childes', many=True, read_only=True)
     replies_count = serializers.SerializerMethodField()
 
     class Meta:
@@ -51,7 +58,7 @@ class CommentDetailSerializer(serializers.ModelSerializer):
         fields = ('id', 'author', 'text', 'parent', 'level', 'likes_count', 'dis_likes_count', 'replies_count', 'replies')
 
     def get_replies_count(self, obj):
-        return obj.childes.count()
+        return obj.children.count()
 
 
 class ManhwaSerializer(serializers.ModelSerializer):
