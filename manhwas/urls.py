@@ -12,7 +12,7 @@ manhwa_router.register('comments', views.CommentViewSet, basename='manhwa-commen
 urlpatterns = [
     path('', views.home_page, name='home'),
     path('detail/<int:pk>/', views.manhwa_detail, name='manhwa_detail'),
-    path('detail/<int:manhwa_id>/show-replied-comment/<int:comment_id>', views.show_replied_comment, name='manhwa_comment_replies'),
+    path('detail/<int:manhwa_id>/show-replied-comment/<int:comment_id>/', views.show_replied_comment, name='manhwa_comment_replies'),
 
     path('api/comment-reaction/', views.api_reaction_handler, name='api_toggle_reaction_comment'),
 

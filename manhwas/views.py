@@ -112,9 +112,9 @@ class CommentViewSet(
     def get_serializer_class(self):
         if self.action == 'replies':
             return srilzr.CommentDetailSerializer
-        elif self.action in ('retrieve', 'list'):
-            return srilzr.RetrieveCommentSerializer
-        return srilzr.CreateCommentSerializer
+        elif self.action == 'create':
+            return srilzr.CreateCommentSerializer
+        return srilzr.RetrieveCommentSerializer
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user, manhwa=self.manhwa)
@@ -128,7 +128,7 @@ class CommentViewSet(
         }
         return response
 
-    @action(detail=True, methods=['get'])
+    @action(detail=True, methods=['GET'])
     def replies(self, request, manhwa_pk=None, pk=None):
         replies_query_set = self.get_queryset()
         serializer = self.get_serializer(replies_query_set)

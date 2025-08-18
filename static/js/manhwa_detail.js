@@ -127,7 +127,6 @@ form.addEventListener('submit', async function(e){
                                 </svg>
                                 <span class="count">0</span>
                             </button>
-                            <a href="/detail/${manhwa_id}/show-replied-comment/${comment_data.id}">replies</a>
                         </div>
                     </div>
                 </div>
@@ -135,10 +134,16 @@ form.addEventListener('submit', async function(e){
             document.querySelector('.comment-list').prepend(newComment);
         }
         else{
-            document.querySelector('.reply-container').style.display = 'none'
-            document.querySelector('#main-comment-text').textContent = ""
-            document.querySelector('#main-comment-author').textContent = ""
-            mainCommentId = null
+            document.querySelector('.reply-container').style.display = 'none';
+            document.querySelector('#main-comment-text').textContent = "";
+            document.querySelector('#main-comment-author').textContent = "";
+            const commentElm = document.querySelector(`[data-comment-id="${mainCommentId}"]`);
+            const spanElm = commentElm.querySelector('.reply-btn span');
+            const spanText = +spanElm.textContent;
+            if (!spanText) addLinkReplies(commentElm.querySelector('.reactions'));
+            spanElm.textContent = spanText + 1;
+
+            mainCommentId = null;
         }
 
         document.getElementById('id_text').value = ""
@@ -146,6 +151,13 @@ form.addEventListener('submit', async function(e){
     // message success not in response !!
     showMessage(response.ok ? 'success':'error', data)
 })
+
+function addLinkReplies(parent){
+    const a = document.createElement('a')
+    a.href = `/detail/${manhwa_id}/show-replied-comment/${mainCommentId}/`
+    a.textContent = 'replies'
+    parent.appendChild(a)
+}
 
 function replyForm(target){
     const replyContainer = document.querySelector('.reply-container')

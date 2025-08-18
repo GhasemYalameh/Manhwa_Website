@@ -25,7 +25,10 @@
                         </svg>
                         <span>{{ comment.replies_count }}</span>
                     </button>
-                    <a href="{% url 'manhwa_comment_replies' manhwa_id comment.id %}">replies</a>
+                    {% if comment.replies_count %}
+                        <a href="{% url 'manhwa_comment_replies' manhwa_id comment.id %}">replies</a>
+                    {% endif %}
+
             </div>
             </div>
         </div>

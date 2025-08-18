@@ -50,7 +50,7 @@ class RetrieveCommentSerializer(serializers.ModelSerializer):
 
 class CommentDetailSerializer(serializers.ModelSerializer):
     author = serializers.CharField(source='author.username', read_only=True)
-    replies = RetrieveCommentSerializer(source='childes', many=True, read_only=True)
+    replies = RetrieveCommentSerializer(source='children', many=True, read_only=True)
     replies_count = serializers.SerializerMethodField()
 
     class Meta:
