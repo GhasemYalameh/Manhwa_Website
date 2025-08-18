@@ -3,14 +3,12 @@ from io import BytesIO
 import json
 
 from django.core.files.uploadedfile import SimpleUploadedFile
-from django.db.models import Exists, OuterRef
 from django.shortcuts import reverse
 from django.test import TestCase
 from django.utils import timezone
 
-from .models import Genre, Rate, Studio, Manhwa, CommentReAction, NewComment
+from .models import Genre, Rate, Studio, Manhwa, CommentReAction, Comment
 from accounts.models import CustomUser
-from .serializers import NewCommentSerializer
 
 
 def get_image():
@@ -56,7 +54,7 @@ class ManhwaApiTest(TestCase):
         )
         self.manhwa.genres.add(self.genre)
 
-        self.new_comment = NewComment.objects.create(
+        self.new_comment = Comment.objects.create(
             author=self.user,
             text='new comment tx',
             manhwa_id=self.manhwa.id
@@ -87,7 +85,7 @@ class ManhwaApiTest(TestCase):
         comment_data = response.json()['comment']
         self.assertEqual(response.status_code, 201)  # status code 201 (CREATED)
 
-        comment_obj = NewComment.objects.filter(
+        comment_obj = Comment.objects.filter(
             author=self.user,
             manhwa=self.manhwa,
             id=comment_data['id']
@@ -131,7 +129,7 @@ class ManhwaApiTest(TestCase):
             content_type='application/json'
         )
 
-        comment_obj = NewComment.objects.filter(
+        comment_obj = Comment.objects.filter(
             manhwa_id=self.manhwa.id,
             author=self.user,
             text='some replied comment text'
@@ -144,13 +142,13 @@ class ManhwaApiTest(TestCase):
         self.assertTrue(is_replied)  # CommentReply created
 
     def test_get_comment_replies(self):
-        comment = NewComment.objects.create(
+        comment = Comment.objects.create(
             author=self.user,
             manhwa=self.manhwa,
             text='some text',
             parent_id=self.new_comment.id
         )
-        comment2 = NewComment.objects.create(
+        comment2 = Comment.objects.create(
             author=self.user,
             manhwa=self.manhwa,
             text='some2 text'
@@ -310,7 +308,7 @@ class ManhwaViewTest(TestCase):
         )
         self.manhwa.genres.add(self.genre)
 
-        self.new_comment = NewComment.objects.create(
+        self.new_comment = Comment.objects.create(
             author=self.user,
             text='some test new',
             manhwa_id=self.manhwa.id
@@ -323,7 +321,7 @@ class ManhwaViewTest(TestCase):
         self.assertIn(self.genre, self.manhwa.genres.all())
 
     def test_manhwa_detail_not_contains_replied_comment(self):
-        comment = NewComment.objects.create(
+        comment = Comment.objects.create(
             author=self.user,
             manhwa=self.manhwa,
             text='replied comment for test',
@@ -336,12 +334,12 @@ class ManhwaViewTest(TestCase):
         self.assertNotContains(response, comment.text)
 
     def test_show_comment_replies(self):
-        not_replied_comment = NewComment.objects.create(
+        not_replied_comment = Comment.objects.create(
             author=self.user,
             text='not replied comment text',
             manhwa=self.manhwa
         )
-        replied_comment = NewComment.objects.create(
+        replied_comment = Comment.objects.create(
             author=self.user,
             text='replied comment text',
             manhwa=self.manhwa,

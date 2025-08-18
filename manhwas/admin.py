@@ -3,7 +3,7 @@ from django.db.models import Count, OuterRef, Subquery
 from django.utils.html import format_html, urlencode
 from django.urls import reverse
 
-from .models import Manhwa, Episode, Studio, Genre, Rate, View, CommentReAction, NewComment
+from .models import Manhwa, Episode, Studio, Genre, Rate, View, CommentReAction, Comment
 
 
 class EpisodeInline(admin.TabularInline):
@@ -34,7 +34,7 @@ class ManhwaAdmin(admin.ModelAdmin):
                     .values('count')
                 ),
                 comments_count=Subquery(
-                    NewComment.objects
+                    Comment.objects
                     .filter(manhwa=OuterRef('pk'))
                     .values('manhwa')
                     .annotate(count=Count('id'))
@@ -80,7 +80,7 @@ class EpisodeAdmin(admin.ModelAdmin):
     list_display = ('manhwa', 'downloads_count', 'number',)
 
 
-class NewCommentAdmin(admin.ModelAdmin):
+class CommentAdmin(admin.ModelAdmin):
     list_display = ('id', 'author', 'manhwa', 'parent', 'level', 'created_at', 'updated_at')
 
 
@@ -95,4 +95,4 @@ admin.site.register(Episode, EpisodeAdmin)
 admin.site.register(Rate, RateAdmin)
 admin.site.register(View, ViewAdmin)
 admin.site.register(CommentReAction, CommentReActionAdmin)
-admin.site.register(NewComment, NewCommentAdmin)
+admin.site.register(Comment, CommentAdmin)

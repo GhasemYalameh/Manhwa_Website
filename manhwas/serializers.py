@@ -6,15 +6,15 @@ from django.db import IntegrityError
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext as _
 
-from .models import Manhwa, CommentReAction, NewComment
+from .models import Manhwa, CommentReAction, Comment
 
 
-class NewCommentSerializer(serializers.ModelSerializer):
+class CommentSerializer(serializers.ModelSerializer):
     author = serializers.CharField(source='author.username', read_only=True)
     replies_count = serializers.SerializerMethodField()
 
     class Meta:
-        model = NewComment
+        model = Comment
         fields = ('id', 'author', 'text', 'parent', 'level', 'likes_count', 'dis_likes_count', 'replies_count')
         read_only_fields = ('id', 'level', 'likes_count', 'dis_likes_count', 'replies_count')
 
@@ -30,7 +30,7 @@ class NewCommentSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         try:
-            return NewComment.objects.create(**validated_data)
+            return Comment.objects.create(**validated_data)
 
         except ValidationError as e:
             raise serializers.ValidationError(e.message_dict)
@@ -43,11 +43,11 @@ class NewCommentSerializer(serializers.ModelSerializer):
 
 class CommentDetailSerializer(serializers.ModelSerializer):
     author = serializers.CharField(source='author.username', read_only=True)
-    replies = NewCommentSerializer(source='childes', many=True, read_only=True)
+    replies = CommentSerializer(source='childes', many=True, read_only=True)
     replies_count = serializers.SerializerMethodField()
 
     class Meta:
-        model = NewComment
+        model = Comment
         fields = ('id', 'author', 'text', 'parent', 'level', 'likes_count', 'dis_likes_count', 'replies_count', 'replies')
 
     def get_replies_count(self, obj):
@@ -76,8 +76,8 @@ class CommentReectionToggleSerializer(serializers.Serializer):
     def validate_comment_id(self, value):
         """check existing of comment"""
         try:
-            NewComment.objects.get(pk=value)
-        except NewComment.DoesNotExist:
+            Comment.objects.get(pk=value)
+        except Comment.DoesNotExist:
             raise serializers.ValidationError("comment not fount")
 
         return value

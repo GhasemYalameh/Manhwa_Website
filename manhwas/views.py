@@ -1,12 +1,10 @@
 import requests
 from django.db import transaction, connection
-from django.db.models import Avg, Count, F, Value, Max, When, Case, CharField, Subquery, OuterRef, Exists
-from django.db.models.functions import Coalesce, Concat, Cast
+from django.db.models import Avg, Count, F, Value, Subquery, OuterRef
+from django.db.models.functions import Coalesce
 from django.shortcuts import render, get_object_or_404
 from django.template.loader import render_to_string
 from django.utils.functional import cached_property
-from django.utils.translation import gettext as _
-from django.views.decorators.http import require_POST
 from django.http import JsonResponse
 
 from rest_framework import status, mixins
@@ -17,7 +15,7 @@ from rest_framework.viewsets import GenericViewSet, ReadOnlyModelViewSet
 
 from . import serializers as srilzr
 from .paginations import CustomPagination
-from .models import Manhwa, View, CommentReAction, NewComment
+from .models import Manhwa, View, CommentReAction, Comment
 
 
 def home_page(request):
@@ -41,11 +39,11 @@ def manhwa_detail(request, pk):
     )
     # if request from AJAX
     if request.headers.get('Tab-Load') == 'comments':
-        comments_query = NewComment.objects.\
+        comments_query = Comment.objects.\
             select_related('author').\
-            prefetch_related('childes').\
+            prefetch_related('children').\
             filter(level=0, manhwa_id=pk).annotate(
-                replies_count=Count('childes'))
+                replies_count=Count('children'))
 
         if request.user.is_authenticated:
 
@@ -99,7 +97,7 @@ class CommentViewSet(
     def get_queryset(self):
         pk = self.kwargs.get('pk')
 
-        base_qs = NewComment.objects.prefetch_related('childes__author').select_related('author').filter(
+        base_qs = Comment.objects.prefetch_related('childes__author').select_related('author').filter(
             manhwa=self.manhwa
         )
 
@@ -114,7 +112,7 @@ class CommentViewSet(
     def get_serializer_class(self):
         if self.action == 'replies':
             return srilzr.CommentDetailSerializer
-        return srilzr.NewCommentSerializer
+        return srilzr.CommentSerializer
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user, manhwa=self.manhwa)
@@ -127,7 +125,6 @@ class CommentViewSet(
             'message': 'comment successfully added.'
         }
         return response
-
 
     @action(detail=True, methods=['get'])
     def replies(self, request, manhwa_pk=None, pk=None):
@@ -173,7 +170,7 @@ def api_reaction_handler(request):
         )
 
         # get reaction count from db
-        comment_data = NewComment.objects.only('id', 'likes_count', 'dis_likes_count').get(pk=comment_id)
+        comment_data = Comment.objects.only('id', 'likes_count', 'dis_likes_count').get(pk=comment_id)
         comment_data = {'likes_count': comment_data.likes_count, 'dis_likes_count': comment_data.dis_likes_count}
 
         reaction_data = srilzr.CommentReactionSerializer(reaction_obj).data if action != 'deleted' else None

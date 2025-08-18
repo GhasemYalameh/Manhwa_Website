@@ -167,16 +167,16 @@ class Episode(models.Model):
         return f'{self.manhwa.en_title}: {self.number}'
 
 
-class NewComment(models.Model):
+class Comment(models.Model):
     author = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
-        related_name='new_comments'
+        related_name='comments'
         )
     manhwa = models.ForeignKey(Manhwa, on_delete=models.CASCADE, related_name='comments')
     text = models.TextField()
 
-    parent = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, default=None, related_name='childes')
+    parent = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True, related_name='children')
     level = models.PositiveSmallIntegerField(default=0, editable=False)  # level of comment depth
 
     likes_count = models.PositiveIntegerField(default=0, editable=False)
@@ -266,7 +266,7 @@ class CommentReactionManager(models.Manager):
             updates['dis_likes_count'] = F('dis_likes_count') + 1
 
         if updates:
-            NewComment.objects.filter(pk=comment_id).update(**updates)
+            Comment.objects.filter(pk=comment_id).update(**updates)
 
     def sync_comment_reaction_counters(self, comment_id):
         """update likes & dis_likes count fields from db and real count of reactions"""
@@ -275,7 +275,7 @@ class CommentReactionManager(models.Manager):
             likes=Count(When(reaction='lk', then=1)),
             dis_likes=Count(When(reaction='dlk', then=1))
         )
-        NewComment.objects.filter(pk=comment_id).update(likes_count=reactions.likes, dis_likes_count=reactions.dis_likes)
+        Comment.objects.filter(pk=comment_id).update(likes_count=reactions.likes, dis_likes_count=reactions.dis_likes)
 
 
 class CommentReAction(models.Model):
@@ -293,7 +293,7 @@ class CommentReAction(models.Model):
         related_name='comment_reactions',
         verbose_name=_('user')
     )
-    comment = models.ForeignKey(NewComment, on_delete=models.CASCADE, related_name='reactions', verbose_name=_('comment'))
+    comment = models.ForeignKey(Comment, on_delete=models.CASCADE, related_name='reactions', verbose_name=_('comment'))
     reaction = models.CharField(max_length=10, choices=COMMENT_REACTIONS, verbose_name=_('reaction'))
 
     objects = CommentReactionManager()
