@@ -10,9 +10,11 @@ from .models import Manhwa, CommentReAction, Comment
 
 
 class CreateCommentSerializer(serializers.ModelSerializer):
+    author = serializers.CharField(source='author.username', read_only=True)
+
     class Meta:
         model = Comment
-        fields = ('text', 'parent',)
+        fields = ('id', 'author', 'text', 'parent',)
 
     def validate_text(self, value):
         is_html = search(r'<[^>]+>', value)

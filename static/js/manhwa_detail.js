@@ -127,11 +127,7 @@ form.addEventListener('submit', async function(e){
                                 </svg>
                                 <span class="count">0</span>
                             </button>
-                            <form action="/detail/${manhwa_id}/show-replied-comment/" method="post">
-                                <input type="hidden" name="csrfmiddlewaretoken" value="${get_csrf_token()}">
-                                <input type="hidden" name="comment_id" value="${comment_data.id}">
-                                <button type="submit">show replies</button>
-                            </form>
+                            <a href="/detail/${manhwa_id}/show-replied-comment/${comment_data.id}">replies</a>
                         </div>
                     </div>
                 </div>
