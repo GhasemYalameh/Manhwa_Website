@@ -94,7 +94,7 @@ form.addEventListener('submit', async function(e){
                 'parent': mainCommentId===null ? null:mainCommentId
             })
         })
-
+    console.log(response.headers)
     const data = await response.json()  // if success: data is comment data
 
     if (response.ok){

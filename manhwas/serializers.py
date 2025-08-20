@@ -39,10 +39,15 @@ class CreateCommentSerializer(serializers.ModelSerializer):
 class RetrieveCommentSerializer(serializers.ModelSerializer):
     author = serializers.CharField(source='author.username', read_only=True)
     replies_count = serializers.SerializerMethodField()
+    user_reaction = serializers.CharField(max_length=1, read_only=True)
 
     class Meta:
         model = Comment
-        fields = ('id', 'author', 'text', 'parent', 'level', 'likes_count', 'dis_likes_count', 'replies_count')
+        fields = (
+            'id', 'author', 'text', 'parent',
+            'level', 'likes_count', 'dis_likes_count',
+            'replies_count', 'user_reaction'
+        )
 
     def get_replies_count(self, obj):
         return obj.children.count()

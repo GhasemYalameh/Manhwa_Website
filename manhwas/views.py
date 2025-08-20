@@ -1,6 +1,6 @@
 import requests
 from django.db import transaction, connection
-from django.db.models import Avg, Count, F, Value, Subquery, OuterRef
+from django.db.models import Avg, Count, F, Value, Subquery, OuterRef, Prefetch
 from django.db.models.functions import Coalesce
 from django.shortcuts import render, get_object_or_404
 from django.template.loader import render_to_string
@@ -39,26 +39,10 @@ def manhwa_detail(request, pk):
     )
     # if request from AJAX
     if request.headers.get('Tab-Load') == 'comments':
-        comments_query = Comment.objects.\
-            select_related('author').\
-            prefetch_related('children').\
-            filter(level=0, manhwa_id=pk).annotate(
-                replies_count=Count('children'))
-
-        if request.user.is_authenticated:
-
-            user_reacted_subquery = CommentReAction.objects.filter(
-                user_id=request.user.id,
-                comment_id=OuterRef('pk')
-            ).values('reaction')
-
-            comments_query = comments_query.annotate(
-                user_reaction=Coalesce(
-                    Subquery(user_reacted_subquery),
-                    Value('no-reaction')),
-            ).order_by('-created_at')
-
-        html = render_to_string('manhwas/_comments.html', context={'comments': comments_query, 'manhwa_id': manhwa.id})
+        url = request.build_absolute_uri(f'/api/manhwas/{manhwa.id}/comments/')
+        response = requests.get(url)
+        data = response.json()
+        html = render_to_string('manhwas/_comments.html', context={'comments': data.get('results'), 'manhwa_id': manhwa.id})
         return JsonResponse({'html': html})
 
     return render(
@@ -97,14 +81,27 @@ class CommentViewSet(
     def get_queryset(self):
         pk = self.kwargs.get('pk')
 
-        base_qs = Comment.objects.prefetch_related('children__author').select_related('author').filter(
+        base_qs = Comment.objects.prefetch_related(
+            Prefetch(
+                'children',
+                queryset=Comment.objects.select_related('author')
+            )
+        ).select_related('author').filter(
             manhwa=self.manhwa
         )
 
         if self.action == 'list':
-            return base_qs.filter(level=0)
-
-        if self.action == 'replies':
+            query = base_qs.filter(level=0, manhwa_id=self.manhwa.id)
+            return query if not self.request.user.is_authenticated else query.annotate(
+                user_reaction=Coalesce(
+                    Subquery(CommentReAction.objects.filter(
+                        user_id=self.request.user.id,
+                        comment_id=OuterRef('pk')
+                        ).values('reaction')),
+                    Value('no-reaction')
+                ),
+            )
+        elif self.action == 'replies':
             return get_object_or_404(base_qs, pk=pk)
 
         return base_qs.filter(pk=pk)  # create, detail
@@ -137,7 +134,12 @@ class CommentViewSet(
 
 class ManhwaViewSet(ReadOnlyModelViewSet):
     serializer_class = srilzr.ManhwaSerializer
-    queryset = Manhwa.objects.prefetch_related('comments__author').all()
+    queryset = Manhwa.objects.prefetch_related(
+        Prefetch(
+            'comments',
+            queryset=Comment.objects.select_related('author')
+        )
+    ).all()
 
     def get_permissions(self):
         return [IsAuthenticated() if self.action == 'set_view' else AllowAny()]

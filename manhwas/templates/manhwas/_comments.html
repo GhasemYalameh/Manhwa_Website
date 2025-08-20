@@ -1,8 +1,8 @@
-{% for comment in comments.all %}
+{% for comment in comments %}
     <div class="comment-box">
         <div class="comment-img"></div>
         <div class="comment-content" data-comment-id="{{ comment.id }}">
-            <h3>{{ comment.author.username }}</h3>
+            <h3>{{ comment.author }}</h3>
             <p>{{ comment.text|linebreaks }}</p>
             <div class="comment-bottom">
                 <span>{{ comment.datetime_modified|timesince }}</span>
