@@ -68,10 +68,12 @@ class CommentDetailSerializer(serializers.ModelSerializer):
 
 class ManhwaSerializer(serializers.ModelSerializer):
     comments_count = serializers.IntegerField(source='comments.count', read_only=True)
+    cover = serializers.URLField(source='cover.url', read_only=True)
+    avg_rating = serializers.DecimalField(max_digits=3, decimal_places=1)
 
     class Meta:
         model = Manhwa
-        fields = ['id', 'en_title', 'season', 'day_of_week', 'views_count', 'comments_count']  # + 'comments'
+        fields = ['id', 'en_title', 'avg_rating', 'season', 'day_of_week', 'last_upload', 'views_count', 'comments_count', 'cover']  # + 'comments'
 
 
 class CommentReactionSerializer(serializers.ModelSerializer):

@@ -91,7 +91,7 @@ class CommentViewSet(
         )
 
         if self.action == 'list':
-            query = base_qs.filter(level=0, manhwa_id=self.manhwa.id)
+            query = base_qs.filter(level=0)
             return query if not self.request.user.is_authenticated else query.annotate(
                 user_reaction=Coalesce(
                     Subquery(CommentReAction.objects.filter(
@@ -138,8 +138,10 @@ class ManhwaViewSet(ReadOnlyModelViewSet):
         Prefetch(
             'comments',
             queryset=Comment.objects.select_related('author')
-        )
-    ).all()
+        ), 'rates'
+    ).annotate(
+        avg_rating=Coalesce(Avg('rates__rating'), Value(0.0))
+    )
 
     def get_permissions(self):
         return [IsAuthenticated() if self.action == 'set_view' else AllowAny()]
