@@ -15,7 +15,7 @@ from rest_framework.viewsets import GenericViewSet, ReadOnlyModelViewSet
 
 from . import serializers as srilzr
 from .paginations import CustomPagination
-from .models import Manhwa, View, CommentReAction, Comment
+from .models import Manhwa, View, CommentReAction, Comment, Episode
 
 
 def home_page(request):
@@ -158,6 +158,14 @@ class ManhwaViewSet(ReadOnlyModelViewSet):
                 return Response({'action': 'created'})
 
             return Response({'action': 'was exists'})
+
+
+class EpisodeViewSet(ReadOnlyModelViewSet):
+    serializer_class = srilzr.EpisodeSerializer
+
+    def get_queryset(self):
+        manhwa_pk = self.kwargs.get('manhwa_pk')
+        return Episode.objects.filter(manhwa_id=manhwa_pk)
 
 
 @api_view(['POST'])

@@ -6,7 +6,7 @@ from django.db import IntegrityError
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext as _
 
-from .models import Manhwa, CommentReAction, Comment
+from .models import Manhwa, CommentReAction, Comment, Episode
 
 
 class CreateCommentSerializer(serializers.ModelSerializer):
@@ -107,3 +107,11 @@ class ManhwaViewSerializer(serializers.Serializer):
             raise serializers.ValidationError('manhwa not found')
 
         return value
+
+
+class EpisodeSerializer(serializers.ModelSerializer):
+    file = serializers.URLField(source='file.url')
+
+    class Meta:
+        model = Episode
+        fields = ['id', 'number', 'file', 'datetime_created']

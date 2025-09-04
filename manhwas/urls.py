@@ -7,7 +7,7 @@ router.register('manhwas', views.ManhwaViewSet, basename='manhwa')  # list & ret
 
 manhwa_router = routers.NestedSimpleRouter(router, 'manhwas', lookup='manhwa')
 manhwa_router.register('comments', views.CommentViewSet, basename='manhwa-comments')
-
+manhwa_router.register('episodes', views.EpisodeViewSet, basename='manhwa-episodes')
 
 urlpatterns = [
     path('', views.home_page, name='home'),
