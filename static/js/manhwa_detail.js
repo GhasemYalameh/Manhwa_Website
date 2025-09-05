@@ -37,14 +37,14 @@ document.addEventListener('DOMContentLoaded', async function (){
     const data = await response.json();
 })
 
-function setStyleNone(toNone, toBlock){
+function changeTab(fromTab, toTab){
     const translate = {
         'tab-detail': 'detail',
         'tab-episodes': 'episodes',
         'tab-comments': 'comments'
     }
-    const toNoneDiv = document.querySelector(`.${translate[toNone]}`)
-    const toBlockDiv = document.querySelector(`.${translate[toBlock]}`)
+    const toNoneDiv = document.querySelector(`.${translate[fromTab]}`)
+    const toBlockDiv = document.querySelector(`.${translate[toTab]}`)
     toNoneDiv.style.display = 'none'
     toBlockDiv.style.display = 'block'
 }
@@ -72,7 +72,7 @@ document.querySelector('.tabs').addEventListener('click', async function (e){
     }
     lastTab.classList.remove('tab-active')
     tab.classList.add('tab-active')
-    setStyleNone(lastTab.classList[1], tab.classList[1])
+    changeTab(lastTab.classList[1], tab.classList[1])
 
 })
 
