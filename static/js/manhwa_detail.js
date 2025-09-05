@@ -10,18 +10,18 @@ const path_names = window.location.pathname.split('/');
 const manhwa_id = path_names[path_names.length - 2];
 const comment_text = document.getElementById('id_text').value;
 
-function get_csrf_token(){
+function getCookie(cookie){
     const cookieString = document.cookie
     if (!cookieString) return null;
 
-    const csrf_token =
+    const cookieValue =
         cookieString
             .split(';')
-            .find(cookie => cookie.trim().startsWith('csrftoken='));
+            .find(cookie => cookie.trim().startsWith(`${cookie}=`));
 
-    if (!csrf_token) return null
+    if (!cookieValue) return null;
 
-    return csrf_token.split('=')[1]
+    return cookieValue.split('=')[1];
 }
 
 
@@ -30,7 +30,7 @@ document.addEventListener('DOMContentLoaded', async function (){
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
-            'X-CSRFToken': get_csrf_token()
+            'X-CSRFToken': getCookie("csrftoken")
         },
     })
 
@@ -87,7 +87,7 @@ form.addEventListener('submit', async function(e){
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'X-CSRFToken': get_csrf_token()
+                'X-CSRFToken': getCookie("csrftoken")
             },
             body: JSON.stringify({
                 'text': comment_text,
@@ -197,7 +197,7 @@ function cancelReply(){
 document.querySelector('.comment-list').addEventListener('click', async function(e){
     const btn = e.target.closest('.reaction-btn'); // clicked btn
     if (!btn) return;
-
+    if (!getCookie('sessionid')) return;
     // datas
     const commentId = btn.closest('.comment-content').dataset.commentId;
     const reaction = btn.dataset.reactionType;
@@ -253,7 +253,7 @@ document.querySelector('.comment-list').addEventListener('click', async function
             method: 'POST',
             headers:{
                 'Content-Type': 'application/json',
-                'X-CSRFToken': get_csrf_token()
+                'X-CSRFToken': getCookie("csrftoken")
             },
             body: JSON.stringify({
                 'reaction': reaction,
