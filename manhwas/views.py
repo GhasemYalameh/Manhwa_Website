@@ -40,7 +40,7 @@ def manhwa_detail(request, pk):
     # if request from AJAX
     if request.headers.get('Tab-Load') == 'comments':
         url = request.build_absolute_uri(f'/api/manhwas/{manhwa.id}/comments/')
-        response = requests.get(url)
+        response = requests.get(url, cookies={'sessionid': request.COOKIES.get('sessionid')})
         data = response.json()
         html = render_to_string('manhwas/_comments.html', context={'comments': data.get('results'), 'manhwa_id': manhwa.id})
         return JsonResponse({'html': html})
