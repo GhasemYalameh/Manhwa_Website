@@ -1,11 +1,12 @@
 import requests
+
 from django.db import transaction, connection
-from django.db.models import Avg, Count, F, Value, Subquery, OuterRef, Prefetch
+from django.db.models import Avg, F, Value, Subquery, OuterRef, Prefetch
 from django.db.models.functions import Coalesce
+from django.http import JsonResponse
 from django.shortcuts import render, get_object_or_404
 from django.template.loader import render_to_string
 from django.utils.functional import cached_property
-from django.http import JsonResponse
 
 from rest_framework import status, mixins
 from rest_framework.decorators import api_view, permission_classes, action
