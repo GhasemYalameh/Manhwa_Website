@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     'debug_toolbar',
     'rosetta',
     'rest_framework',
+    'djoser',
     # 'jalali_date',
     'django_ckeditor_5',
 
