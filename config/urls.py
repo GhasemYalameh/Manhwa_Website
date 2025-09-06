@@ -34,7 +34,9 @@ urlpatterns = [
 
     path("ckeditor5/", include('django_ckeditor_5.urls')),  # ckeditor url
 
-    path('auth/', include('djoser.urls')),  # django djoser
+    # django djoser
+    path('auth/', include('djoser.urls')),
+    path('auth/', include('djoser.urls.jwt')),
 
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT) + debug_toolbar_urls()
 
