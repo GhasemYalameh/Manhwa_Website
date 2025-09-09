@@ -428,7 +428,8 @@ class ManhwaUrlTest(TestCase):
         response = self.client.post(
             f'/api/manhwas/{self.manhwa.id}/comments/',
             json.dumps({'text': 'kkk'}),
-            content_type='application/json'
+            content_type='application/json',
+            headers={'authorization': f'JWT {self.access}'},
         )
         self.assertEqual(response.status_code, 201)
 
@@ -436,7 +437,8 @@ class ManhwaUrlTest(TestCase):
         response = self.client.post(
             reverse('manhwa-comments-list', args=[self.manhwa.id]),
             json.dumps({'text': 'kkk'}),
-            content_type='application/json'
+            content_type='application/json',
+            headers={'authorization': f'JWT {self.access}'}
         )
         self.assertEqual(response.status_code, 201)
 
@@ -444,7 +446,8 @@ class ManhwaUrlTest(TestCase):
         response = self.client.post(
             '/api/comment-reaction/',
             json.dumps({}),
-            content_type='application/json'
+            content_type='application/json',
+            headers={'authorization': f'JWT {self.access}'}
         )
         self.assertEqual(response.status_code, 400)
 
@@ -452,7 +455,8 @@ class ManhwaUrlTest(TestCase):
         response = self.client.post(
             reverse('api_toggle_reaction_comment'),
             json.dumps({}),
-            content_type='application/json'
+            content_type='application/json',
+            headers={'authorization': f'JWT {self.access}'}
         )
         self.assertEqual(response.status_code, 400)  # Response BAD REQUEST
 
@@ -467,7 +471,8 @@ class ManhwaUrlTest(TestCase):
         response = self.client.post(
             f'/api/manhwas/{self.manhwa.id}/set_view/',
             json.dumps({}),
-            content_type='application/json'
+            content_type='application/json',
+            headers={'authorization': f'JWT {self.access}'},
         )
         self.assertEqual(response.status_code, 200)  # returns Ok
 
@@ -475,7 +480,8 @@ class ManhwaUrlTest(TestCase):
         response = self.client.post(
             reverse('manhwa-set-view', args=[self.manhwa.id]),
             json.dumps({}),
-            content_type='application/json'
+            content_type='application/json',
+            headers={'authorization': f'JWT {self.access}'},
         )
         self.assertEqual(response.status_code, 200)  # return Ok
 
