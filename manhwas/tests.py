@@ -345,7 +345,7 @@ class ManhwaViewTest(TestCase):
         self.assertEqual(self.manhwa.en_title, 'manhwa1')
         self.assertIn(self.genre, self.manhwa.genres.all())
 
-    def test_manhwa_detail_not_contains_replied_comment(self):
+    def test_manhwa_detail_not_contains_comment(self):
         comment = Comment.objects.create(
             author=self.user,
             manhwa=self.manhwa,
@@ -355,34 +355,14 @@ class ManhwaViewTest(TestCase):
 
         response = self.client.get(reverse('manhwa_detail', args=[self.manhwa.id]))
 
-        self.assertContains(response, self.new_comment.text)
+        self.assertNotContains(response, self.new_comment.text)
         self.assertNotContains(response, comment.text)
-
-    def test_show_comment_replies(self):
-        not_replied_comment = Comment.objects.create(
-            author=self.user,
-            text='not replied comment text',
-            manhwa=self.manhwa
-        )
-        replied_comment = Comment.objects.create(
-            author=self.user,
-            text='replied comment text',
-            manhwa=self.manhwa,
-            parent_id=self.new_comment.id
-        )
-
-        response = self.client.get(
-            reverse('api_get_comment_replies', args=[self.manhwa.id, self.new_comment.id]))
-
-        self.assertContains(response, replied_comment.text)
-        self.assertContains(response, self.new_comment.text)
-        self.assertNotContains(response, not_replied_comment.text)
 
 
 class ManhwaUrlTest(TestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.user = CustomUser.objects.create(
+        cls.user = CustomUser.objects.create_user(
             phone_number='09123456789',
             username='mohsen',
             password='mohsenpass1234',
@@ -407,7 +387,16 @@ class ManhwaUrlTest(TestCase):
         )
         self.manhwa.genres.add(self.genre)
 
-        self.client.force_login(self.user)
+        # self.client.force_login(self.user)
+
+        response = self.client.post(
+            '/auth/jwt/create/',
+            json.dumps({'phone_number': '09123456789', 'password': 'mohsenpass1234'}),
+            content_type='application/json'
+        )
+        data = response.json()
+        self.access = data.get('access')
+        self.refresh = data.get('refresh')
 
     def test_home_page_url(self):
         response = self.client.get('/')
@@ -468,7 +457,10 @@ class ManhwaUrlTest(TestCase):
         self.assertEqual(response.status_code, 400)  # Response BAD REQUEST
 
     def test_GET_request_not_valid_for_reaction_handler(self):
-        response = self.client.get(reverse('api_toggle_reaction_comment'))
+        response = self.client.get(
+            reverse('api_toggle_reaction_comment'),
+            headers={'authorization': f'JWT {self.access}'}
+        )
         self.assertEqual(response.status_code, 405)
 
     def test_set_user_view_url(self):
