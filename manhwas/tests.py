@@ -60,17 +60,28 @@ class ManhwaApiTest(TestCase):
             manhwa_id=self.manhwa.id
         )
 
-        self.client.force_login(self.user)
+        # self.client.force_login(self.user)
+        # if authorization was jwt we don't need to login
+
+        response = self.client.post(
+            '/auth/jwt/create/',
+            json.dumps({'phone_number': '09123456789', 'password': 'mohsenpass1234'}),
+            content_type='application/json'
+        )
+        data = response.json()
+        self.access = data.get('access')
+        self.refresh = data.get('refresh')
 
     def test_api_create_comment_not_authenticated(self):
-        self.client.logout()
+        # self.client.logout()
 
         response = self.client.post(
             reverse('manhwa-comments-list', args=[self.manhwa.id]),
             json.dumps({}),
-            content_type='application/json'
+            content_type='application/json',
+            # headers={'authorization': f'JWT {self.access}'}  for authorize most send access token
         )
-        self.assertEqual(response.status_code, 403)  # FORBIDDEN (NOT AUTHENTICATED)
+        self.assertEqual(response.status_code, 401)  # INVALID AUTHORIZATION
 
     def test_api_create_comment_manhwa(self):
         # send post request to create-comment api
@@ -79,7 +90,8 @@ class ManhwaApiTest(TestCase):
             json.dumps({
                 'text': 'some text for test comment',
             }),
-            content_type='application/json'
+            content_type='application/json',
+            headers={'authorization': f'JWT {self.access}'}
         )
 
         comment_data = response.json()['comment']
@@ -103,7 +115,8 @@ class ManhwaApiTest(TestCase):
             response = self.client.post(
                 reverse('manhwa-comments-list', args=[self.manhwa.id]),
                 json.dumps({'text': text}),
-                content_type='application/json'
+                content_type='application/json',
+                headers={'authorization': f'JWT {self.access}'}
             )
 
             data = response.json()  # comment data or errors
@@ -126,7 +139,8 @@ class ManhwaApiTest(TestCase):
                 'text': 'some replied comment text',
                 'parent': self.new_comment.id
             }),
-            content_type='application/json'
+            content_type='application/json',
+            headers={'authorization': f'JWT {self.access}'}
         )
 
         comment_obj = Comment.objects.filter(
@@ -156,13 +170,15 @@ class ManhwaApiTest(TestCase):
 
         response = self.client.get(
             reverse('manhwa-comments-replies', args=[self.manhwa.id, self.new_comment.id]),
+            headers={'authorization': f'JWT {self.access}'}
         )
         data = response.json()
-        comment_ids = [replied_cmt['id'] for replied_cmt in data]
+        comment_ids = [replied_cmt['id'] for replied_cmt in data['replies']]
         self.assertEqual(response.status_code, 200)
         self.assertIn(comment.id, comment_ids)
         self.assertNotIn(comment2.id, comment_ids)
 
+    #  for model not api
     def test_comment_reaction_manager(self):
         self.assertEqual(self.new_comment.likes_count, 0)
         self.assertEqual(self.new_comment.dis_likes_count, 0)
@@ -205,11 +221,15 @@ class ManhwaApiTest(TestCase):
 
     def test_api_toggle_reaction(self):
         # create and then update reaction
+
+        self.client.force_login(self.user)
+
         for reaction, action in (('lk', 'created'), ('dlk', 'updated')):
             response = self.client.post(
                 reverse('api_toggle_reaction_comment'),
                 json.dumps({'comment_id': self.new_comment.id, 'reaction': reaction}),
-                content_type='application/json'
+                content_type='application/json',
+                headers={'authorization': f'JWT {self.access}'}
             )
             data = response.json()
             self.assertEqual(data['reaction']['reaction'], reaction)
@@ -219,12 +239,14 @@ class ManhwaApiTest(TestCase):
         response = self.client.post(
             reverse('api_toggle_reaction_comment'),
             json.dumps({'comment_id': self.new_comment.id, 'reaction': 'dlk'}),
-            content_type='application/json'
+            content_type='application/json',
+            headers={'authorization': f'JWT {self.access}'}
         )
         data = response.json()
         self.assertEqual(data['reaction'], None)
         self.assertEqual(data['action'], 'deleted')
 
+    # for model not api
     def test_rate_model_rating_data(self):
         with self.assertNumQueries(3):  # must be 3 queries
             rate = Rate.objects.create(
@@ -242,22 +264,24 @@ class ManhwaApiTest(TestCase):
         self.assertEqual(rating_data['ones_count'], 0)
 
     def test_all_api_query(self):
-        with self.assertNumQueries(5):
+        with self.assertNumQueries(3):
             self.client.post(
                 reverse('manhwa-comments-list', args=[self.manhwa.id]),
                 json.dumps({
                     'text': 'some text for test comment',
                 }),
-                content_type='application/json'
+                content_type='application/json',
+                headers={'authorization': f'JWT {self.access}'}
             )
-        with self.assertNumQueries(6):
+        with self.assertNumQueries(4):
             self.client.post(
                 reverse('manhwa-comments-list', args=[self.manhwa.id]),
                 json.dumps({
                     'text': 'some replied comment text',
                     'parent': self.new_comment.id
                 }),
-                content_type='application/json'
+                content_type='application/json',
+                headers={'authorization': f'JWT {self.access}'}
             )
         with self.assertNumQueries(5):
             CommentReAction.objects.toggle_reaction(self.user, self.new_comment.id, CommentReAction.LIKE)
@@ -268,11 +292,12 @@ class ManhwaApiTest(TestCase):
         with self.assertNumQueries(5):
             CommentReAction.objects.toggle_reaction(self.user, self.new_comment.id, CommentReAction.DISLIKE)
 
-        with self.assertNumQueries(9):
+        with self.assertNumQueries(8):
             response = self.client.post(
                 reverse('api_toggle_reaction_comment'),
                 json.dumps({'comment_id': self.new_comment.id, 'reaction': 'lk'}),
-                content_type='application/json'
+                content_type='application/json',
+                headers={'authorization': f'JWT {self.access}'}
             )
             data = response.json()
             self.assertEqual(data['reaction']['reaction'], 'lk')
@@ -320,7 +345,7 @@ class ManhwaViewTest(TestCase):
         self.assertEqual(self.manhwa.en_title, 'manhwa1')
         self.assertIn(self.genre, self.manhwa.genres.all())
 
-    def test_manhwa_detail_not_contains_replied_comment(self):
+    def test_manhwa_detail_not_contains_comment(self):
         comment = Comment.objects.create(
             author=self.user,
             manhwa=self.manhwa,
@@ -330,34 +355,14 @@ class ManhwaViewTest(TestCase):
 
         response = self.client.get(reverse('manhwa_detail', args=[self.manhwa.id]))
 
-        self.assertContains(response, self.new_comment.text)
+        self.assertNotContains(response, self.new_comment.text)
         self.assertNotContains(response, comment.text)
-
-    def test_show_comment_replies(self):
-        not_replied_comment = Comment.objects.create(
-            author=self.user,
-            text='not replied comment text',
-            manhwa=self.manhwa
-        )
-        replied_comment = Comment.objects.create(
-            author=self.user,
-            text='replied comment text',
-            manhwa=self.manhwa,
-            parent_id=self.new_comment.id
-        )
-
-        response = self.client.get(
-            reverse('api_get_comment_replies', args=[self.manhwa.id, self.new_comment.id]))
-
-        self.assertContains(response, replied_comment.text)
-        self.assertContains(response, self.new_comment.text)
-        self.assertNotContains(response, not_replied_comment.text)
 
 
 class ManhwaUrlTest(TestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.user = CustomUser.objects.create(
+        cls.user = CustomUser.objects.create_user(
             phone_number='09123456789',
             username='mohsen',
             password='mohsenpass1234',
@@ -382,7 +387,16 @@ class ManhwaUrlTest(TestCase):
         )
         self.manhwa.genres.add(self.genre)
 
-        self.client.force_login(self.user)
+        # self.client.force_login(self.user)
+
+        response = self.client.post(
+            '/auth/jwt/create/',
+            json.dumps({'phone_number': '09123456789', 'password': 'mohsenpass1234'}),
+            content_type='application/json'
+        )
+        data = response.json()
+        self.access = data.get('access')
+        self.refresh = data.get('refresh')
 
     def test_home_page_url(self):
         response = self.client.get('/')
@@ -414,7 +428,8 @@ class ManhwaUrlTest(TestCase):
         response = self.client.post(
             f'/api/manhwas/{self.manhwa.id}/comments/',
             json.dumps({'text': 'kkk'}),
-            content_type='application/json'
+            content_type='application/json',
+            headers={'authorization': f'JWT {self.access}'},
         )
         self.assertEqual(response.status_code, 201)
 
@@ -422,7 +437,8 @@ class ManhwaUrlTest(TestCase):
         response = self.client.post(
             reverse('manhwa-comments-list', args=[self.manhwa.id]),
             json.dumps({'text': 'kkk'}),
-            content_type='application/json'
+            content_type='application/json',
+            headers={'authorization': f'JWT {self.access}'}
         )
         self.assertEqual(response.status_code, 201)
 
@@ -430,7 +446,8 @@ class ManhwaUrlTest(TestCase):
         response = self.client.post(
             '/api/comment-reaction/',
             json.dumps({}),
-            content_type='application/json'
+            content_type='application/json',
+            headers={'authorization': f'JWT {self.access}'}
         )
         self.assertEqual(response.status_code, 400)
 
@@ -438,19 +455,24 @@ class ManhwaUrlTest(TestCase):
         response = self.client.post(
             reverse('api_toggle_reaction_comment'),
             json.dumps({}),
-            content_type='application/json'
+            content_type='application/json',
+            headers={'authorization': f'JWT {self.access}'}
         )
         self.assertEqual(response.status_code, 400)  # Response BAD REQUEST
 
     def test_GET_request_not_valid_for_reaction_handler(self):
-        response = self.client.get(reverse('api_toggle_reaction_comment'))
+        response = self.client.get(
+            reverse('api_toggle_reaction_comment'),
+            headers={'authorization': f'JWT {self.access}'}
+        )
         self.assertEqual(response.status_code, 405)
 
     def test_set_user_view_url(self):
         response = self.client.post(
             f'/api/manhwas/{self.manhwa.id}/set_view/',
             json.dumps({}),
-            content_type='application/json'
+            content_type='application/json',
+            headers={'authorization': f'JWT {self.access}'},
         )
         self.assertEqual(response.status_code, 200)  # returns Ok
 
@@ -458,7 +480,8 @@ class ManhwaUrlTest(TestCase):
         response = self.client.post(
             reverse('manhwa-set-view', args=[self.manhwa.id]),
             json.dumps({}),
-            content_type='application/json'
+            content_type='application/json',
+            headers={'authorization': f'JWT {self.access}'},
         )
         self.assertEqual(response.status_code, 200)  # return Ok
 

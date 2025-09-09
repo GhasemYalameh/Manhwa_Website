@@ -17,7 +17,6 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include, re_path
 from django.conf.urls.static import static
-from django.contrib.auth import views as auth_views
 from accounts.views import CustomLoginView, register_view, CustomLogoutView
 
 from debug_toolbar.toolbar import debug_toolbar_urls
@@ -34,6 +33,10 @@ urlpatterns = [
     path('register/', register_view, name='register'),
 
     path("ckeditor5/", include('django_ckeditor_5.urls')),  # ckeditor url
+
+    # django djoser
+    path('auth/', include('djoser.urls')),
+    path('auth/', include('djoser.urls.jwt')),
 
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT) + debug_toolbar_urls()
 
