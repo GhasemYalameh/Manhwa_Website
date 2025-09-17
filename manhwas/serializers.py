@@ -6,7 +6,7 @@ from django.db import IntegrityError
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext as _
 
-from .models import Manhwa, CommentReAction, Comment, Episode
+from .models import Manhwa, CommentReAction, Comment, Episode, Ticket
 
 
 class CreateCommentSerializer(serializers.ModelSerializer):
@@ -115,3 +115,19 @@ class EpisodeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Episode
         fields = ['id', 'number', 'file', 'datetime_created']
+
+
+class TicketSerializer(serializers.ModelSerializer):
+    """
+    you must send request & type of ticket in context
+    """
+    class Meta:
+        model = Ticket
+        fields = ('type', 'user', 'text', 'created_at',)
+        read_only_fields = ('type', 'user', 'created_at',)
+
+    def save(self, **kwargs):
+        print(self.context)
+        ticket_type = self.context['type']
+        user = self.context['request']
+        return super().save(type=ticket_type, user=user, **kwargs)

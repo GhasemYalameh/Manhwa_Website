@@ -8,15 +8,16 @@ from django.shortcuts import render, get_object_or_404
 from django.template.loader import render_to_string
 from django.utils.functional import cached_property
 
-from rest_framework import status, mixins
+from rest_framework import status, mixins, generics
+from rest_framework.views import APIView
 from rest_framework.decorators import api_view, permission_classes, action
-from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet, ReadOnlyModelViewSet
 
 from . import serializers as srilzr
 from .paginations import CustomPagination
-from .models import Manhwa, View, CommentReAction, Comment, Episode
+from .models import Manhwa, View, CommentReAction, Comment, Episode, Ticket
 
 
 def home_page(request):
@@ -60,6 +61,25 @@ def show_replied_comment(request, manhwa_id, comment_id):
     response = requests.get(url)
     data = response.json()
     return render(request, 'manhwas/comment_replies.html', context={'comment': data})
+
+
+class TicketApiView(APIView):
+
+    def get_permissions(self):
+        if self.request.method == 'GET':
+            return [IsAdminUser()]
+        return [IsAuthenticated(), AllowAny()]
+
+    def get(self, request):
+        query = Ticket.objects.all()
+        serializer = srilzr.TicketSerializer(query, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def post(self, request):
+        serializer = srilzr.TicketSerializer(data=request.data, context={'request': request.user, 'type': Ticket.USER})
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
 class CommentViewSet(

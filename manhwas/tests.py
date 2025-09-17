@@ -303,6 +303,14 @@ class ManhwaApiTest(TestCase):
             self.assertEqual(data['reaction']['reaction'], 'lk')
             self.assertEqual(data['action'], 'created')
 
+    def test_user_send_ticket(self):
+        response = self.client.post(
+            reverse('ticket'),  # /tickets/
+            json.dumps({'text': 'some text for ticket'}),
+            content_type='application/json'
+        )
+        self.assertEqual(response.status_code, 201) # CREATED 201
+
 
 class ManhwaViewTest(TestCase):
 
