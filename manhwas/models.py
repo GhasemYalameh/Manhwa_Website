@@ -309,6 +309,7 @@ class Ticket(models.Model):
         (USER, 'From User'),
         (ADMIN, 'From Admin'),
     )
+    title = models.CharField(max_length=150, default='Ticket Title')
     type = models.CharField(max_length=20, choices=TICKET_TYPES)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='tickets')
     text = models.TextField()
