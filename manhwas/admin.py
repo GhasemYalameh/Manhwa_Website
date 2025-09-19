@@ -53,7 +53,7 @@ class ManhwaAdmin(admin.ModelAdmin):
 
     @admin.display(description='Comments', ordering='comments_count')
     def comments_count(self, manhwa):
-        url = reverse('admin:manhwas_newcomment_changelist') + '?' + urlencode({'manhwa__id': manhwa.id})
+        url = reverse('admin:manhwas_comment_changelist') + '?' + urlencode({'manhwa__id': manhwa.id})
 
         return format_html('<a href="{}">{}</a>', url, manhwa.comments_count or 0)
 

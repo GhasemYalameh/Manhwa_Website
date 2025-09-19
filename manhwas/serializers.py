@@ -1,12 +1,15 @@
+from pyexpat.errors import messages
 from re import search
 
+from django.db.transaction import atomic
+from django.template.defaultfilters import title
 from rest_framework import serializers
 
-from django.db import IntegrityError
+from django.db import IntegrityError, transaction
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext as _
 
-from .models import Manhwa, CommentReAction, Comment, Episode
+from .models import Manhwa, CommentReAction, Comment, Episode, Ticket, TicketMessage
 
 
 class CreateCommentSerializer(serializers.ModelSerializer):
@@ -115,3 +118,63 @@ class EpisodeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Episode
         fields = ['id', 'number', 'file', 'datetime_created']
+
+
+class ListTicketSerializer(serializers.ModelSerializer):
+    messages_count = serializers.IntegerField(source='messages.count')
+    class Meta:
+        model = Ticket
+        fields = ('id', 'title', 'user', 'viewing_status', 'messages_count', 'created_at',)
+
+
+class CreateTicketSerializer(serializers.Serializer):
+    title = serializers.CharField(max_length=150, default='No Title')
+    text = serializers.CharField(max_length=500, write_only=True)
+
+    @transaction.atomic
+    def create(self, validated_data):
+        """
+        create a ticket object and TicketMessage object.
+        need to send user obj through the context.
+        """
+        ticket_obj = Ticket.objects.create(
+            title=validated_data.get('title'),
+            user=self.context['request'].user,
+        )
+        TicketMessage.objects.create(
+            ticket=ticket_obj,
+            text=validated_data['text'],
+            user=self.context['request'].user,
+        )
+        return ticket_obj
+
+
+class TicketMessageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TicketMessage
+        fields = ('text', 'message_sender', 'created_at', 'modified_at',)
+
+
+class RetrieveTicketMessagesSerializer(serializers.ModelSerializer):
+    messages = TicketMessageSerializer(many=True, read_only=True)
+    class Meta:
+        model = Ticket
+        fields = ('id', 'title', 'user', 'messages',)
+
+
+class CreateTicketMessageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TicketMessage
+        fields = ('id', 'text', 'created_at')
+        read_only_fields = ('id', 'created_at',)
+
+    def save(self, **kwargs):
+        is_admin = self.context['request'].user.is_staff
+        data = {
+            'ticket_id': self.context['ticket'],
+            'user': self.context['request'].user,
+            'message_sender': TicketMessage.ADMIN if is_admin else TicketMessage.USER,
+        }
+        return super().save(**kwargs, **data)
+
+

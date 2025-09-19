@@ -300,3 +300,32 @@ class CommentReAction(models.Model):
 
     class Meta:
         unique_together = ('user', 'comment')
+
+
+class Ticket(models.Model):
+    READ = 'r'
+    UNREAD = 'unr'
+    VIEWING_STATUS = (
+    (READ, 'read ticket'),
+    (UNREAD, 'unread ticket'),
+    )
+    title = models.CharField(max_length=150, default='title not set')
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='tickets')
+    viewing_status = models.CharField(max_length=20, choices=VIEWING_STATUS, default=UNREAD)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+class TicketMessage(models.Model):
+    USER = 'user'
+    ADMIN = 'admin'
+    MESSAGE_SENDER = (
+        (USER, 'From User'),
+        (ADMIN, 'From Admin'),
+    )
+    ticket = models.ForeignKey(Ticket, on_delete=models.CASCADE, related_name='messages')
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='messages')
+    message_sender = models.CharField(max_length=20, choices=MESSAGE_SENDER, default=USER)
+    text = models.TextField()
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    modified_at = models.DateTimeField(auto_now=True)

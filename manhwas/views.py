@@ -10,13 +10,15 @@ from django.utils.functional import cached_property
 
 from rest_framework import status, mixins
 from rest_framework.decorators import api_view, permission_classes, action
+from rest_framework.generics import ListCreateAPIView, RetrieveAPIView, GenericAPIView, CreateAPIView
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet, ReadOnlyModelViewSet
 
 from . import serializers as srilzr
+from .models import Manhwa, View, CommentReAction, Comment, Episode, Ticket
 from .paginations import CustomPagination
-from .models import Manhwa, View, CommentReAction, Comment, Episode
+from .permissions import IsOwnerOrAdmin
 
 
 def home_page(request):
@@ -60,6 +62,37 @@ def show_replied_comment(request, manhwa_id, comment_id):
     response = requests.get(url)
     data = response.json()
     return render(request, 'manhwas/comment_replies.html', context={'comment': data})
+
+
+class CreateListTicketApiView(ListCreateAPIView):
+    permission_classes = (IsAuthenticated,)
+
+    def get_queryset(self):
+        query = Ticket.objects.prefetch_related('messages').all()
+        if self.request.method == 'GET' and not self.request.user.is_staff:
+            return query.filter(user=self.request.user)
+        return query
+
+    def get_serializer_class(self):
+        if self.request.method == 'POST':
+            return srilzr.CreateTicketSerializer
+        elif self.request.method == 'GET':
+            return srilzr.ListTicketSerializer
+        return srilzr.ListTicketSerializer
+
+
+class RetrieveCreateTicketMessageApiView(RetrieveAPIView, CreateAPIView, GenericAPIView):
+    queryset = Ticket.objects.prefetch_related('messages').all()
+    permission_classes = [IsOwnerOrAdmin]
+
+    def get_serializer_context(self):
+        context = {'ticket': self.kwargs['pk'],}
+        return {**context, **super().get_serializer_context()}
+
+    def get_serializer_class(self):
+        if self.request.method == 'GET':
+            return srilzr.RetrieveTicketMessagesSerializer
+        return srilzr.CreateTicketMessageSerializer
 
 
 class CommentViewSet(
