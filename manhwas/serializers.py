@@ -144,5 +144,37 @@ class CreateTicketSerializer(serializers.Serializer):
         TicketMessage.objects.create(
             ticket=ticket_obj,
             text=validated_data['text'],
+            user=self.context['request'].user,
         )
         return ticket_obj
+
+
+class TicketMessageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TicketMessage
+        fields = ('text', 'message_sender', 'created_at', 'modified_at',)
+
+
+class RetrieveTicketMessagesSerializer(serializers.ModelSerializer):
+    messages = TicketMessageSerializer(many=True, read_only=True)
+    class Meta:
+        model = Ticket
+        fields = ('id', 'title', 'user', 'messages',)
+
+
+class CreateTicketMessageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TicketMessage
+        fields = ('id', 'text', 'created_at')
+        read_only_fields = ('id', 'created_at',)
+
+    def save(self, **kwargs):
+        is_admin = self.context['request'].user.is_staff
+        data = {
+            'ticket_id': self.context['ticket'],
+            'user': self.context['request'].user,
+            'message_sender': TicketMessage.ADMIN if is_admin else TicketMessage.USER,
+        }
+        return super().save(**kwargs, **data)
+
+
