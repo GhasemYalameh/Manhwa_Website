@@ -8,17 +8,16 @@ from django.shortcuts import render, get_object_or_404
 from django.template.loader import render_to_string
 from django.utils.functional import cached_property
 
-from rest_framework import status, mixins, generics
-from rest_framework.generics import ListCreateAPIView, RetrieveAPIView, GenericAPIView, CreateAPIView
-from rest_framework.views import APIView
+from rest_framework import status, mixins
 from rest_framework.decorators import api_view, permission_classes, action
-from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser
+from rest_framework.generics import ListCreateAPIView, RetrieveAPIView, GenericAPIView, CreateAPIView
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet, ReadOnlyModelViewSet
 
 from . import serializers as srilzr
+from .models import Manhwa, View, CommentReAction, Comment, Episode, Ticket
 from .paginations import CustomPagination
-from .models import Manhwa, View, CommentReAction, Comment, Episode, Ticket, TicketMessage
 from .permissions import IsOwnerOrAdmin
 
 
@@ -69,8 +68,8 @@ class CreateListTicketApiView(ListCreateAPIView):
     permission_classes = (IsAuthenticated,)
 
     def get_queryset(self):
-        query = Ticket.objects.all()
-        if self.request.method == 'GET':
+        query = Ticket.objects.prefetch_related('messages').all()
+        if self.request.method == 'GET' and not self.request.user.is_staff:
             return query.filter(user=self.request.user)
         return query
 
