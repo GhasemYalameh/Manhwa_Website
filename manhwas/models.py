@@ -311,7 +311,7 @@ class Ticket(models.Model):
     )
     title = models.CharField(max_length=150, default='title not set')
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='tickets')
-    viewing_status = models.CharField(max_length=20, choices=VIEWING_STATUS)
+    viewing_status = models.CharField(max_length=20, choices=VIEWING_STATUS, default=UNREAD)
 
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -323,7 +323,7 @@ class TicketMessage(models.Model):
         (ADMIN, 'From Admin'),
     )
     ticket = models.ForeignKey(Ticket, on_delete=models.CASCADE, related_name='messages')
-    message_sender = models.CharField(max_length=20, choices=MESSAGE_SENDER)
+    message_sender = models.CharField(max_length=20, choices=MESSAGE_SENDER, default=USER)
     text = models.TextField()
 
     created_at = models.DateTimeField(auto_now_add=True)

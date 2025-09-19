@@ -9,6 +9,7 @@ from django.template.loader import render_to_string
 from django.utils.functional import cached_property
 
 from rest_framework import status, mixins, generics
+from rest_framework.generics import ListCreateAPIView
 from rest_framework.views import APIView
 from rest_framework.decorators import api_view, permission_classes, action
 from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser
@@ -63,23 +64,20 @@ def show_replied_comment(request, manhwa_id, comment_id):
     return render(request, 'manhwas/comment_replies.html', context={'comment': data})
 
 
-class TicketApiView(APIView):
+class CreateListTicketApiView(ListCreateAPIView):
+    queryset = Ticket.objects.all()
+
+    def get_serializer_class(self):
+        if self.request.method == 'POST':
+            return srilzr.CreateTicketSerializer
+        elif self.request.method == 'GET':
+            return srilzr.ListTicketSerializer
+        return srilzr.ListTicketSerializer
 
     def get_permissions(self):
         if self.request.method == 'GET':
             return [IsAdminUser()]
-        return [IsAuthenticated(), AllowAny()]
-
-    def get(self, request):
-        query = Ticket.objects.all()
-        serializer = srilzr.TicketSerializer(query, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
-
-    def post(self, request):
-        serializer = srilzr.TicketSerializer(data=request.data, context={'request': request.user, 'type': Ticket.USER})
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return [IsAuthenticated()]
 
 
 class CommentViewSet(
