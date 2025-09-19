@@ -323,6 +323,7 @@ class TicketMessage(models.Model):
         (ADMIN, 'From Admin'),
     )
     ticket = models.ForeignKey(Ticket, on_delete=models.CASCADE, related_name='messages')
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='messages')
     message_sender = models.CharField(max_length=20, choices=MESSAGE_SENDER, default=USER)
     text = models.TextField()
 
