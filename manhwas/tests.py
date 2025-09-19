@@ -6,6 +6,7 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from django.shortcuts import reverse
 from django.test import TestCase
 from django.utils import timezone
+from rest_framework.test import APIClient
 
 from .models import Genre, Rate, Studio, Manhwa, CommentReAction, Comment
 from accounts.models import CustomUser
@@ -34,6 +35,16 @@ class ManhwaApiTest(TestCase):
             username='mohsen',
             password='mohsenpass1234',
         )
+
+        client = APIClient()
+        response = client.post(
+            '/auth/jwt/create/',
+            {'phone_number': '09123456789', 'password': 'mohsenpass1234'},
+            format='json'
+        )
+        cls.access = response.data['access']
+        cls.refresh = response.data['refresh']
+
         cls.studio = Studio.objects.create(
             title='studio title',
             description='studio description.'
@@ -42,6 +53,7 @@ class ManhwaApiTest(TestCase):
             title='genre title',
             description='genre description.'
         )
+
 
     def setUp(self) -> None:
         self.manhwa = Manhwa.objects.create(
@@ -63,14 +75,6 @@ class ManhwaApiTest(TestCase):
         # self.client.force_login(self.user)
         # if authorization was jwt we don't need to login
 
-        response = self.client.post(
-            '/auth/jwt/create/',
-            json.dumps({'phone_number': '09123456789', 'password': 'mohsenpass1234'}),
-            content_type='application/json'
-        )
-        data = response.json()
-        self.access = data.get('access')
-        self.refresh = data.get('refresh')
 
     def test_api_create_comment_not_authenticated(self):
         # self.client.logout()
@@ -367,6 +371,15 @@ class ManhwaUrlTest(TestCase):
             username='mohsen',
             password='mohsenpass1234',
         )
+        client = APIClient()
+        response = client.post(
+            '/auth/jwt/create/',
+            {'phone_number': '09123456789', 'password': 'mohsenpass1234'},
+            format='json'
+        )
+        cls.access = response.data['access']
+        cls.refresh = response.data['refresh']
+
         cls.studio = Studio.objects.create(
             title='studio title',
             description='studio description.'
@@ -388,15 +401,6 @@ class ManhwaUrlTest(TestCase):
         self.manhwa.genres.add(self.genre)
 
         # self.client.force_login(self.user)
-
-        response = self.client.post(
-            '/auth/jwt/create/',
-            json.dumps({'phone_number': '09123456789', 'password': 'mohsenpass1234'}),
-            content_type='application/json'
-        )
-        data = response.json()
-        self.access = data.get('access')
-        self.refresh = data.get('refresh')
 
     def test_home_page_url(self):
         response = self.client.get('/')
