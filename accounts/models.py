@@ -23,7 +23,10 @@ class CustomUser(AbstractUser):
     REQUIRED_FIELDS = ['username']
 
     def __str__(self):
-        return self.phone_number
+        try:
+            return self.username
+        except:
+            return self.phone_number
 
     def save(self, *args, **kwargs):
         # اگر username خالی بود، phone_number رو بذار
