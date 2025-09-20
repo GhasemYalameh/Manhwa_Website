@@ -315,6 +315,9 @@ class Ticket(models.Model):
 
     created_at = models.DateTimeField(auto_now_add=True)
 
+    class Meta:
+        ordering = ['-created_at']
+
 class TicketMessage(models.Model):
     USER = 'user'
     ADMIN = 'admin'
@@ -329,3 +332,6 @@ class TicketMessage(models.Model):
 
     created_at = models.DateTimeField(auto_now_add=True)
     modified_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-created_at']
