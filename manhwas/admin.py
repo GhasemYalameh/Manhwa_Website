@@ -3,7 +3,7 @@ from django.db.models import Count, OuterRef, Subquery
 from django.utils.html import format_html, urlencode
 from django.urls import reverse
 
-from .models import Manhwa, Episode, Studio, Genre, Rate, View, CommentReAction, Comment
+from .models import Manhwa, Episode, Studio, Genre, Rate, View, CommentReAction, Comment, Ticket, TicketMessage
 
 
 class EpisodeInline(admin.TabularInline):
@@ -13,6 +13,7 @@ class EpisodeInline(admin.TabularInline):
     extra = 0
 
 
+@admin.register(Manhwa)
 class ManhwaAdmin(admin.ModelAdmin):
     list_display = ('en_title', 'season', 'views_count', 'get_genres', 'episodes_count', 'comments_count')
     autocomplete_fields = ['genres', 'studio']
@@ -58,41 +59,57 @@ class ManhwaAdmin(admin.ModelAdmin):
         return format_html('<a href="{}">{}</a>', url, manhwa.comments_count or 0)
 
 
+@admin.register(View)
 class ViewAdmin(admin.ModelAdmin):
     list_display = ('user', 'manhwa', 'datetime_viewed')
 
 
+@admin.register(Rate)
 class RateAdmin(admin.ModelAdmin):
     list_display = ('user', 'manhwa', 'rating')
 
 
+@admin.register(Genre)
 class GenreAdmin(admin.ModelAdmin):
     list_display = ('title',)
     search_fields = ['title']
 
 
+@admin.register(Studio)
 class StudioAdmin(admin.ModelAdmin):
     list_display = ('title',)
     search_fields = ['title']
 
 
+@admin.register(Episode)
 class EpisodeAdmin(admin.ModelAdmin):
     list_display = ('manhwa', 'downloads_count', 'number',)
 
 
+@admin.register(Comment)
 class CommentAdmin(admin.ModelAdmin):
     list_display = ('id', 'author', 'manhwa', 'parent', 'level', 'created_at', 'updated_at')
 
 
+@admin.register(CommentReAction)
 class CommentReActionAdmin(admin.ModelAdmin):
     list_display = ('user', 'comment', 'reaction')
 
 
-admin.site.register(Manhwa, ManhwaAdmin)
-admin.site.register(Genre, GenreAdmin)
-admin.site.register(Studio, StudioAdmin)
-admin.site.register(Episode, EpisodeAdmin)
-admin.site.register(Rate, RateAdmin)
-admin.site.register(View, ViewAdmin)
-admin.site.register(CommentReAction, CommentReActionAdmin)
-admin.site.register(Comment, CommentAdmin)
+class TicketMessageInline(admin.TabularInline):
+    model = TicketMessage
+    fields = ('text', 'message_sender', 'user', 'created_at', )
+    readonly_fields = ('text', 'message_sender', 'user', 'created_at',)
+    extra = 0
+
+@admin.register(Ticket)
+class TicketAdmin(admin.ModelAdmin):
+    list_display = ('title', 'user', 'viewing_status')
+    inlines = [TicketMessageInline]
+
+
+@admin.register(TicketMessage)
+class TicketMessageAdmin(admin.ModelAdmin):
+    list_display = ('text', 'user', 'created_at',)
+    list_filter = ('message_sender',)
+
