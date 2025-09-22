@@ -1,11 +1,11 @@
 services:
   db:
-    image: postgres:14
+    image: postgres:14-alpine
     container_name: my_postgres
     environment:
-      POSTGRES_USER: myuser
-      POSTGRES_PASSWORD: mypassword
-      POSTGRES_DB: mydjango
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
     ports:
       - "5432:5432"
     volumes:
@@ -13,8 +13,18 @@ services:
 
   web:
     build: .
-    container_name: Monhwa_django
+    container_name: Manhwa_django
     command: python manage.py runserver 0.0.0.0:8000
+    environment:
+      SECRET_KEY: ${DJANGO_SECRET_KEY}
+      DEBUG: ${DEBUG}
+      DB_ENGINE: ${DB_ENGINE}
+      DB_NAME: ${DB_NAME}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_HOST: ${DB_HOST}
+      DB_PORT: ${DB_PORT}
+
     volumes:
       - .:/code
     ports:
