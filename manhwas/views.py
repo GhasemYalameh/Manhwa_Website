@@ -173,17 +173,22 @@ class CommentViewSet(
 
 class ManhwaViewSet(ReadOnlyModelViewSet):
     queryset = Manhwa.objects.prefetch_related(
-        Prefetch(
-            'comments',
-            queryset=Comment.objects.select_related('author')
-        ), 'rates'
-    ).annotate(
-        avg_rating=Coalesce(Avg('rates__rating'), Value(0.0))
+        'comments' ,'rates'
     )
+    def get_queryset(self):
+        base_query = Manhwa.objects.prefetch_related('comments',).all()
+        if self.action == 'list':
+            return base_query.prefetch_related('comments', 'rates').annotate(
+                avg_data=Avg('rates__rating'),
+            )
+        return base_query
 
     def get_serializer_class(self):
         if self.action == 'rate':
             return srilzr.ManhwaRatingSerializer
+        elif self.action == 'retrieve':
+            return srilzr.DetailManhwaSerializer
+
         return srilzr.ManhwaSerializer
 
     def get_permissions(self):
@@ -227,7 +232,7 @@ class EpisodeViewSet(ReadOnlyModelViewSet):
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def api_reaction_handler(request):
-    serializer = srilzr.CommentReectionToggleSerializer(data=request.data)
+    serializer = srilzr.CommentReactionToggleSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
 
     comment_id = serializer.validated_data.get('comment_id')

@@ -69,10 +69,30 @@ class CommentDetailSerializer(serializers.ModelSerializer):
         return obj.children.count()
 
 
+class RatingDetailSerializer(serializers.Serializer):
+    avg_rating = serializers.DecimalField(max_digits=3, decimal_places=1, read_only=True)
+    raters_count = serializers.IntegerField(read_only=True)
+    fives_count = serializers.IntegerField( read_only=True)
+    fours_count = serializers.IntegerField(read_only=True)
+    threes_count = serializers.IntegerField(read_only=True)
+    twos_count = serializers.IntegerField(read_only=True)
+    ones_count = serializers.IntegerField(read_only=True)
+
+
+class DetailManhwaSerializer(serializers.ModelSerializer):
+    comments_count = serializers.IntegerField(source='comments.count', read_only=True)
+    cover = serializers.URLField(source='cover.url', read_only=True)
+    rating_data = RatingDetailSerializer(read_only=True)
+
+    class Meta:
+        model = Manhwa
+        fields = ['id', 'en_title', 'rating_data', 'season', 'day_of_week', 'last_upload', 'views_count', 'comments_count', 'cover']
+
+
 class ManhwaSerializer(serializers.ModelSerializer):
     comments_count = serializers.IntegerField(source='comments.count', read_only=True)
     cover = serializers.URLField(source='cover.url', read_only=True)
-    avg_rating = serializers.DecimalField(max_digits=3, decimal_places=1)
+    avg_rating = serializers.DecimalField(max_digits=3, decimal_places=1, read_only=True)
 
     class Meta:
         model = Manhwa
@@ -106,7 +126,7 @@ class CommentReactionSerializer(serializers.ModelSerializer):
         read_only_fields = ('id', 'user')
 
 
-class CommentReectionToggleSerializer(serializers.Serializer):
+class CommentReactionToggleSerializer(serializers.Serializer):
     comment_id = serializers.IntegerField()
     reaction = serializers.ChoiceField(choices=CommentReAction.COMMENT_REACTIONS)
 
