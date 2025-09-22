@@ -1,4 +1,5 @@
 import requests
+from django.core.serializers import serialize
 
 from django.db import transaction, connection
 from django.db.models import Avg, F, Value, Subquery, OuterRef, Prefetch
@@ -17,7 +18,7 @@ from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet, ReadOnlyModelViewSet
 
 from . import serializers as srilzr
-from .models import Manhwa, View, CommentReAction, Comment, Episode, Ticket
+from .models import Manhwa, View, CommentReAction, Comment, Episode, Ticket, Rate
 from .paginations import CustomPagination
 from .permissions import IsOwnerOrAdmin
 
@@ -201,13 +202,18 @@ class ManhwaViewSet(ReadOnlyModelViewSet):
 
             return Response({'action': 'was exists'})
 
-    @action(detail=True, methods=['post'])
+    @action(detail=True, methods=['post', 'get'])
     def rate(self, request, pk=None):
         serializer_class = self.get_serializer_class()
+
+        if request.method == 'GET':
+            serializer = serializer_class(get_object_or_404(Rate, user=request.user, manhwa_id=pk))
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
         serializer = serializer_class(data=request.data, context={'request': request, 'manhwa_id': pk})
         serializer.is_valid(raise_exception=True)
         serializer.save()
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.data, status=status.HTTP_201_CREATED if serializer.was_created else status.HTTP_200_OK)
 
 
 class EpisodeViewSet(ReadOnlyModelViewSet):

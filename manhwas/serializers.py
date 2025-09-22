@@ -84,10 +84,19 @@ class ManhwaRatingSerializer(serializers.ModelSerializer):
         model = Rate
         fields = ('rating',)
 
-    def save(self, **kwargs):
-        kwargs['manhwa_id'] = self.context['manhwa_id']
-        kwargs['user'] = self.context['request'].user
-        return super().save(**kwargs)
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._was_created = False
+
+    def create(self, validated_data):
+        manhwa_id = self.context['manhwa_id']
+        user = self.context['request'].user
+        rate_obj, self._was_created = Rate.objects.update_or_create(user=user, manhwa_id=manhwa_id, defaults=validated_data)
+        return rate_obj
+
+    @property
+    def was_created(self):
+        return self._was_created
 
 
 class CommentReactionSerializer(serializers.ModelSerializer):
