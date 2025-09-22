@@ -7,6 +7,7 @@ from django.http import JsonResponse
 from django.shortcuts import render, get_object_or_404
 from django.template.loader import render_to_string
 from django.utils.functional import cached_property
+from django_filters.rest_framework import DjangoFilterBackend
 
 from rest_framework import status, mixins
 from rest_framework.decorators import api_view, permission_classes, action
@@ -66,6 +67,8 @@ def show_replied_comment(request, manhwa_id, comment_id):
 
 class CreateListTicketApiView(ListCreateAPIView):
     permission_classes = (IsAuthenticated,)
+    filter_backends = (DjangoFilterBackend,)
+    filterset_fields = ('viewing_status',)
 
     def get_queryset(self):
         query = Ticket.objects.prefetch_related('messages').all()
@@ -84,6 +87,7 @@ class CreateListTicketApiView(ListCreateAPIView):
 class RetrieveCreateTicketMessageApiView(RetrieveAPIView, CreateAPIView, GenericAPIView):
     queryset = Ticket.objects.prefetch_related('messages').all()
     permission_classes = [IsOwnerOrAdmin]
+
 
     def get_serializer_context(self):
         context = {'ticket': self.kwargs['pk'],}
