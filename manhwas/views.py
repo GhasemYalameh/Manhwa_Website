@@ -65,7 +65,7 @@ def show_replied_comment(request, manhwa_id, comment_id):
     return render(request, 'manhwas/comment_replies.html', context={'comment': data})
 
 
-class CreateListTicketApiView(ListCreateAPIView):
+class TicketApiView(ListCreateAPIView):
     permission_classes = (IsAuthenticated,)
     filter_backends = (DjangoFilterBackend,)
     filterset_fields = ('viewing_status',)
@@ -84,7 +84,7 @@ class CreateListTicketApiView(ListCreateAPIView):
         return srilzr.ListTicketSerializer
 
 
-class RetrieveCreateTicketMessageApiView(RetrieveAPIView, CreateAPIView, GenericAPIView):
+class TicketMessageApiView(RetrieveAPIView, CreateAPIView, GenericAPIView):
     queryset = Ticket.objects.prefetch_related('messages').all()
     permission_classes = [IsOwnerOrAdmin]
 
@@ -171,7 +171,6 @@ class CommentViewSet(
 
 
 class ManhwaViewSet(ReadOnlyModelViewSet):
-    serializer_class = srilzr.ManhwaSerializer
     queryset = Manhwa.objects.prefetch_related(
         Prefetch(
             'comments',
@@ -181,11 +180,16 @@ class ManhwaViewSet(ReadOnlyModelViewSet):
         avg_rating=Coalesce(Avg('rates__rating'), Value(0.0))
     )
 
+    def get_serializer_class(self):
+        if self.action == 'rate':
+            return srilzr.ManhwaRatingSerializer
+        return srilzr.ManhwaSerializer
+
     def get_permissions(self):
-        return [IsAuthenticated() if self.action == 'set_view' else AllowAny()]
+        return [IsAuthenticated() if self.action in ['set_view', 'rate']  else AllowAny()]
 
     @action(detail=True, methods=['post'])
-    def set_view(self, request, pk):
+    def set_view(self, request, pk=None):
         with transaction.atomic():
             view_obj, created = View.objects.get_or_create(
                 user=request.user,
@@ -196,6 +200,14 @@ class ManhwaViewSet(ReadOnlyModelViewSet):
                 return Response({'action': 'created'})
 
             return Response({'action': 'was exists'})
+
+    @action(detail=True, methods=['post'])
+    def rate(self, request, pk=None):
+        serializer_class = self.get_serializer_class()
+        serializer = serializer_class(data=request.data, context={'request': request, 'manhwa_id': pk})
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
 class EpisodeViewSet(ReadOnlyModelViewSet):

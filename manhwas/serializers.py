@@ -9,7 +9,7 @@ from django.db import IntegrityError, transaction
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext as _
 
-from .models import Manhwa, CommentReAction, Comment, Episode, Ticket, TicketMessage
+from .models import Manhwa, CommentReAction, Comment, Episode, Ticket, TicketMessage, Rate
 
 
 class CreateCommentSerializer(serializers.ModelSerializer):
@@ -77,6 +77,17 @@ class ManhwaSerializer(serializers.ModelSerializer):
     class Meta:
         model = Manhwa
         fields = ['id', 'en_title', 'avg_rating', 'season', 'day_of_week', 'last_upload', 'views_count', 'comments_count', 'cover']  # + 'comments'
+
+
+class ManhwaRatingSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Rate
+        fields = ('rating',)
+
+    def save(self, **kwargs):
+        kwargs['manhwa_id'] = self.context['manhwa_id']
+        kwargs['user'] = self.context['request'].user
+        return super().save(**kwargs)
 
 
 class CommentReactionSerializer(serializers.ModelSerializer):
