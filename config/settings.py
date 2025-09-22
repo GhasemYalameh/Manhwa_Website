@@ -9,13 +9,11 @@ https://docs.djangoproject.com/en/5.2/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
-
+import os
 from pathlib import Path
-from environs import Env
 from datetime import timedelta
 
-env = Env()
-env.read_env()
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -25,12 +23,16 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = env.str("DJANGO_SECRET_KEY")
+SECRET_KEY = os.getenv('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = env.bool("DJANGO_DEBUG")
+DEBUG = os.getenv('DEBUG')
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    'localhost',
+    '127.0.0.1',
+    '0.0.0.0',
+]
 
 
 # Application definition
@@ -44,14 +46,12 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
 
     # third party
-    'crispy_forms',
-    'crispy_bootstrap5',
     'debug_toolbar',
     'rosetta',
     'rest_framework',
     'djoser',
-    # 'jalali_date',
     'django_ckeditor_5',
+    'django_filters',
 
     # my app
     'accounts.apps.AccountsConfig',
@@ -75,6 +75,7 @@ MIDDLEWARE = [
 
 # debug toolbar
 INTERNAL_IPS = [
+    "172.19.0.1",
     "127.0.0.1",
 ]
 
@@ -103,12 +104,12 @@ WSGI_APPLICATION = 'config.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'mydjango',
-        'USER': 'myuser',
-        'PASSWORD': 'mypassword',
-        'HOST': 'db',
-        'PORT': '5432',
+        'ENGINE': 'django.db.backends.{}'.format(os.getenv('DB_ENGINE')),
+        'NAME': os.getenv('DB_NAME'),
+        'USER': os.getenv('DB_USER'),
+        'PASSWORD': os.getenv('DB_PASSWORD'),
+        'HOST': os.getenv('DB_HOST'),
+        'PORT': os.getenv('DB_PORT'),
     }
 }
 
@@ -181,8 +182,8 @@ LOGIN_REDIRECT_URL = 'home'
 LOGOUT_REDIRECT_URL = 'home'
 
 # crispy setting
-CRISPY_TEMPLATE_PACK = 'Bootstrap5'
-CRISPY_ALLOWED_TEMPLATE_PACKS = ['bootstrap5']
+# CRISPY_TEMPLATE_PACK = 'Bootstrap5'
+# CRISPY_ALLOWED_TEMPLATE_PACKS = ['bootstrap5', 'bootstrap']
 
 # CKEditor 5 settings
 customColorPalette = [
