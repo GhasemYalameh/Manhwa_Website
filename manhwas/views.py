@@ -154,14 +154,6 @@ class CommentViewSet(
     def perform_create(self, serializer):
         serializer.save(author=self.request.user, manhwa=self.manhwa)
 
-    def create(self, request, *args, **kwargs):
-        response = super().create(request, *args, **kwargs)
-
-        response.data = {
-            'comment': response.data,
-            'message': 'comment successfully added.'
-        }
-        return response
 
     @action(detail=True, methods=['GET'])
     def replies(self, request, manhwa_pk=None, pk=None):
