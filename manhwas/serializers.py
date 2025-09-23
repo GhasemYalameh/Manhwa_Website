@@ -1,8 +1,5 @@
-from pyexpat.errors import messages
 from re import search
 
-from django.db.transaction import atomic
-from django.template.defaultfilters import title
 from rest_framework import serializers
 
 from django.db import IntegrityError, transaction
@@ -97,6 +94,12 @@ class ManhwaSerializer(serializers.ModelSerializer):
     class Meta:
         model = Manhwa
         fields = ['id', 'en_title', 'avg_rating', 'season', 'day_of_week', 'last_upload', 'views_count', 'comments_count', 'cover']  # + 'comments'
+
+
+class CreateManhwaSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Manhwa
+        fields = ('en_title', 'summary', 'day_of_week', 'cover', 'publication_datetime', 'genres', 'studio', )
 
 
 class ManhwaRatingSerializer(serializers.ModelSerializer):

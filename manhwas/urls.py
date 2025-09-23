@@ -18,5 +18,6 @@ urlpatterns = [
     path('api/tickets/', views.TicketApiView.as_view(), name='tickets'),
     path('api/tickets/<int:pk>/', views.TicketMessageApiView.as_view(), name='ticket-messages'),
 
-    path('api/', include(router.urls + manhwa_router.urls)),
+    path('api/', include(router.urls)),
+    path('api/', include(manhwa_router.urls)),
 ]

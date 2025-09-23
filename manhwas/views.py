@@ -1,5 +1,4 @@
 import requests
-from django.core.serializers import serialize
 
 from django.db import transaction, connection
 from django.db.models import Avg, F, Value, Subquery, OuterRef, Prefetch
@@ -13,9 +12,9 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import status, mixins
 from rest_framework.decorators import api_view, permission_classes, action
 from rest_framework.generics import ListCreateAPIView, RetrieveAPIView, GenericAPIView, CreateAPIView
-from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser
 from rest_framework.response import Response
-from rest_framework.viewsets import GenericViewSet, ReadOnlyModelViewSet
+from rest_framework.viewsets import GenericViewSet, ReadOnlyModelViewSet, ModelViewSet
 
 from . import serializers as srilzr
 from .models import Manhwa, View, CommentReAction, Comment, Episode, Ticket, Rate
@@ -171,7 +170,7 @@ class CommentViewSet(
         return Response(serializer.data)
 
 
-class ManhwaViewSet(ReadOnlyModelViewSet):
+class ManhwaViewSet(ModelViewSet):
     queryset = Manhwa.objects.prefetch_related(
         'comments' ,'rates'
     )
@@ -181,6 +180,8 @@ class ManhwaViewSet(ReadOnlyModelViewSet):
             return base_query.prefetch_related('comments', 'rates').annotate(
                 avg_data=Avg('rates__rating'),
             )
+        elif self.action == 'create':
+            return base_query.prefetch_related('genres')
         return base_query
 
     def get_serializer_class(self):
@@ -188,11 +189,17 @@ class ManhwaViewSet(ReadOnlyModelViewSet):
             return srilzr.ManhwaRatingSerializer
         elif self.action == 'retrieve':
             return srilzr.DetailManhwaSerializer
+        elif self.action == 'create':
+            return srilzr.CreateManhwaSerializer
 
         return srilzr.ManhwaSerializer
 
     def get_permissions(self):
-        return [IsAuthenticated() if self.action in ['set_view', 'rate']  else AllowAny()]
+        if self.action in ('create', 'update', 'partial_update', 'destroy'):
+            return [IsAdminUser()]
+        elif self.action in ('set_view', 'rate'):
+            return [IsAuthenticated()]
+        return [AllowAny()]
 
     @action(detail=True, methods=['post'])
     def set_view(self, request, pk=None):
