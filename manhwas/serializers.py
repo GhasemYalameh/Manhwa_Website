@@ -6,7 +6,7 @@ from django.db import IntegrityError, transaction
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext as _
 
-from .models import Manhwa, CommentReAction, Comment, Episode, Ticket, TicketMessage, Rate
+from .models import Manhwa, CommentReAction, Comment, Episode, Ticket, TicketMessage, Rate, Genre
 
 
 class CreateCommentSerializer(serializers.ModelSerializer):
@@ -66,6 +66,12 @@ class CommentDetailSerializer(serializers.ModelSerializer):
         return obj.children.count()
 
 
+class ManhwaGenresSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Genre
+        fields = ('title',)
+
+
 class RatingDetailSerializer(serializers.Serializer):
     avg_rating = serializers.DecimalField(max_digits=3, decimal_places=1, read_only=True)
     raters_count = serializers.IntegerField(read_only=True)
@@ -80,11 +86,17 @@ class DetailManhwaSerializer(serializers.ModelSerializer):
     comments_count = serializers.IntegerField(source='comments.count', read_only=True)
     cover = serializers.URLField(source='cover.url', read_only=True)
     rating_data = RatingDetailSerializer(read_only=True)
+    genres = serializers.SerializerMethodField()
 
     class Meta:
         model = Manhwa
-        fields = ['id', 'en_title', 'rating_data', 'season', 'day_of_week', 'last_upload', 'views_count', 'comments_count', 'cover']
+        fields = ['id', 'en_title', 'genres', 'rating_data', 'season', 'day_of_week', 'last_upload', 'views_count', 'comments_count', 'cover']
 
+    def get_genres(self, obj):
+        # return only title of genres instead of many dicts with key&value
+        genres_qs = obj.genres.all()
+        genres_obj = ManhwaGenresSerializer(genres_qs, many=True).data
+        return [genre.get('title') for genre in genres_obj]
 
 class ManhwaSerializer(serializers.ModelSerializer):
     comments_count = serializers.IntegerField(source='comments.count', read_only=True)

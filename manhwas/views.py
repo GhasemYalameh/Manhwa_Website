@@ -163,16 +163,18 @@ class CommentViewSet(
 
 
 class ManhwaViewSet(ModelViewSet):
-    queryset = Manhwa.objects.prefetch_related(
-        'comments' ,'rates'
-    )
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ('day_of_week', 'genres', 'studio')
+    queryset = Manhwa.objects.prefetch_related( 'comments' ,'rates')
+
+
     def get_queryset(self):
         base_query = Manhwa.objects.prefetch_related('comments',).all()
         if self.action == 'list':
-            return base_query.prefetch_related('comments', 'rates').annotate(
+            return base_query.prefetch_related('rates').annotate(
                 avg_data=Avg('rates__rating'),
             )
-        elif self.action == 'create':
+        elif self.action in ('create', 'retrieve'):
             return base_query.prefetch_related('genres')
         return base_query
 
