@@ -1,12 +1,14 @@
+from keyword import kwlist
 from re import search
 
+from django.db.models import F
 from rest_framework import serializers
 
 from django.db import IntegrityError, transaction
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext as _
 
-from .models import Manhwa, CommentReAction, Comment, Episode, Ticket, TicketMessage, Rate, Genre
+from .models import Manhwa, CommentReAction, Comment, Episode, Ticket, TicketMessage, Rate, Genre, View
 
 
 class CreateCommentSerializer(serializers.ModelSerializer):
@@ -82,6 +84,9 @@ class RatingDetailSerializer(serializers.Serializer):
     ones_count = serializers.IntegerField(read_only=True)
 
 
+class SetViewManhwaSerializer(serializers.Serializer):
+    pass
+
 class DetailManhwaSerializer(serializers.ModelSerializer):
     comments_count = serializers.IntegerField(source='comments.count', read_only=True)
     cover = serializers.URLField(source='cover.url', read_only=True)
@@ -97,6 +102,7 @@ class DetailManhwaSerializer(serializers.ModelSerializer):
         genres_qs = obj.genres.all()
         genres_obj = ManhwaGenresSerializer(genres_qs, many=True).data
         return [genre.get('title') for genre in genres_obj]
+
 
 class ManhwaSerializer(serializers.ModelSerializer):
     comments_count = serializers.IntegerField(source='comments.count', read_only=True)

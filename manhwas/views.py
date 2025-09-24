@@ -164,29 +164,33 @@ class CommentViewSet(
 
 class ManhwaViewSet(ModelViewSet):
     filter_backends = [DjangoFilterBackend]
+    pagination_class = CustomPagination
     filterset_fields = ('day_of_week', 'genres', 'studio')
     queryset = Manhwa.objects.prefetch_related( 'comments' ,'rates')
 
-
+# ---- many query in filter --------
     def get_queryset(self):
-        base_query = Manhwa.objects.prefetch_related('comments',).all()
+        base_query = Manhwa.objects.prefetch_related('comments').all()
         if self.action == 'list':
             return base_query.prefetch_related('rates').annotate(
                 avg_data=Avg('rates__rating'),
             )
-        elif self.action in ('create', 'retrieve'):
-            return base_query.prefetch_related('genres')
+        # elif self.action in ('create',):
+        #     return base_query.prefetch_related('genres')
         return base_query
 
     def get_serializer_class(self):
-        if self.action == 'rate':
-            return srilzr.ManhwaRatingSerializer
-        elif self.action == 'retrieve':
-            return srilzr.DetailManhwaSerializer
-        elif self.action == 'create':
-            return srilzr.CreateManhwaSerializer
-
-        return srilzr.ManhwaSerializer
+        match self.action:
+            case 'rate':
+                return srilzr.ManhwaRatingSerializer
+            case 'set_view':
+                return srilzr.SetViewManhwaSerializer
+            case 'retrieve':
+                return srilzr.DetailManhwaSerializer
+            case 'create':
+                return srilzr.CreateManhwaSerializer
+            case _:
+                return srilzr.ManhwaSerializer
 
     def get_permissions(self):
         if self.action in ('create', 'update', 'partial_update', 'destroy'):
@@ -197,16 +201,14 @@ class ManhwaViewSet(ModelViewSet):
 
     @action(detail=True, methods=['post'])
     def set_view(self, request, pk=None):
-        with transaction.atomic():
-            view_obj, created = View.objects.get_or_create(
-                user=request.user,
-                manhwa_id=pk
-            )
-            if created:
-                Manhwa.objects.filter(pk=pk).update(views_count=F('views_count') + 1)
-                return Response({'action': 'created'})
-
-            return Response({'action': 'was exists'})
+        view_obj, created = View.objects.get_or_create(
+            user=request.user,
+            manhwa_id=pk
+        )
+        if created:
+            Manhwa.objects.filter(pk=pk).update(views_count=F('views_count') + 1)
+            return Response(status=status.HTTP_201_CREATED)
+        return Response(status=status.HTTP_200_OK)
 
     @action(detail=True, methods=['post', 'get'])
     def rate(self, request, pk=None):
