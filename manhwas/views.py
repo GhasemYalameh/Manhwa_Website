@@ -7,7 +7,6 @@ from django.http import JsonResponse
 from django.shortcuts import render, get_object_or_404
 from django.template.loader import render_to_string
 from django.utils.functional import cached_property
-from django_filters.rest_framework import DjangoFilterBackend
 
 from rest_framework import status, mixins
 from rest_framework.decorators import api_view, permission_classes, action
@@ -15,6 +14,8 @@ from rest_framework.generics import ListCreateAPIView, RetrieveAPIView, GenericA
 from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet, ReadOnlyModelViewSet, ModelViewSet
+from rest_framework.filters import SearchFilter, OrderingFilter
+from django_filters.rest_framework import DjangoFilterBackend
 
 from . import serializers as srilzr
 from .models import Manhwa, View, CommentReAction, Comment, Episode, Ticket, Rate
@@ -163,9 +164,12 @@ class CommentViewSet(
 
 
 class ManhwaViewSet(ModelViewSet):
-    filter_backends = [DjangoFilterBackend]
     pagination_class = CustomPagination
+    filter_backends = [SearchFilter, DjangoFilterBackend, OrderingFilter]
+    search_fields = ('en_title',)
+    ordering_fields = ('publication_datetime', 'avg_rating')
     filterset_fields = ('day_of_week', 'genres', 'studio')
+    # filterset_class = ManhwaFilter
     queryset = Manhwa.objects.prefetch_related( 'comments' ,'rates')
 
 # ---- many query in filter --------
@@ -173,7 +177,7 @@ class ManhwaViewSet(ModelViewSet):
         base_query = Manhwa.objects.prefetch_related('comments').all()
         if self.action == 'list':
             return base_query.prefetch_related('rates').annotate(
-                avg_data=Avg('rates__rating'),
+                avg_rating=Coalesce(Avg('rates__rating'), Value(0.0)),
             )
         # elif self.action in ('create',):
         #     return base_query.prefetch_related('genres')

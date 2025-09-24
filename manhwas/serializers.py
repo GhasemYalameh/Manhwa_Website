@@ -95,7 +95,7 @@ class DetailManhwaSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Manhwa
-        fields = ['id', 'en_title', 'genres', 'rating_data', 'season', 'day_of_week', 'last_upload', 'views_count', 'comments_count', 'cover']
+        fields = ['id', 'en_title', 'genres', 'rating_data', 'season', 'day_of_week', 'last_upload', 'studio', 'views_count', 'comments_count', 'cover']
 
     def get_genres(self, obj):
         # return only title of genres instead of many dicts with key&value

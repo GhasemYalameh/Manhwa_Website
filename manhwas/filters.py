@@ -1,11 +1,13 @@
 from django_filters import FilterSet
 
-from .models import Ticket, TicketMessage
+from .models import Manhwa
 
-class TicketFilter(FilterSet):
+class ManhwaFilter(FilterSet):
     class Meta:
-        model = Ticket
+        model = Manhwa
         fields = {
-            'ticket': ('exact',),
-            'viewing_status': ('exact',)
+            'day_of_week': ('exact',),
+            'genres': ('exact',),
+            'studio': ('exact',),
+            'avg_rating': ('exact',),
         }
