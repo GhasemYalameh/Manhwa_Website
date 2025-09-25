@@ -147,6 +147,31 @@ class CommentReactionSerializer(serializers.ModelSerializer):
         read_only_fields = ('id', 'user')
 
 
+class CommentReActionSerializer(serializers.ModelSerializer):
+    reaction = serializers.ChoiceField(choices=CommentReAction.COMMENT_REACTIONS)
+
+    class Meta:
+        model = CommentReAction
+        fields = ('reaction',)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._action = None
+
+    def save(self, **kwargs):
+        reaction_obj, self._action = CommentReAction.objects.toggle_reaction(
+            user=self.context['request'].user,
+            comment_id=self.context['comment_id'],
+            reaction=self.validated_data['reaction']
+        )
+        return reaction_obj
+
+    @property
+    def action(self):
+        return self._action
+
+
+
 class CommentReactionToggleSerializer(serializers.Serializer):
     comment_id = serializers.IntegerField()
     reaction = serializers.ChoiceField(choices=CommentReAction.COMMENT_REACTIONS)

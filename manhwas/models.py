@@ -1,6 +1,7 @@
 from django.core.exceptions import ValidationError
 from django.db import models, transaction
 from django.db.models import F, Avg, Count, Case, When
+from django.shortcuts import get_object_or_404
 from django.utils.text import slugify
 from django.utils.translation import gettext as _
 from django_ckeditor_5.fields import CKEditor5Field
@@ -215,6 +216,7 @@ class CommentReactionManager(models.Manager):
         returns: (reaction_obj, action)
         action may be: 'updated', 'deleted', 'created'
         """
+        # self._check_comment_exist(comment_id)
         with transaction.atomic():
             try:
                 reaction_obj = self.select_for_update().get(  # lock update row
@@ -267,6 +269,9 @@ class CommentReactionManager(models.Manager):
 
         if updates:
             Comment.objects.filter(pk=comment_id).update(**updates)
+
+    def _check_comment_exist(self, comment_id):
+        return get_object_or_404(Comment, pk=comment_id)
 
     def sync_comment_reaction_counters(self, comment_id):
         """update likes & dis_likes count fields from db and real count of reactions"""

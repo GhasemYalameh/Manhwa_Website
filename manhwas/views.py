@@ -122,12 +122,10 @@ class CommentViewSet(
 
         base_qs = Comment.objects.prefetch_related(
             Prefetch(
-                'children',
+        'children',
                 queryset=Comment.objects.select_related('author')
             )
-        ).select_related('author').filter(
-            manhwa=self.manhwa
-        )
+        ).select_related('author').filter(manhwa=self.manhwa)
 
         if self.action == 'list':
             query = base_qs.filter(level=0)
@@ -140,17 +138,19 @@ class CommentViewSet(
                     Value('no-reaction')
                 ),
             )
-        elif self.action == 'replies':
-            return get_object_or_404(base_qs, pk=pk)
 
         return base_qs.filter(pk=pk)  # create, detail
 
     def get_serializer_class(self):
-        if self.action == 'replies':
-            return srilzr.CommentDetailSerializer
-        elif self.action == 'create':
-            return srilzr.CreateCommentSerializer
-        return srilzr.RetrieveCommentSerializer
+        match self.action:
+            case 'replies':
+                return srilzr.CommentDetailSerializer
+            case 'create':
+                return srilzr.CreateCommentSerializer
+            case 'reaction':
+                return srilzr.CommentReActionSerializer
+            case _:
+                return srilzr.RetrieveCommentSerializer
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user, manhwa=self.manhwa)
@@ -158,9 +158,21 @@ class CommentViewSet(
 
     @action(detail=True, methods=['GET'])
     def replies(self, request, manhwa_pk=None, pk=None):
-        replies_query_set = self.get_queryset()
-        serializer = self.get_serializer(replies_query_set)
+        comment_obj = self.get_object()
+        serializer = self.get_serializer(comment_obj)
         return Response(serializer.data)
+
+    @action(detail=True, methods=['post'])
+    def reaction(self, request, manhwa_pk=None, pk=None):
+        comment = self.get_object()
+        serializer = self.get_serializer(data=request.data, context={'request': request, 'comment_id': pk})
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+
+        comment.refresh_from_db()
+        comment_data = {'likes_count': comment.likes_count, 'dis_likes_count': comment.dis_likes_count}
+
+        return Response({'action': serializer.action, 'comment': comment_data, 'reaction': serializer.data}, status=status.HTTP_200_OK)
 
 
 class ManhwaViewSet(ModelViewSet):
@@ -216,13 +228,11 @@ class ManhwaViewSet(ModelViewSet):
 
     @action(detail=True, methods=['post', 'get'])
     def rate(self, request, pk=None):
-        serializer_class = self.get_serializer_class()
-
         if request.method == 'GET':
-            serializer = serializer_class(get_object_or_404(Rate, user=request.user, manhwa_id=pk))
+            serializer = self.get_serializer(get_object_or_404(Rate, user=request.user, manhwa_id=pk))
             return Response(serializer.data, status=status.HTTP_200_OK)
 
-        serializer = serializer_class(data=request.data, context={'request': request, 'manhwa_id': pk})
+        serializer = self.get_serializer(data=request.data, context={'request': request, 'manhwa_id': pk})
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data, status=status.HTTP_201_CREATED if serializer.was_created else status.HTTP_200_OK)
