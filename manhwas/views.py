@@ -1,3 +1,5 @@
+from unittest import case
+
 import requests
 
 from django.db import transaction, connection
@@ -85,7 +87,7 @@ class TicketApiView(ListCreateAPIView):
         return srilzr.ListTicketSerializer
 
 
-class TicketMessageApiView(RetrieveAPIView, CreateAPIView, GenericAPIView):
+class TicketMessagesApiView(RetrieveAPIView, CreateAPIView, GenericAPIView):
     queryset = Ticket.objects.prefetch_related('messages').all()
     permission_classes = [IsOwnerOrAdmin]
 
@@ -100,13 +102,9 @@ class TicketMessageApiView(RetrieveAPIView, CreateAPIView, GenericAPIView):
         return srilzr.CreateTicketMessageSerializer
 
 
-class CommentViewSet(
-    mixins.CreateModelMixin,
-    mixins.ListModelMixin,
-    mixins.RetrieveModelMixin,
-    GenericViewSet
-):
+class CommentViewSet(ModelViewSet):
     pagination_class = CustomPagination
+    http_method_names = ['get', 'post', 'patch', 'delete']
 
     @cached_property
     def manhwa(self):
@@ -114,8 +112,13 @@ class CommentViewSet(
         return get_object_or_404(Manhwa, pk=manhwa_pk)
 
     def get_permissions(self):
-        # must be login for comment creation
-        return [IsAuthenticated() if self.action == 'create' else AllowAny()]
+        match self.action:
+            case 'create':
+                return [IsAuthenticated()]
+            case 'partial_update' | 'destroy':
+                return [IsOwnerOrAdmin()]
+            case _:
+                return [AllowAny()]
 
     def get_queryset(self):
         pk = self.kwargs.get('pk')

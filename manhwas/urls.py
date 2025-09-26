@@ -16,7 +16,7 @@ urlpatterns = [
 
     path('api/comment-reaction/', views.api_reaction_handler, name='api_toggle_reaction_comment'),
     path('api/tickets/', views.TicketApiView.as_view(), name='tickets'),
-    path('api/tickets/<int:pk>/', views.TicketMessageApiView.as_view(), name='ticket-messages'),
+    path('api/tickets/<int:pk>/', views.TicketMessagesApiView.as_view(), name='ticket-messages'),
 
     path('api/', include(router.urls)),
     path('api/', include(manhwa_router.urls)),
