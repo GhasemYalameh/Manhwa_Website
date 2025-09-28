@@ -13,6 +13,7 @@ from django.utils.functional import cached_property
 from rest_framework import status, mixins
 from rest_framework.decorators import api_view, permission_classes, action
 from rest_framework.generics import ListCreateAPIView, RetrieveAPIView, GenericAPIView, CreateAPIView
+from rest_framework.mixins import CreateModelMixin, RetrieveModelMixin
 from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet, ReadOnlyModelViewSet, ModelViewSet
@@ -87,10 +88,13 @@ class TicketApiView(ListCreateAPIView):
         return srilzr.ListTicketSerializer
 
 
-class TicketMessagesApiView(RetrieveAPIView, CreateAPIView, GenericAPIView):
+class TicketMessagesApiView(RetrieveAPIView, CreateAPIView):
     queryset = Ticket.objects.prefetch_related('messages').all()
     permission_classes = [IsOwnerOrAdmin]
 
+    def post(self, request, *args, **kwargs):
+        self.get_object()
+        super().post(request, *args, **kwargs)
 
     def get_serializer_context(self):
         context = {'ticket': self.kwargs['pk'],}
