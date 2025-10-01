@@ -88,6 +88,9 @@ class Manhwa(models.Model):
             models.Index(fields=['datetime_created', 'datetime_modified']),
             models.Index(fields=['studio', 'day_of_week']),
             models.Index(fields=['day_of_week']),
+            models.Index(fields=['-publication_datetime']),
+            models.Index(fields=['-views_count']),
+            models.Index(fields=['en_title']),
         )
 
     def __str__(self):
@@ -154,6 +157,11 @@ class Episode(models.Model):
     class Meta:
         unique_together = ('number', 'manhwa')
         ordering = ('number',)
+        indexes = (
+            models.Index(fields=['manhwa', 'number']),
+            models.Index(fields=['-downloads_count']),
+            models.Index(fields=['-datetime_created']),
+        )
         
     def save(self, *args, **kwargs):
         last_episode = self.__class__.objects.filter(
@@ -196,6 +204,12 @@ class Comment(models.Model):
     class Meta:
         unique_together = ('manhwa', 'author', 'text')  # try except for same text and spam robot
         ordering = ('-created_at',)
+        indexes = (
+            models.Index(fields=['level']),
+            models.Index(fields=['manhwa', '-created_at']),
+            models.Index(fields=['author', '-created_at']),
+            models.Index(fields=['parent', 'level']),
+        )
 
     def save(self, *args, **kwargs):
         if self.parent:
