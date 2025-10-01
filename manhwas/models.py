@@ -83,6 +83,13 @@ class Manhwa(models.Model):
     # IMDB rating
     # age_limit
 
+    class Meta:
+        indexes = (
+            models.Index(fields=['datetime_created', 'datetime_modified']),
+            models.Index(fields=['studio', 'day_of_week']),
+            models.Index(fields=['day_of_week']),
+        )
+
     def __str__(self):
         return self.en_title
 

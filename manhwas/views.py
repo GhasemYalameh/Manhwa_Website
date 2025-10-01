@@ -198,8 +198,6 @@ class ManhwaViewSet(ModelViewSet):
             return base_query.prefetch_related('rates').annotate(
                 avg_rating=Coalesce(Avg('rates__rating'), Value(0.0)),
             )
-        # elif self.action in ('create',):
-        #     return base_query.prefetch_related('genres')
         return base_query
 
     def get_serializer_class(self):
