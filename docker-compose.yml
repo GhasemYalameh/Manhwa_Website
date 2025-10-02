@@ -1,7 +1,6 @@
 services:
   db:
     image: postgres:14-alpine
-    container_name: my_postgres
     environment:
       POSTGRES_USER: ${DB_USER}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
@@ -11,9 +10,16 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
+  redis:
+    image: redis:7-alpine
+    command: redis-server --appendonly yes
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
   web:
     build: .
-    container_name: Manhwa_django
     command: python manage.py runserver 0.0.0.0:8000
     environment:
       SECRET_KEY: ${DJANGO_SECRET_KEY}
@@ -25,12 +31,16 @@ services:
       DB_HOST: ${DB_HOST}
       DB_PORT: ${DB_PORT}
 
+      REDIS_URL: redis://redis:6379/0
+
     volumes:
       - .:/code
     ports:
       - "8000:8000"
     depends_on:
       - db
+      - redis
 
 volumes:
   postgres_data:
+  redis_data:
