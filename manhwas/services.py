@@ -14,8 +14,6 @@ class ViewTracker:
 
         cache.set(manhwa_view_key, "1", 60*60)
         counter_key = f'manhwa:{manhwa_id}:pending_views'
-        cache.add(counter_key, 0, None)
+        cache.add(counter_key, 0, None)  # if key not exist, add it and set its value to 0
         cache.incr(counter_key, 1)
         return True
-
-        return False
