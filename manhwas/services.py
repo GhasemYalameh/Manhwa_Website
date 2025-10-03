@@ -7,8 +7,7 @@ class ViewTracker:
     @staticmethod
     def track_view(manhwa_id:int, user_id:int)-> bool:
         """"""
-        manhwa_view_key = f'manhwa:{manhwa_id}:user:{user_id}'
-        print(f'{manhwa_view_key=}')
+        manhwa_view_key = f'manhwa:{manhwa_id}:viewed_by:{user_id}'
         if cache.get(manhwa_view_key):
             return False
 

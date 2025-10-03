@@ -38,15 +38,14 @@ def sync_pending_views():
             update_count += 1
             total_pending_views += pending_count
 
-            logger.info(f'Updated {pending_count} pending views for {manhwa_id}')
+            logger.info(f'Updated {pending_count} pending views for manhwa id: {manhwa_id}')
 
         except Exception as e:
             logger.error(f'got error while syncing pending views for {manhwa_id}: {str(e)}')
 
-    logger.info(
-        f'finished syncing pending views. {update_count} manhwas updated.'
-        f'total pending views: {total_pending_views}'
-    )
+    logger.info(f'finished syncing pending views. {update_count} manhwas updated.')
+    logger.info(f'total pending views: {total_pending_views}')
+
     return {
         'total_views': total_pending_views,
         'updated_manhwas': update_count,
