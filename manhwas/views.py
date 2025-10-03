@@ -24,6 +24,7 @@ from . import serializers as srilzr
 from .models import Manhwa, View, CommentReAction, Comment, Episode, Ticket, Rate
 from .paginations import CustomPagination
 from .permissions import IsOwnerOrAdmin
+from .services import ViewTracker
 
 
 def home_page(request):
@@ -216,7 +217,7 @@ class ManhwaViewSet(ModelViewSet):
     def get_permissions(self):
         if self.action in ('create', 'update', 'partial_update', 'destroy'):
             return [IsAdminUser()]
-        elif self.action in ('set_view', 'rate'):
+        elif self.action in ('set_view', 'rate', 'cache_view'):
             return [IsAuthenticated()]
         return [AllowAny()]
 
@@ -241,6 +242,16 @@ class ManhwaViewSet(ModelViewSet):
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data, status=status.HTTP_201_CREATED if serializer.was_created else status.HTTP_200_OK)
+
+    @action(detail=True, methods=['post'])
+    def cache_view(self, request, pk=None):
+        try:
+            view_obj = View.objects.get(user=request.user, manhwa_id=pk)
+            is_tracked = False
+        except View.DoesNotExist:
+            is_tracked = ViewTracker.track_view(user_id=request.user.id, manhwa_id=pk)
+
+        return Response({'tracked': is_tracked}, status=status.HTTP_200_OK)
 
 
 class EpisodeViewSet(ReadOnlyModelViewSet):
