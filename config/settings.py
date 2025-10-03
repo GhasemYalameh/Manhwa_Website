@@ -13,7 +13,7 @@ import os
 from pathlib import Path
 from datetime import timedelta
 
-
+from celery.schedules import crontab
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -152,6 +152,17 @@ CELERY_TASK_TRACK_STARTED = True
 
 CELERY_TASK_TIME_LIMIT = 30 * 60  # 30 minutes
 CELERY_TASK_SOFT_TIME_LIMIT = 25 * 60  # 25 minutes
+
+# ===================================
+# Celery Beat Schedule
+# ===================================
+
+CELERY_BEAT_SCHEDULE = {
+    'sync-pending-views-every-5-minutes': {
+        'task': 'manhwas.sync_pending_views',
+        'schedule': 300.0,  # 5 minutes
+    }
+}
 
 
 # Password validation
