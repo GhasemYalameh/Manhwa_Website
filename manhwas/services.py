@@ -1,18 +1,17 @@
-from django.core.cache import cache
-from django.db.models import F
-
-from .models import Manhwa
+from django_redis import get_redis_connection
 
 class ViewTracker:
-    @staticmethod
-    def track_view(manhwa_id:int, user_id:int)-> bool:
-        """"""
-        manhwa_view_key = f'manhwa:{manhwa_id}:viewed_by:{user_id}'
-        if cache.get(manhwa_view_key):
+    def __init__(self):
+        self.redis = get_redis_connection('default')
+
+    def track_view(self, manhwa_id:int, user_id:int)-> bool:
+        """
+        adding user_id to cache. check user_id exists in cache.
+        returns true if user exists in cache, false otherwise.
+        """
+        manhwa_users_set_key = f'manhwa:{manhwa_id}:users_id'
+        added = self.redis.sadd(manhwa_users_set_key, user_id, ex=15*60)  # returns True if user id added to set.
+        if not added:
             return False
 
-        cache.set(manhwa_view_key, "1", 60*60)
-        counter_key = f'manhwa:{manhwa_id}:pending_views'
-        cache.add(counter_key, 0, None)  # if key not exist, add it and set its value to 0
-        cache.incr(counter_key, 1)
         return True

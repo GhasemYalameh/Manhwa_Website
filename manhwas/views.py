@@ -246,10 +246,10 @@ class ManhwaViewSet(ModelViewSet):
     @action(detail=True, methods=['post'])
     def cache_view(self, request, pk=None):
         try:
-            view_obj = View.objects.get(user=request.user, manhwa_id=pk)
+            View.objects.get(user=request.user, manhwa_id=pk)
             is_tracked = False
         except View.DoesNotExist:
-            is_tracked = ViewTracker.track_view(user_id=request.user.id, manhwa_id=pk)
+            is_tracked = ViewTracker().track_view(user_id=request.user.id, manhwa_id=pk)
 
         return Response({'tracked': is_tracked}, status=status.HTTP_200_OK)
 
