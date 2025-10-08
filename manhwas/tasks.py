@@ -1,5 +1,6 @@
 from celery import shared_task
 import logging
+from re import findall
 
 from django.db.models import F
 from django_redis import get_redis_connection
@@ -10,16 +11,25 @@ logger = logging.getLogger(__name__)
 
 redis_con = get_redis_connection('default')
 
+# TODO: add a task to sync real views to manhwa field every 10 days.
 
 @shared_task(name='manhwas.sync_pending_views')
 def sync_pending_views():
     """
     syncing cached views in redis to database.
     """
+
     logger.info('Starting syncing cached views...')
 
-    manhwa_ids = Manhwa.objects.values_list('id', flat=True)
+    pattern = 'manhwa:*:users_id'
+    cursor, manhwa_ids = 0, []
+    manhwa_ids = [int(key.split(':')[1]) for key in pattern]
     update_count, total_viewers = 0, 0
+    while 1:
+        cursor, keys = redis_con.scan(cursor, match=pattern, count=100)
+        manhwa_ids.extend([key.decode('utf-8').split(':')[1] for key in keys])
+        if cursor == 0:
+            break
 
     for manhwa_id in manhwa_ids:
         manhwa_viewers_key = f'manhwa:{manhwa_id}:users_id'
@@ -45,7 +55,7 @@ def sync_pending_views():
             Manhwa.objects.filter(pk=manhwa_id).update(views_count=F('views_count') + manhwa_viewers_count)
 
             # crete view objects
-            View.objects.bulk_create(view_objects)
+            View.objects.bulk_create(view_objects, ignore_conflicts=True)
 
             update_count += 1
             total_viewers += manhwa_viewers_count

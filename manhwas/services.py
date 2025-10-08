@@ -10,7 +10,7 @@ class ViewTracker:
         returns true if user exists in cache, false otherwise.
         """
         manhwa_users_set_key = f'manhwa:{manhwa_id}:users_id'
-        added = self.redis.sadd(manhwa_users_set_key, user_id, ex=15*60)  # returns True if user id added to set.
+        added = self.redis.sadd(manhwa_users_set_key, user_id)  # returns True if user id added to set.
         if not added:
             return False
 
