@@ -21,9 +21,8 @@ def sync_pending_views():
 
     logger.info('Starting syncing cached views...')
 
-    pattern = 'manhwa:*:users_id'
+    pattern = 'manhwa:*:viewers_id'
     cursor, manhwa_ids = 0, []
-    manhwa_ids = [int(key.split(':')[1]) for key in pattern]
     update_count, total_viewers = 0, 0
     while 1:
         cursor, keys = redis_con.scan(cursor, match=pattern, count=100)
@@ -32,7 +31,7 @@ def sync_pending_views():
             break
 
     for manhwa_id in manhwa_ids:
-        manhwa_viewers_key = f'manhwa:{manhwa_id}:users_id'
+        manhwa_viewers_key = f'manhwa:{manhwa_id}:viewers_id'
 
         # atomic process
         pipe = redis_con.pipeline()
