@@ -24,7 +24,7 @@ from . import serializers as srilzr
 from .models import Manhwa, View, CommentReAction, Comment, Episode, Ticket, Rate
 from .paginations import CustomPagination
 from .permissions import IsOwnerOrAdmin
-from .services import ViewTracker
+from .services import ManhwaService
 
 
 def home_page(request):
@@ -194,9 +194,9 @@ class ManhwaViewSet(ModelViewSet):
 
 # ---- many query in filter --------
     def get_queryset(self):
-        base_query = Manhwa.objects.prefetch_related('comments').all()
+        base_query = Manhwa.objects.prefetch_related('rates', 'comments').all()
         if self.action == 'list':
-            return base_query.prefetch_related('rates').annotate(
+            return base_query.annotate(
                 avg_rating=Coalesce(Avg('rates__rating'), Value(0.0)),
             )
         return base_query
@@ -245,13 +245,13 @@ class ManhwaViewSet(ModelViewSet):
 
     @action(detail=True, methods=['post'])
     def cache_view(self, request, pk=None):
-        if ViewTracker().is_exist(manhwa_id=pk, user_id=request.user.pk):
+        if ManhwaService().is_exist_view(manhwa_id=pk, user_id=request.user.pk):
             return Response({'tracked': False, 'message': 'view exists in cache.'}, status=status.HTTP_200_OK)
 
         if View.objects.filter(user=request.user, manhwa_id=pk).exists():
             return Response({'tracked': False, 'message': 'view exists in db.'}, status=status.HTTP_200_OK)
 
-        ViewTracker().track_view(user_id=request.user.id, manhwa_id=pk)
+        ManhwaService().track_view(user_id=request.user.id, manhwa_id=pk)
         return Response({'tracked': True, 'message': 'view added.'}, status=status.HTTP_200_OK)
 
 

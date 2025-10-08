@@ -9,6 +9,7 @@ from django.core.exceptions import ValidationError
 from django.utils.translation import gettext as _
 
 from .models import Manhwa, CommentReAction, Comment, Episode, Ticket, TicketMessage, Rate, Genre, View
+from .services import ManhwaService
 
 
 class CreateCommentSerializer(serializers.ModelSerializer):
@@ -87,10 +88,11 @@ class RatingDetailSerializer(serializers.Serializer):
 class SetViewManhwaSerializer(serializers.Serializer):
     pass
 
+
 class DetailManhwaSerializer(serializers.ModelSerializer):
     comments_count = serializers.IntegerField(source='comments.count', read_only=True)
     cover = serializers.URLField(source='cover.url', read_only=True)
-    rating_data = RatingDetailSerializer(read_only=True)
+    rating_data = serializers.SerializerMethodField()
     genres = serializers.SerializerMethodField()
 
     class Meta:
@@ -103,6 +105,10 @@ class DetailManhwaSerializer(serializers.ModelSerializer):
         genres_obj = ManhwaGenresSerializer(genres_qs, many=True).data
         return [genre.get('title') for genre in genres_obj]
 
+    def get_rating_data(self, obj):
+        rating_data = ManhwaService().get_rating_data(obj)
+        serializer = RatingDetailSerializer(rating_data)
+        return serializer.data
 
 class ManhwaSerializer(serializers.ModelSerializer):
     comments_count = serializers.IntegerField(source='comments.count', read_only=True)

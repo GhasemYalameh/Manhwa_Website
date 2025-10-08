@@ -96,18 +96,18 @@ class Manhwa(models.Model):
     def __str__(self):
         return self.en_title
 
-    @property
-    def rating_data(self):
-        query_set = self.rates.aggregate(
-            avg_rating=Avg('rating'),
-            raters_count=Count('id'),
-            fives_count=Count(Case(When(rating=5, then=1))),
-            fours_count=Count(Case(When(rating=4, then=1))),
-            threes_count=Count(Case(When(rating=3, then=1))),
-            twos_count=Count(Case(When(rating=2, then=1))),
-            ones_count=Count(Case(When(rating=1, then=1)))
-        )
-        return query_set
+    # @property
+    # def rating_data(self):
+    #     query_set = self.rates.aggregate(
+    #         avg_rating=Avg('rating'),
+    #         raters_count=Count('id'),
+    #         fives_count=Count(Case(When(rating=5, then=1))),
+    #         fours_count=Count(Case(When(rating=4, then=1))),
+    #         threes_count=Count(Case(When(rating=3, then=1))),
+    #         twos_count=Count(Case(When(rating=2, then=1))),
+    #         ones_count=Count(Case(When(rating=1, then=1)))
+    #     )
+    #     return query_set
 
 
 class View(models.Model):
