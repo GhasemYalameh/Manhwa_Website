@@ -61,32 +61,29 @@ cd Manhwa_Website
 
 2. **Create `.env` file** in the project root:
 ```env
-# Django Settings
 DJANGO_SECRET_KEY=your-secret-key-here
 DEBUG=True
-
-# Database Settings
 DB_ENGINE=postgresql
 DB_NAME=manhwa_db
 DB_USER=postgres
-DB_PASSWORD=your-password
-DB_HOST=db
-DB_PORT=5432
+.
+.
+# And other environment variables in .env.example file.
 ```
 
 3. **Build and run with Docker Compose**
 ```bash
-docker-compose up --build
+docker compose up --build
 ```
 
 4. **Run migrations** (in a new terminal):
 ```bash
-docker-compose exec web python manage.py migrate
+docker compose exec web python manage.py migrate
 ```
 
 5. **Create superuser**
 ```bash
-docker-compose exec web python manage.py createsuperuser
+docker compose exec web python manage.py createsuperuser
 ```
 
 6. **Access the application**
@@ -156,8 +153,8 @@ DELETE /api/manhwas/{id}/comments/{cid}/        # Delete comment
 
 ### Episode Endpoints
 ```
-GET /api/manhwas/{id}/episodes/     # List episodes
-GET /api/manhwas/{id}/episodes/{eid}/ # Episode detail
+GET /api/manhwas/{id}/episodes/         # List episodes
+GET /api/manhwas/{id}/episodes/{eid}/   # Episode detail
 ```
 
 ### Ticket Endpoints
@@ -211,7 +208,7 @@ curl -X POST http://localhost:8000/auth/jwt/create/ \
 
 ```bash
 # Using Docker
-docker-compose exec web python manage.py test
+docker compose exec web python manage.py test
 
 # Local
 python manage.py test

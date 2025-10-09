@@ -4,8 +4,6 @@ from django.shortcuts import get_object_or_404
 from django_redis import get_redis_connection
 from django.core.cache import cache
 
-from manhwas.models import Manhwa
-
 
 class ManhwaService:
     def __init__(self):
@@ -16,7 +14,7 @@ class ManhwaService:
 
     def get_rating_data(self, obj)-> dict:
         """
-        return rating data for given manhwa_id from cache.
+        return rating data from cache for given manhwa_id.
         """
         manhwa_rating_key = self.manhwa_rating_data_key.format(obj.id)
         rating_data = cache.get(manhwa_rating_key)

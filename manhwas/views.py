@@ -234,6 +234,7 @@ class ManhwaViewSet(ModelViewSet):
 
     @action(detail=True, methods=['post', 'get'])
     def rate(self, request, pk=None):
+        self.get_object()
         if request.method == 'GET':
             serializer = self.get_serializer(get_object_or_404(Rate, user=request.user, manhwa_id=pk))
             return Response(serializer.data, status=status.HTTP_200_OK)
@@ -245,6 +246,7 @@ class ManhwaViewSet(ModelViewSet):
 
     @action(detail=True, methods=['post'])
     def cache_view(self, request, pk=None):
+        self.get_object()
         if ManhwaService().is_exist_view(manhwa_id=pk, user_id=request.user.pk):
             return Response({'tracked': False, 'message': 'view exists in cache.'}, status=status.HTTP_200_OK)
 
@@ -261,38 +263,6 @@ class EpisodeViewSet(ReadOnlyModelViewSet):
     def get_queryset(self):
         manhwa_pk = self.kwargs.get('manhwa_pk')
         return Episode.objects.filter(manhwa_id=manhwa_pk)
-
-
-@api_view(['POST'])
-@permission_classes([IsAuthenticated])
-def api_reaction_handler(request):
-    serializer = srilzr.CommentReactionToggleSerializer(data=request.data)
-    serializer.is_valid(raise_exception=True)
-
-    comment_id = serializer.validated_data.get('comment_id')
-    reaction = serializer.validated_data.get('reaction')
-    try:
-        reaction_obj, action = CommentReAction.objects.toggle_reaction(
-            request.user,
-            comment_id=comment_id,
-            reaction=reaction
-        )
-
-        # get reaction count from db
-        comment_data = Comment.objects.only('id', 'likes_count', 'dis_likes_count').get(pk=comment_id)
-        comment_data = {'likes_count': comment_data.likes_count, 'dis_likes_count': comment_data.dis_likes_count}
-
-        reaction_data = srilzr.CommentReactionSerializer(reaction_obj).data if action != 'deleted' else None
-
-        response = {
-            'action': action,
-            'reaction': reaction_data,
-            'comment': comment_data
-        }
-    except Exception as e:
-        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-    return Response(response, status=status.HTTP_200_OK)
 
 
 def delete_db(model_class):
