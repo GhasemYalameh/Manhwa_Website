@@ -241,14 +241,14 @@ class CreateTicketSerializer(serializers.Serializer):
         return ticket_obj
 
 
-class TicketMessageSerializer(serializers.ModelSerializer):
+class GetTicketMessageSerializer(serializers.ModelSerializer):
     class Meta:
         model = TicketMessage
-        fields = ('id', 'text', 'message_sender', 'created_at', 'modified_at',)
+        fields = ('id', 'user', 'text', 'message_sender', 'created_at', 'modified_at',)
 
 
-class RetrieveTicketMessagesSerializer(serializers.ModelSerializer):
-    messages = TicketMessageSerializer(many=True, read_only=True)
+class ListTicketMessagesSerializer(serializers.ModelSerializer):
+    messages = GetTicketMessageSerializer(many=True, read_only=True)
     class Meta:
         model = Ticket
         fields = ('id', 'title', 'user', 'messages',)
@@ -270,3 +270,7 @@ class CreateTicketMessageSerializer(serializers.ModelSerializer):
         return super().save(**kwargs, **data)
 
 
+class UpdateTicketMessageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TicketMessage
+        fields = ('text',)

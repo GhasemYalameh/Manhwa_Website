@@ -1,8 +1,6 @@
-from unittest import case
-
 import requests
 
-from django.db import transaction, connection
+from django.db import connection
 from django.db.models import Avg, F, Value, Subquery, OuterRef, Prefetch
 from django.db.models.functions import Coalesce
 from django.http import JsonResponse
@@ -10,13 +8,12 @@ from django.shortcuts import render, get_object_or_404
 from django.template.loader import render_to_string
 from django.utils.functional import cached_property
 
-from rest_framework import status, mixins
-from rest_framework.decorators import api_view, permission_classes, action
+from rest_framework import status
+from rest_framework.decorators import action
 from rest_framework.generics import ListCreateAPIView, RetrieveAPIView, GenericAPIView, CreateAPIView
-from rest_framework.mixins import CreateModelMixin, RetrieveModelMixin
 from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser
 from rest_framework.response import Response
-from rest_framework.viewsets import GenericViewSet, ReadOnlyModelViewSet, ModelViewSet
+from rest_framework.viewsets import ReadOnlyModelViewSet, ModelViewSet
 from rest_framework.filters import SearchFilter, OrderingFilter
 from django_filters.rest_framework import DjangoFilterBackend
 
@@ -111,6 +108,7 @@ class TicketViewSet(ModelViewSet):
 
 class TicketMessageViewSet(ModelViewSet):
     permission_classes = [IsOwnerOrAdmin]
+    http_method_names = ('get', 'post', 'patch', 'delete',)
 
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
@@ -129,9 +127,15 @@ class TicketMessageViewSet(ModelViewSet):
         return {**context, **super().get_serializer_context()}
 
     def get_serializer_class(self):
-        if self.action == 'list':
-            return srilzr.RetrieveTicketMessagesSerializer
-        return srilzr.CreateTicketMessageSerializer
+        match self.action:
+            case 'list':
+                return srilzr.ListTicketMessagesSerializer
+            case 'partial_update':
+                return srilzr.UpdateTicketMessageSerializer
+            case 'retrieve':
+                return srilzr.GetTicketMessageSerializer
+            case _:
+                return srilzr.CreateTicketMessageSerializer
 
 
 class TicketMessagesApiView(RetrieveAPIView, CreateAPIView):
@@ -148,7 +152,7 @@ class TicketMessagesApiView(RetrieveAPIView, CreateAPIView):
 
     def get_serializer_class(self):
         if self.request.method == 'GET':
-            return srilzr.RetrieveTicketMessagesSerializer
+            return srilzr.ListTicketMessagesSerializer
         return srilzr.CreateTicketMessageSerializer
 
 
