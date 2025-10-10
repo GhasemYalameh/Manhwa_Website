@@ -263,7 +263,7 @@ class CreateTicketMessageSerializer(serializers.ModelSerializer):
     def save(self, **kwargs):
         is_admin = self.context['request'].user.is_staff
         data = {
-            'ticket_id': self.context['ticket'],
+            'ticket_id': self.context['ticket_id'],
             'user': self.context['request'].user,
             'message_sender': TicketMessage.ADMIN if is_admin else TicketMessage.USER,
         }

@@ -21,7 +21,7 @@ from rest_framework.filters import SearchFilter, OrderingFilter
 from django_filters.rest_framework import DjangoFilterBackend
 
 from . import serializers as srilzr
-from .models import Manhwa, View, CommentReAction, Comment, Episode, Ticket, Rate
+from .models import Manhwa, View, CommentReAction, Comment, Episode, Ticket, Rate, TicketMessage
 from .paginations import CustomPagination
 from .permissions import IsOwnerOrAdmin
 from .services import ManhwaService
@@ -87,6 +87,47 @@ class TicketApiView(ListCreateAPIView):
         elif self.request.method == 'GET':
             return srilzr.ListTicketSerializer
         return srilzr.ListTicketSerializer
+
+class TicketViewSet(ModelViewSet):
+    http_method_names = ('get', 'post',)
+    permission_classes = (IsOwnerOrAdmin,)
+    filter_backends = (DjangoFilterBackend,)
+    filterset_fields = ('viewing_status',)
+
+    def get_queryset(self):
+        query = Ticket.objects.select_related('user').prefetch_related('messages').all()
+        if self.action == 'list' and not self.request.user.is_staff:
+            return query.filter(user=self.request.user)
+        return query
+
+    def get_serializer_class(self):
+        if self.request.method == 'POST':
+            return srilzr.CreateTicketSerializer
+        elif self.request.method == 'GET':
+            return srilzr.ListTicketSerializer
+        return srilzr.ListTicketSerializer
+
+
+class TicketMessageViewSet(ModelViewSet):
+    permission_classes = [IsOwnerOrAdmin]
+
+    def list(self, request, *args, **kwargs):
+        self.check_object_permissions(request, get_object_or_404(self.get_queryset(), pk=self.kwargs['ticket_pk']))
+        return super().list(request, *args, **kwargs)
+
+    def get_queryset(self):
+        if self.action == 'list':
+            return Ticket.objects.select_related('user').filter(pk=self.kwargs['ticket_pk'])
+        return TicketMessage.objects.filter(ticket_id=self.kwargs['ticket_pk'])
+
+    def get_serializer_context(self):
+        context = {'ticket_id': self.kwargs['ticket_pk'],}
+        return {**context, **super().get_serializer_context()}
+
+    def get_serializer_class(self):
+        if self.action == 'list':
+            return srilzr.RetrieveTicketMessagesSerializer
+        return srilzr.CreateTicketMessageSerializer
 
 
 class TicketMessagesApiView(RetrieveAPIView, CreateAPIView):
