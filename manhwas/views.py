@@ -88,6 +88,7 @@ class TicketApiView(ListCreateAPIView):
             return srilzr.ListTicketSerializer
         return srilzr.ListTicketSerializer
 
+
 class TicketViewSet(ModelViewSet):
     http_method_names = ('get', 'post',)
     permission_classes = (IsOwnerOrAdmin,)
@@ -112,13 +113,16 @@ class TicketMessageViewSet(ModelViewSet):
     permission_classes = [IsOwnerOrAdmin]
 
     def list(self, request, *args, **kwargs):
-        self.check_object_permissions(request, get_object_or_404(self.get_queryset(), pk=self.kwargs['ticket_pk']))
-        return super().list(request, *args, **kwargs)
+        queryset = self.get_queryset()
+        ticket_obj = get_object_or_404(queryset, pk=self.kwargs['ticket_pk'])
+        self.check_object_permissions(request, ticket_obj)
+        serializer = self.get_serializer(ticket_obj)
+        return Response(serializer.data)
 
     def get_queryset(self):
         if self.action == 'list':
             return Ticket.objects.select_related('user').filter(pk=self.kwargs['ticket_pk'])
-        return TicketMessage.objects.filter(ticket_id=self.kwargs['ticket_pk'])
+        return TicketMessage.objects.select_related('user').filter(ticket_id=self.kwargs['ticket_pk'])
 
     def get_serializer_context(self):
         context = {'ticket_id': self.kwargs['ticket_pk'],}

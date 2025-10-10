@@ -244,7 +244,7 @@ class CreateTicketSerializer(serializers.Serializer):
 class TicketMessageSerializer(serializers.ModelSerializer):
     class Meta:
         model = TicketMessage
-        fields = ('text', 'message_sender', 'created_at', 'modified_at',)
+        fields = ('id', 'text', 'message_sender', 'created_at', 'modified_at',)
 
 
 class RetrieveTicketMessagesSerializer(serializers.ModelSerializer):
