@@ -95,7 +95,7 @@ class TicketMessagesApiView(RetrieveAPIView, CreateAPIView):
 
     def post(self, request, *args, **kwargs):
         self.get_object()
-        super().post(request, *args, **kwargs)
+        return super().post(request, *args, **kwargs)
 
     def get_serializer_context(self):
         context = {'ticket': self.kwargs['pk'],}
