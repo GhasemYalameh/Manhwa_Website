@@ -69,6 +69,12 @@ class CommentDetailSerializer(serializers.ModelSerializer):
         return obj.children.count()
 
 
+class UpdateCommentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Comment
+        fields = ('text',)
+
+
 class ManhwaGenresSerializer(serializers.ModelSerializer):
     class Meta:
         model = Genre

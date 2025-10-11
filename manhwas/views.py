@@ -67,24 +67,24 @@ def show_replied_comment(request, manhwa_id, comment_id):
     return render(request, 'manhwas/comment_replies.html', context={'comment': data})
 
 
-class TicketApiView(ListCreateAPIView):
-    permission_classes = (IsAuthenticated,)
-    filter_backends = (DjangoFilterBackend,)
-    filterset_fields = ('viewing_status',)
-
-    def get_queryset(self):
-        query = Ticket.objects.prefetch_related('messages').all()
-        if self.request.method == 'GET' and not self.request.user.is_staff:
-            return query.filter(user=self.request.user)
-        return query
-
-    def get_serializer_class(self):
-        if self.request.method == 'POST':
-            return srilzr.CreateTicketSerializer
-        elif self.request.method == 'GET':
-            return srilzr.ListTicketSerializer
-        return srilzr.ListTicketSerializer
-
+# class TicketApiView(ListCreateAPIView):
+#     permission_classes = (IsAuthenticated,)
+#     filter_backends = (DjangoFilterBackend,)
+#     filterset_fields = ('viewing_status',)
+#
+#     def get_queryset(self):
+#         query = Ticket.objects.prefetch_related('messages').all()
+#         if self.request.method == 'GET' and not self.request.user.is_staff:
+#             return query.filter(user=self.request.user)
+#         return query
+#
+#     def get_serializer_class(self):
+#         if self.request.method == 'POST':
+#             return srilzr.CreateTicketSerializer
+#         elif self.request.method == 'GET':
+#             return srilzr.ListTicketSerializer
+#         return srilzr.ListTicketSerializer
+#
 
 class TicketViewSet(ModelViewSet):
     http_method_names = ('get', 'post',)
@@ -118,9 +118,10 @@ class TicketMessageViewSet(ModelViewSet):
         return Response(serializer.data)
 
     def get_queryset(self):
+        ticket_id = self.kwargs['ticket_pk']
         if self.action == 'list':
-            return Ticket.objects.select_related('user').filter(pk=self.kwargs['ticket_pk'])
-        return TicketMessage.objects.select_related('user').filter(ticket_id=self.kwargs['ticket_pk'])
+            return Ticket.objects.select_related('user').filter(pk=ticket_id)
+        return TicketMessage.objects.select_related('user').filter(ticket_id=ticket_id)
 
     def get_serializer_context(self):
         context = {'ticket_id': self.kwargs['ticket_pk'],}
@@ -138,22 +139,22 @@ class TicketMessageViewSet(ModelViewSet):
                 return srilzr.CreateTicketMessageSerializer
 
 
-class TicketMessagesApiView(RetrieveAPIView, CreateAPIView):
-    queryset = Ticket.objects.prefetch_related('messages').all()
-    permission_classes = [IsOwnerOrAdmin]
-
-    def post(self, request, *args, **kwargs):
-        self.get_object()
-        return super().post(request, *args, **kwargs)
-
-    def get_serializer_context(self):
-        context = {'ticket': self.kwargs['pk'],}
-        return {**context, **super().get_serializer_context()}
-
-    def get_serializer_class(self):
-        if self.request.method == 'GET':
-            return srilzr.ListTicketMessagesSerializer
-        return srilzr.CreateTicketMessageSerializer
+# class TicketMessagesApiView(RetrieveAPIView, CreateAPIView):
+#     queryset = Ticket.objects.prefetch_related('messages').all()
+#     permission_classes = [IsOwnerOrAdmin]
+#
+#     def post(self, request, *args, **kwargs):
+#         self.get_object()
+#         return super().post(request, *args, **kwargs)
+#
+#     def get_serializer_context(self):
+#         context = {'ticket': self.kwargs['pk'],}
+#         return {**context, **super().get_serializer_context()}
+#
+#     def get_serializer_class(self):
+#         if self.request.method == 'GET':
+#             return srilzr.ListTicketMessagesSerializer
+#         return srilzr.CreateTicketMessageSerializer
 
 
 class CommentViewSet(ModelViewSet):
@@ -173,28 +174,28 @@ class CommentViewSet(ModelViewSet):
                 return [IsOwnerOrAdmin()]
             case _:
                 return [AllowAny()]
-
+# ------ use cache for updating reactions instead  of directly to db -------
     def get_queryset(self):
         pk = self.kwargs.get('pk')
+        base_qs = Comment.objects.filter(manhwa=self.manhwa)
+        optimized_qs = base_qs.prefetch_related(
+            Prefetch('children',queryset=Comment.objects.select_related('author'))
+        ).select_related('author')
 
-        base_qs = Comment.objects.prefetch_related(
-            Prefetch(
-        'children',
-                queryset=Comment.objects.select_related('author')
-            )
-        ).select_related('author').filter(manhwa=self.manhwa)
-
-        if self.action == 'list':
-            query = base_qs.filter(level=0)
-            return query if not self.request.user.is_authenticated else query.annotate(
-                user_reaction=Coalesce(
-                    Subquery(CommentReAction.objects.filter(
-                        user_id=self.request.user.id,
-                        comment_id=OuterRef('pk')
-                        ).values('reaction')),
-                    Value('no-reaction')
-                ),
-            )
+        match self.action:
+            case 'create':
+                return base_qs
+            case 'list':
+                query = optimized_qs.filter(level=0)
+                return query if not self.request.user.is_authenticated else query.annotate(
+                    user_reaction=Coalesce(
+                        Subquery(CommentReAction.objects.filter(
+                            user_id=self.request.user.id,
+                            comment_id=OuterRef('pk')
+                            ).values('reaction')),
+                        Value('no-reaction')
+                    ),
+                )
 
         return base_qs.filter(pk=pk)  # create, detail
 
@@ -206,6 +207,8 @@ class CommentViewSet(ModelViewSet):
                 return srilzr.CreateCommentSerializer
             case 'reaction':
                 return srilzr.CommentReActionSerializer
+            case 'partial_update':
+                return srilzr.UpdateCommentSerializer
             case _:
                 return srilzr.RetrieveCommentSerializer
 
