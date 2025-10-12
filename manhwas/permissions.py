@@ -5,6 +5,8 @@ from .models import Comment, Ticket, TicketMessage
 class IsOwnerOrAdmin(permissions.BasePermission):
     """
     a permission class to check a user is an owner of an object or is an admin.
+
+    this permission used for Comment, Ticket and TicketMessage models.
     """
     def has_object_permission(self, request, view, obj):
         if isinstance(obj, (Ticket, TicketMessage)):
