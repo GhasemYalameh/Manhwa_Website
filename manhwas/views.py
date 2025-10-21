@@ -111,15 +111,19 @@ class TicketMessageViewSet(ModelViewSet):
     http_method_names = ('get', 'post', 'patch', 'delete',)
 
     def list(self, request, *args, **kwargs):
-        queryset = self.get_queryset()
-        ticket_obj = get_object_or_404(queryset, pk=self.kwargs['ticket_pk'])
-        self.check_object_permissions(request, ticket_obj)
+        # check owner of ticket
+        ticket_obj = self.check_ticket_object_owner(request, pk=self.kwargs.get('pk'))
         serializer = self.get_serializer(ticket_obj)
         return Response(serializer.data)
 
+    def create(self, request, *args, **kwargs):
+        # check ticket owner
+        self.check_ticket_object_owner(request, pk=self.kwargs.get('pk'))
+        return super().create(request, *args, **kwargs)
+
     def get_queryset(self):
         ticket_id = self.kwargs['ticket_pk']
-        if self.action == 'list':
+        if self.action in ('list', 'create'):
             return Ticket.objects.select_related('user').filter(pk=ticket_id)
         return TicketMessage.objects.select_related('user').filter(ticket_id=ticket_id)
 
@@ -138,6 +142,15 @@ class TicketMessageViewSet(ModelViewSet):
             case _:
                 return srilzr.CreateTicketMessageSerializer
 
+    def check_ticket_object_owner(self, request, pk):
+        """
+        check Ticket owner permission before create or list TicketMessages.
+        returns Ticket object if permission trusted.
+        """
+        queryset = self.get_queryset()
+        ticket_obj = get_object_or_404(queryset, pk=pk)
+        self.check_object_permissions(request, ticket_obj)
+        return ticket_obj
 
 # class TicketMessagesApiView(RetrieveAPIView, CreateAPIView):
 #     queryset = Ticket.objects.prefetch_related('messages').all()
