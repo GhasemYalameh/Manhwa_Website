@@ -17,6 +17,7 @@ ticket_router.register('messages', views.TicketMessageViewSet, basename='ticket-
 
 urlpatterns = [
     path('', views.home_page, name='home'),
+    path('healthy/', views.health_check, name='health-check'),
     path('detail/<int:pk>/', views.manhwa_detail, name='manhwa_detail'),
     path('detail/<int:manhwa_id>/show-replied-comment/<int:comment_id>/', views.show_replied_comment, name='manhwa_comment_replies'),
 

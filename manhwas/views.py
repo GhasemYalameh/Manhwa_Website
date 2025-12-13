@@ -24,6 +24,10 @@ from .permissions import IsOwnerOrAdmin
 from .services import ManhwaService
 
 
+def health_check(request):
+    return JsonResponse({'status': 'ok'})
+
+
 def home_page(request):
     manhwas = Manhwa.objects.only(
         'id', 'en_title', 'season',
@@ -88,7 +92,7 @@ def show_replied_comment(request, manhwa_id, comment_id):
 
 class TicketViewSet(ModelViewSet):
     http_method_names = ('get', 'post',)
-    permission_classes = (IsOwnerOrAdmin,)
+    permission_classes = (IsOwnerOrAdmin, IsAuthenticated)
     filter_backends = (DjangoFilterBackend,)
     filterset_fields = ('viewing_status',)
 
@@ -112,7 +116,7 @@ class TicketMessageViewSet(ModelViewSet):
 
     def list(self, request, *args, **kwargs):
         # check owner of ticket
-        ticket_obj = self.check_ticket_object_owner(request, pk=self.kwargs.get('pk'))
+        ticket_obj = self.check_ticket_object_owner(request, pk=self.kwargs['ticket_pk'])
         serializer = self.get_serializer(ticket_obj)
         return Response(serializer.data)
 
@@ -122,7 +126,7 @@ class TicketMessageViewSet(ModelViewSet):
         return super().create(request, *args, **kwargs)
 
     def get_queryset(self):
-        ticket_id = self.kwargs['ticket_pk']
+        ticket_id = int(self.kwargs['ticket_pk'])
         if self.action in ('list', 'create'):
             return Ticket.objects.select_related('user').filter(pk=ticket_id)
         return TicketMessage.objects.select_related('user').filter(ticket_id=ticket_id)
