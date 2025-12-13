@@ -7,6 +7,12 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
 
   redis:
     image: redis:7-alpine
@@ -15,6 +21,12 @@ services:
       - "6379:6379"
     volumes:
       - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
 
   web:
     build: .
@@ -27,10 +39,18 @@ services:
 
     ports:
       - "8000:8000"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/healthy/"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
 
     depends_on:
-      - db
-      - redis
+      db:
+        condition: service_healthy
+      redis: 
+        condition: service_healthy
 
   celery_worker:
     build: .
@@ -39,9 +59,12 @@ services:
       - .:/code
 
     depends_on:
-      - db
-      - redis
-      - web
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      web:
+        condition: service_healthy
 
     env_file:
       - .env
@@ -53,9 +76,12 @@ services:
       - .:/code
 
     depends_on:
-      - db
-      - redis
-      - web
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      web:
+        condition: service_healthy
 
     env_file:
       - .env
