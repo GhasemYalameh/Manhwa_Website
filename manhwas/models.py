@@ -214,7 +214,7 @@ class Comment(models.Model):
     def save(self, *args, **kwargs):
         if self.parent:
 
-            if self.manhwa_id != self.manhwa_id:
+            if self.parent.manhwa_id != self.manhwa_id:
                 raise ValidationError('parent & child must sign to same manhwa.')
 
             self.level = self.parent.level + 1  # set comment level
@@ -277,9 +277,9 @@ class CommentReactionManager(models.Manager):
         """
         updates = {}
 
-        if old_reaction == self.model.LIKE:
+        if old_reaction == self.model.LIKE: # if old reaction is Like
             updates['likes_count'] = F('likes_count') - 1
-        elif old_reaction == self.model.DISLIKE:
+        elif old_reaction == self.model.DISLIKE:  # if old reaction is Dislike
             updates['dis_likes_count'] = F('dis_likes_count') - 1
 
         if new_reaction == self.model.LIKE:
