@@ -9,8 +9,7 @@ from django.template.loader import render_to_string
 from django.utils.functional import cached_property
 
 from rest_framework import status
-from rest_framework.decorators import action
-from rest_framework.generics import ListCreateAPIView, RetrieveAPIView, GenericAPIView, CreateAPIView
+from rest_framework.decorators import action, api_view
 from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser
 from rest_framework.response import Response
 from rest_framework.viewsets import ReadOnlyModelViewSet, ModelViewSet
