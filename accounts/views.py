@@ -4,7 +4,7 @@ from django.contrib.auth.views import LoginView, LogoutView
 from django.contrib import messages
 from django.utils.translation import gettext as _
 from .forms import CustomUserCreationForm, CustomAuthenticationForm
-from .models import CustomUser
+
 
 
 class CustomLoginView(LoginView):
