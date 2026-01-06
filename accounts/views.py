@@ -55,35 +55,6 @@ def profile_view(request):
 
     return render(request, 'accounts/profile.html',)
 
-@api_view(('GET', 'POST'))
-def set_otp(request):
-    if request.method == 'POST':
-        phone_number = request.data.get('phone_number')
-        otp_code = request.data.get('otp_code')
-
-        otp = OTP(phone_number)
-
-        if otp.is_blacklisted():  # check user in blacklist
-            return Response('your now in blacklist. please try again later')
-
-        if otp_code:
-            is_verified = otp.check_otp_code(otp_code, )
-            if is_verified:
-                return Response({'your now verified'})
-
-            attempt_count = otp.check_attempts()
-            if attempt_count == -1:
-                return Response({'you are added to blacklist because of most attempt. '})
-
-            return Response(f'incorrect OTP code!. remaining attempt is : { 4 - attempt_count }')
-
-        otp_code = otp.generate_otp_code()
-        print("#"*100)
-        print(f"your otp code is: {otp_code}".upper())
-        print("#"*100)
-        return Response({'your otp code generated. please send it to us for verification'})
-
-    return Response('send your Phone number with post methode.')
 
 class GenerateOTPView(APIView):
     def post(self, request):
