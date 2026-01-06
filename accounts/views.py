@@ -59,16 +59,15 @@ def profile_view(request):
 class GenerateOTPView(APIView):
     def post(self, request):
         phone_number = request.data.get('phone_number')
-        print()
         otp = OTP(phone_number)  # creating otp object.
 
-        if otp.is_blacklisted():  # check user in blacklist
+        if otp.is_blacklisted():  # check if user in blacklist
             return Response('your now in blacklist. please try again later', status=status.HTTP_403_FORBIDDEN)
 
-        if not otp.is_valid_phone_number():
+        if not otp.is_valid_phone_number():  # check phone number validation
             return Response('phone number is not valid.', status=status.HTTP_400_BAD_REQUEST)
 
-        if not CustomUser.objects.filter(phone_number=phone_number).exists():
+        if not CustomUser.objects.filter(phone_number=phone_number).exists():  # check user with this phone number is exist
             return Response('there no any account with this phone number. please sign up first. ', status=status.HTTP_400_BAD_REQUEST)
 
         otp_code = otp.generate_otp_code()
@@ -76,13 +75,14 @@ class GenerateOTPView(APIView):
 
         return Response('your otp code generated. please send it to us for verification', status=status.HTTP_201_CREATED)
 
+    def get(self, request):
+        return Response('send your Phone number with post methode.')
+
     def send_sms(self, phone_number, otp_code):
         print("#" * 100)
         print(f"your otp code is: {otp_code}".upper())
         print("#" * 100)
 
-    def get(self, request):
-        return Response('send your Phone number with post methode.')
 
 
 class VerifyOTPView(APIView):
@@ -103,6 +103,6 @@ class VerifyOTPView(APIView):
 
         attempt_count = otp.check_attempts()
         if attempt_count == -1:
-            return Response({'you are added to blacklist because of most attempt.'}, status=status.HTTP_403_FORBIDDEN)
+            return Response('you are added to blacklist because of most attempt.', status=status.HTTP_403_FORBIDDEN)
 
         return Response(f'incorrect OTP code!. remaining attempt is : {4 - attempt_count}', status=status.HTTP_400_BAD_REQUEST)
