@@ -1,97 +1,74 @@
-from unittest import expectedFailure
-
-from rest_framework_simplejwt.tokens import RefreshToken
 from django_redis import get_redis_connection
 import secrets
 from re import fullmatch
 
-OTP_DEFAULT_LENGTH = 5
-OTP_TTL = 120
-ATTEMPT_TTL = 300
-BLACKLIST_TTL = 180
-MAX_ATTEMPTS = 3
 
-def create_otp(length:int=OTP_DEFAULT_LENGTH)-> str:
-    otp_string = ''.join(secrets.choice('0123456789') for _ in range(length))
-    return otp_string
+
+
 
 class OTP:
-    def __init__(self, phone_number):
+    """
+        a service for generating and validating OTP code.
+        the black list system is supporting.
+    """
+    OTP_DEFAULT_LENGTH = 5
+    OTP_TTL = 120
+    ATTEMPT_TTL = 300
+    BLACKLIST_TTL = 180
+    MAX_ATTEMPTS = 3
+
+    def __init__(self, phone_number, length=None):
+        if length is not None:
+            self.OTP_DEFAULT_LENGTH = length
+
         self.redis = get_redis_connection('default')
-        self.otp_key = 'otp:{}'  # fill with phone_number
-        self.otp_attempt_key = 'otp:attempt:{}'
-        self.otp_blackList_key = 'otp:blacklist:{}'
         self.phone_number = phone_number
+        self.otp_key = f'otp:{phone_number}'  # fill with phone_number
+        self.otp_attempt_key = f'otp:attempt:{phone_number}'
+        self.otp_blacklisted_key = f'otp:blacklisted:{phone_number}'
 
     def generate_otp_code(self, length=None):
         """Generating the OTP code. Returns None if the user condition is missed. else returns otp_code"""
         if length is None:
-            length = OTP_DEFAULT_LENGTH
+            length = self.OTP_DEFAULT_LENGTH
 
-        if self.is_blacklisted():
-            return None
-
-        otp_key = self.otp_key.format(self.phone_number)
-        if not self.redis.exists(otp_key):
-            otp_code = create_otp(length)
-            self.redis.set(otp_key, otp_code, ex=OTP_TTL)
+        if not self.redis.exists(self.otp_key):
+            otp_code = self.create_otp(length)  # generating OTP code
+            self.redis.set(self.otp_key, otp_code, ex=self.OTP_TTL)
             return otp_code
 
         return None
 
-    def check_otp_code(self, user_otp_code):
-        otp_key = self.otp_key.format(self.phone_number)
-        expected_otp_code = self.redis.get(otp_key) # decoding otp_code to string
+    def verify_otp_code(self, user_otp_code):
+        """verifies the user otp code."""
+        expected_otp_code = self.redis.get(self.otp_key) # decoding otp_code to string
 
         if expected_otp_code and secrets.compare_digest(expected_otp_code.decode() , user_otp_code):
             return True
 
         return False
 
-    def verify_otp_code(self, otp_code):
-        otp_attempt_key = self.otp_attempt_key.format(self.phone_number)
-        otp_key = self.otp_key.format(self.phone_number)
-        response = {
-            'user_status': 'blacklisted',  # not verified or verified
-            'remaining_attempts': 0,
-        }
-
-        if self.is_blacklisted():  # checking phone number limit
-           return response
-
-        if not self.check_otp_code(otp_code):  # if otp code is not true
-            attempts_count = self.check_attempts()
-            response['remaining_attempts'] -= attempts_count
-
-        # if verify is true
-        self.redis.delete(otp_attempt_key)
-        self.redis.delete(otp_key)
-        return True
-
     def check_attempts(self):
-        otp_attempt_key = self.otp_attempt_key.format(self.phone_number)
-        attempt_count = self.redis.incr(otp_attempt_key)  # how many user attempts to verify
+        attempt_count = self.redis.incr(self.otp_attempt_key)  # how many user attempts to verify
 
         if attempt_count == 1:  # add expire time
-            self.redis.expire(otp_attempt_key, ATTEMPT_TTL)
+            self.redis.expire(self.otp_attempt_key, self.ATTEMPT_TTL)
 
-        if attempt_count > MAX_ATTEMPTS:
+        if attempt_count > self.MAX_ATTEMPTS:
             self.add_to_blacklist()  # send phone number to otp_black_list
             return -1
 
         return attempt_count
 
     def is_blacklisted(self):
-        otp_black_list_key = self.otp_blackList_key.format(self.phone_number)
-        otp_black_list = self.redis.get(otp_black_list_key)
-        return True if otp_black_list else False # if number is in otp_blacklist
+        otp_blacklisted_obj = self.redis.get(self.otp_blacklisted_key)
+        return True if otp_blacklisted_obj else False # if number is in otp_blacklist
 
     def add_to_blacklist(self):
-        otp_black_list_key = self.otp_blackList_key.format(self.phone_number)
-        otp_attempt_key = self.otp_attempt_key.format(self.phone_number)
-        if not self.redis.exists(otp_black_list_key):
-            self.redis.set(otp_black_list_key, self.phone_number, ex=BLACKLIST_TTL)
-            self.redis.delete(otp_attempt_key)
+        if not self.redis.exists(self.otp_blacklisted_key):
+            self.redis.set(self.otp_blacklisted_key, 1, ex=self.BLACKLIST_TTL)
+            self.redis.delete(self.otp_attempt_key)
+            self.redis.delete(self.otp_key)
 
     def is_valid_phone_number(self):
         """insure the phone number have true structure like 09*** """
@@ -99,6 +76,22 @@ class OTP:
         return True if fullmatch(regex, self.phone_number) else False
 
     def is_valid_otp_code(self, otp_code):
-        if otp_code.isdigit() and len(otp_code) == OTP_DEFAULT_LENGTH:
+        """insure all characters are digits and OTP code have true length."""
+        if otp_code.isdigit() and len(otp_code) == self.OTP_DEFAULT_LENGTH:
             return True
         return False
+
+    def create_otp(self, length: int = OTP_DEFAULT_LENGTH) -> str:
+        otp_string = ''.join(secrets.choice('0123456789') for _ in range(length))
+        return otp_string
+
+    def delete_cached_keys(self):
+        """deleting all cached keys."""
+        for key in (self.otp_blacklisted_key, self.otp_attempt_key, self.otp_key):
+            self.redis.delete(key)
+
+    def get_blacklisted_ttl(self):
+        return self.redis.ttl(self.otp_blacklisted_key)
+
+    def get_otp_code_ttl(self):
+        return self.redis.ttl(self.otp_key)

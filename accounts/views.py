@@ -84,7 +84,6 @@ class GenerateOTPView(APIView):
         print("#" * 100)
 
 
-
 class VerifyOTPView(APIView):
     def post(self, request):
         otp_code = request.data.get('otp_code')
@@ -95,8 +94,9 @@ class VerifyOTPView(APIView):
         if not (otp.is_valid_otp_code(otp_code) and otp.is_valid_phone_number()):
             return Response('phone number or OTP code is not valid.', status=status.HTTP_400_BAD_REQUEST)
 
-        is_verified = otp.check_otp_code(otp_code)
+        is_verified = otp.verify_otp_code(otp_code)
         if is_verified:
+            otp.delete_cached_keys()
             user = get_object_or_404(CustomUser, phone_number=phone_number)
             refresh = RefreshToken.for_user(user)
             return Response({'refresh_token': str(refresh), 'access_token': str(refresh.access_token)})
@@ -105,4 +105,4 @@ class VerifyOTPView(APIView):
         if attempt_count == -1:
             return Response('you are added to blacklist because of most attempt.', status=status.HTTP_403_FORBIDDEN)
 
-        return Response(f'incorrect OTP code!. remaining attempt is : {4 - attempt_count}', status=status.HTTP_400_BAD_REQUEST)
+        return Response(f'incorrect OTP code!. remaining attempt is : {otp.MAX_ATTEMPTS - attempt_count + 1}', status=status.HTTP_400_BAD_REQUEST)
