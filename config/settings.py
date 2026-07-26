@@ -119,7 +119,7 @@ DATABASES = {
 # Redis Settings
 # ===================================
 REDIS_URL = os.getenv('REDIS_URL')
-CACHES = {
+CACHES = { # type: ignore
     'default': {
         'BACKEND': 'django_redis.cache.RedisCache',
         'LOCATION': REDIS_URL,
@@ -130,7 +130,7 @@ CACHES = {
             'COMPRESSOR': 'django_redis.compressors.zlib.ZlibCompressor'
         },
         'TIMEOUT': timedelta(minutes=5),
-    }
+    },
 }
 SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
 SESSION_CACHE_ALIAS = 'default'
@@ -161,7 +161,7 @@ CELERY_BEAT_SCHEDULE = {
     'sync-pending-views-every-5-minutes': {
         'task': 'manhwas.sync_pending_views',
         'schedule': 300.0,  # 5 minutes
-    }
+    },
 }
 
 
@@ -212,6 +212,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
 STATIC_URL = '/static/'
+STATIC_ROOT= BASE_DIR / 'staticfiles'
 STATICFILES_DIRS = [BASE_DIR / 'static']  # initial root static
 
 
