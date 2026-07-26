@@ -29,7 +29,6 @@ class CustomUser(AbstractUser):
             return self.phone_number
 
     def save(self, *args, **kwargs):
-        # اگر username خالی بود، phone_number رو بذار
         if not self.username:
             self.username = self.phone_number
         super().save(*args, **kwargs)
