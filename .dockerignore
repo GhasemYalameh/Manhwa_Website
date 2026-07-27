@@ -1,5 +1,6 @@
 venv/
 .venv/
+nginx/
 
 .env
 .env.example
