@@ -62,6 +62,7 @@ services:
     expose:
       - "8000"
     volumes:
+      - .:/code
       - static_volume:/code/staticfiles
       - media_volume:/code/media
     healthcheck:
