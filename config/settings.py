@@ -26,7 +26,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.getenv('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.getenv('DEBUG').lower() == 'true'
+DEBUG = os.getenv('DEBUG', 'false').lower() == 'true'
 
 ALLOWED_HOSTS = [
     'localhost',
@@ -56,6 +56,7 @@ INSTALLED_APPS = [
     # my app
     'accounts.apps.AccountsConfig',
     'manhwas.apps.ManhwasConfig',
+    'subscription.apps.SubscriptionConfig',
 ]
 
 MIDDLEWARE = [
