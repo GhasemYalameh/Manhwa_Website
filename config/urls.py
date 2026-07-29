@@ -38,6 +38,8 @@ urlpatterns = [
     path('auth/', include('djoser.urls')),
     path('auth/', include('djoser.urls.jwt')),
 
+    path('subscription/', include('subscription.urls')),
+
 ] + debug_toolbar_urls()
 
 
