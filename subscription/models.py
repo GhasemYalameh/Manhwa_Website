@@ -1,5 +1,6 @@
 from datetime import date
 
+from charset_normalizer.utils import is_accentuated
 from django.db import models
 
 from accounts.models import CustomUser
@@ -15,25 +16,29 @@ class SubscriptionPlan(models.Model):
 
 class Subscription(models.Model):
     user = models.OneToOneField(CustomUser, on_delete=models.CASCADE, related_name='subscription')
-    is_subscriber = models.BooleanField(default=False)
+    is_active = models.BooleanField(default=False)
     last_validation = models.DateField() # last validation for trust of is_subscriber field
     expiration_date = models.DateField()
 
     creation_date = models.DateTimeField(auto_now_add=True)
 
-    def is_subscription_valid(self):
+    def is_subscriber(self):
         """
-        hard checking of user subscription .
+        checking of user subscription .
         """
         today = date.today()
-        self.last_validation = today
+        if not self.is_active:
+            return False
+        if self.last_validation == today:  # if subscription is active and last validation is today
+            return True
 
+        self.last_validation = today
         if self.expiration_date >= today:
             self.save(update_fields=("last_validation",))
             return True
 
-        self.is_subscriber = False
-        self.save(update_fields=("last_validation", "is_subscriber",))
+        self.is_active = False
+        self.save(update_fields=("last_validation", "is_active",))
         return False
 
 

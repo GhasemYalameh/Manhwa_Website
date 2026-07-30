@@ -5,7 +5,7 @@ from .models import Subscription, SubscriptionOrder, SubscriptionPlan
 
 @admin.register(Subscription)
 class SubscriptionAdmin(admin.ModelAdmin):
-    list_display = ('user', 'is_subscriber', 'expiration_date',)
+    list_display = ('user', 'is_active', 'expiration_date',)
 
 @admin.register(SubscriptionOrder)
 class SubscriptionOrderAdmin(admin.ModelAdmin):

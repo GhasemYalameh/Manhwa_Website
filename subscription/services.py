@@ -82,7 +82,7 @@ class SubscriptionService:
         sub_order_obj.save(update_fields=("is_paid", "is_consumed"))
 
         sub_obj.expiration_date = new_sub_expiration_date
-        sub_obj.is_subscriber = True
+        sub_obj.is_active = True
         sub_obj.last_validation = date.today()
         sub_obj.save(update_fields=("expiration_date", "is_subscriber", "last_validation",))
 

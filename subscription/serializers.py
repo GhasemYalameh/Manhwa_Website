@@ -19,7 +19,7 @@ class GetSubscriptionPlanSerializer(serializers.ModelSerializer):
 class SubscriptionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Subscription
-        fields = ("user", "is_subscriber", "last_validation", "expiration_date",)
+        fields = ("user", "is_active", "last_validation", "expiration_date",)
 
 
 class SubscriptionPlanListSerializer(serializers.ModelSerializer):
