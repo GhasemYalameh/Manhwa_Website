@@ -1,47 +1,85 @@
 from datetime import date, timedelta
-import json
 from uuid import uuid4
-
-from django.db.models import F
 import requests
 
 from .models import SubscriptionOrder, Subscription, SubscriptionPlan
 
 
 class SubscriptionService:
-    def __init__(self):
-        self.authority_payment_url = "https://sandbox.zarinpal.com/pg/v4/payment/request.json"
-        self.base_payment_url = "https://sandbox.zarinpal.com/pg/StartPay/"
+    def __init__(self, request):
+        self.payment_url = "https://sandbox.zarinpal.com/pg/v4/payment/request.json"
+        self.payment_start_pay_url = "https://sandbox.zarinpal.com/pg/StartPay/"
+        self.payment_verify_url = "https://sandbox.zarinpal.com/pg/v4/payment/verify.json"
+        self.request = request
+        self.sub_obj = self.get_sub_obj()
+        self.MERCHANT_ID = str(uuid4())
 
-    def create_payment_url(self, amount, order_id):
+    def get_sub_obj(self):
+        sub = Subscription.objects.filter(user=self.request.user)
+        if not sub.exists():
+            sub_obj = Subscription.objects.create(
+                user=self.request.user,
+                last_validation=date.today(), 
+                expiration_date=date.today() - timedelta(days=1)
+            )
+        else:   
+            sub_obj = sub.first()
+        return sub_obj
+
+    def create_payment_url(self, plan_obj):
+        """
+        return payment url by using subscription plan object
+        """
+        order_obj = SubscriptionOrder.objects.create(
+            user=self.request.user,
+            plan=plan_obj,
+        )
+
         data = {
-            "merchant_id": str(uuid4()),
-            "amount": str(amount),
+            "merchant_id": self.MERCHANT_ID,
+            "amount": str(plan_obj.price),
             "currency": "IRT",
             "callback_url": "https://localhost/subscription/verify/",
             "description": "Transaction description.",
             "metadata": {
-                "order_id": str(order_id),
+                "order_id": str(order_obj.id),
             }
         }
 
-        res = requests.post(self.authority_payment_url, json=data, headers={'Accept': 'application/json'})
+        res = requests.post(self.payment_url, json=data, headers={'Accept': 'application/json'})
         res = res.json()
         authority = res['data']['authority']
-        SubscriptionOrder.objects.filter(pk=order_id).update(authority=authority)
-        return self.base_payment_url + authority
+        SubscriptionOrder.objects.filter(pk=order_obj.id).update(authority=authority)
+        return self.payment_start_pay_url + authority
 
-    def apply_subscription(self, request, authority):
+    def verify_payment(self, order_obj):
+        data = {
+            "merchant_id": self.MERCHANT_ID,
+            "amount": order_obj.plan.price,
+            "authority": order_obj.authority,
+        }
+        res = requests.post(self.payment_verify_url, json=data, headers={'Accept': 'application/json'})
+        response = res.json()
+        if response['data']['code'] in (100, 101):
+            order_obj.payment_response = response
+            order_obj.ref_id = response['data']['ref_id']
+            order_obj.save(update_fields=("payment_response", "ref_id",))
+            return True, None
+
+        else :
+            return False, response['errors']
+
+    def apply_subscription(self, sub_order_obj):
         """
         applying user subscription information after verify.
         """
-        sub_order_obj = SubscriptionOrder.objects.filter(authority=authority).first()
-        sub_duration = sub_order_obj.plan.duration
-        sub_obj = Subscription.objects.filter(user=request.user).first()
+        sub_duration = sub_order_obj.plan.duration 
+        sub_obj = self.sub_obj
         new_sub_expiration_date = self.get_new_expiration_date(last_expiration_date=sub_obj.expiration_date, sub_duration=sub_duration)
 
         sub_order_obj.is_paid = True
-        sub_order_obj.save(update_fields=("is_paid",))
+        sub_order_obj.is_consumed = True
+        sub_order_obj.save(update_fields=("is_paid", "is_consumed"))
 
         sub_obj.expiration_date = new_sub_expiration_date
         sub_obj.is_subscriber = True
@@ -49,7 +87,6 @@ class SubscriptionService:
         sub_obj.save(update_fields=("expiration_date", "is_subscriber", "last_validation",))
 
         return True
-
 
     def get_new_expiration_date(self, last_expiration_date, sub_duration):
         """

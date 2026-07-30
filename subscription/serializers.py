@@ -9,7 +9,7 @@ from subscription.models import Subscription, SubscriptionOrder, SubscriptionPla
 
 class GetSubscriptionPlanSerializer(serializers.ModelSerializer):
     plan = serializers.PrimaryKeyRelatedField(
-        queryset=SubscriptionPlan.objects.all()
+        queryset=SubscriptionPlan.objects.filter(is_purchasable=True)
     )
     class Meta:
         model = SubscriptionOrder
@@ -20,3 +20,9 @@ class SubscriptionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Subscription
         fields = ("user", "is_subscriber", "last_validation", "expiration_date",)
+
+
+class SubscriptionPlanListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SubscriptionPlan
+        fields = ("id", "name", "duration", "price", )

@@ -8,7 +8,7 @@ class SubscriptionPlan(models.Model):
     name = models.CharField(max_length=100, unique=True)
     duration = models.PositiveIntegerField()
     price = models.PositiveIntegerField()
-    is_allowed = models.BooleanField(default=True)
+    is_purchasable = models.BooleanField(default=True)
 
     def __str__(self):
         return self.name
@@ -42,8 +42,11 @@ class SubscriptionOrder(models.Model):
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='subscription_orders')
     plan = models.ForeignKey(SubscriptionPlan, on_delete=models.PROTECT, related_name='subscription_orders')
     is_paid = models.BooleanField(default=False)
-    is_expired = models.BooleanField(default=False)
+    is_consumed = models.BooleanField(default=False)
+
     authority = models.CharField(max_length=100, blank=True)
+    payment_response = models.JSONField(null=True ,blank=True)
+    ref_id = models.CharField(max_length=100, blank=True)
 
     created_at = models.DateTimeField(auto_now_add=True)
     modified_at = models.DateTimeField(auto_now=True)

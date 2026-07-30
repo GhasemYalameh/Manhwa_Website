@@ -1,32 +1,22 @@
-from django.db.models import F
+from django.shortcuts import get_object_or_404
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.decorators import api_view
+from rest_framework.permissions import IsAuthenticated
 
-from subscription.services import SubscriptionService
-
-from .models import Subscription, SubscriptionOrder
+from .services import SubscriptionService
+from .models import SubscriptionOrder, SubscriptionPlan
 from . import serializers as srlzr
 
-from datetime import date, timedelta
+
 
 class SubscriptionApi(APIView):
+    permission_classes = [IsAuthenticated,]
+    
     def get(self, request):
-        if not (request.user and request.user.is_authenticated):
-            return Response('please authenticate', status=status.HTTP_401_UNAUTHORIZED)
-
-        sub = Subscription.objects.filter(user=request.user)
-        if not sub.exists():
-            sub_obj = Subscription.objects.create(
-                user=request.user,
-                last_validation=date.today(), 
-                expiration_date=date.today() - timedelta(days=1)
-            )
-        else:   
-            sub_obj = sub.first()
-
-        obj = srlzr.SubscriptionSerializer(sub_obj)
+        sub_service = SubscriptionService(request)
+        obj = srlzr.SubscriptionSerializer(sub_service.sub_obj)
         return Response(obj.data, status=status.HTTP_200_OK)
 
     def post(self, request):
@@ -35,13 +25,8 @@ class SubscriptionApi(APIView):
         plan_serializer.is_valid(raise_exception=True)
         plan_obj = plan_serializer.validated_data['plan']
 
-        sub_order_obj = SubscriptionOrder.objects.create(
-            user=request.user,
-            plan=plan_obj,
-        )
-        plan_price = plan_obj.price 
-        sub_service = SubscriptionService()
-        payment_url = sub_service.create_payment_url(amount=plan_price, order_id=sub_order_obj.id)
+        sub_service = SubscriptionService(request)
+        payment_url = sub_service.create_payment_url(plan_obj)
 
         return Response(payment_url)
 
@@ -49,10 +34,26 @@ class SubscriptionApi(APIView):
 def subscription_verify(request):
     authority = request.GET.get('Authority')
     payment_status = request.GET.get('Status')
-    sub_service = SubscriptionService()
+    sub_service = SubscriptionService(request)
 
     if payment_status and payment_status.lower() == 'ok':
-        sub_service.apply_subscription(request, authority)
-        return Response("your subscription verified successfully. ", status=status.HTTP_200_OK)
+        order_obj = get_object_or_404(SubscriptionOrder, authority=authority, user=request.user)
+        if order_obj.is_consumed == True:
+            return Response("this subscription has been consumed.", status=status.HTTP_400_BAD_REQUEST)
 
+        is_verified, errors = sub_service.verify_payment(order_obj)
+        if not is_verified:
+            return Response(errors)
+        
+        sub_service.apply_subscription(order_obj)
+        return Response("your subscription verified successfully. ", status=status.HTTP_200_OK)
+        
+    
     return Response('subscription failed.')
+
+
+@api_view(("GET",))
+def subscription_plan_list(request):
+    sub_plans = SubscriptionPlan.objects.filter(is_purchasable=True)
+    serializer = srlzr.SubscriptionPlanListSerializer(sub_plans, many=True)
+    return Response(serializer.data, status=status.HTTP_200_OK)
