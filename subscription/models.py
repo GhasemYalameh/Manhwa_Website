@@ -1,6 +1,5 @@
 from datetime import date
 
-from charset_normalizer.utils import is_accentuated
 from django.db import models
 
 from accounts.models import CustomUser

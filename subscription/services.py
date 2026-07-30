@@ -2,7 +2,7 @@ from datetime import date, timedelta
 from uuid import uuid4
 import requests
 
-from .models import SubscriptionOrder, Subscription, SubscriptionPlan
+from .models import SubscriptionOrder, Subscription
 
 
 class SubscriptionService:
