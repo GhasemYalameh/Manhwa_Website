@@ -21,7 +21,7 @@ class Subscription(models.Model):
 
     creation_date = models.DateTimeField(auto_now_add=True)
 
-    def is_subscriber(self):
+    def is_subscriber(self) -> bool:
         """
         checking of user subscription .
         """

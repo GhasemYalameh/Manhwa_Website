@@ -356,3 +356,11 @@ SIMPLE_JWT = {
     'AUTH_HEADER_TYPES': ('JWT',),
     'ACCESS_TOKEN_LIFETIME': timedelta(days=1),
 }
+
+ZARINPAL = {
+    "MERCHANT_ID": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",  
+    "REQUEST_URL": "https://sandbox.zarinpal.com/pg/v4/payment/request.json",
+    "START_PAY_URL": "https://sandbox.zarinpal.com/pg/StartPay/",
+    "VERIFY_URL": "https://sandbox.zarinpal.com/pg/v4/payment/verify.json",
+    "CALLBACK_URL": "https://yourdomain.com/subscription/verify/",
+}

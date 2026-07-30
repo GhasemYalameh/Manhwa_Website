@@ -1,18 +1,21 @@
 from datetime import date, timedelta
-from uuid import uuid4
 import requests
 
+from django.db import transaction
+
 from .models import SubscriptionOrder, Subscription
+from config.settings import ZARINPAL
 
 
 class SubscriptionService:
     def __init__(self, request):
-        self.payment_url = "https://sandbox.zarinpal.com/pg/v4/payment/request.json"
-        self.payment_start_pay_url = "https://sandbox.zarinpal.com/pg/StartPay/"
-        self.payment_verify_url = "https://sandbox.zarinpal.com/pg/v4/payment/verify.json"
+        self.payment_request_url = ZARINPAL['REQUEST_URL']
+        self.payment_start_pay_url = ZARINPAL['START_PAY_URL']
+        self.payment_verify_url = ZARINPAL['VERIFY_URL']
+        self.merchant_id = ZARINPAL.get('MERCHANT_ID')
+        self.callback_url = ZARINPAL.get('CALLBACK_URL')
         self.request = request
         self.sub_obj = self.get_sub_obj()
-        self.MERCHANT_ID = str(uuid4())
 
     def get_sub_obj(self):
         sub = Subscription.objects.filter(user=self.request.user)
@@ -36,17 +39,17 @@ class SubscriptionService:
         )
 
         data = {
-            "merchant_id": self.MERCHANT_ID,
+            "merchant_id": self.merchant_id,
             "amount": str(plan_obj.price),
             "currency": "IRT",
-            "callback_url": "https://localhost/subscription/verify/",
+            "callback_url": self.callback_url,
             "description": "Transaction description.",
             "metadata": {
                 "order_id": str(order_obj.id),
             }
         }
 
-        res = requests.post(self.payment_url, json=data, headers={'Accept': 'application/json'})
+        res = requests.post(self.payment_request_url, json=data, headers={'Accept': 'application/json'})
         res = res.json()
         authority = res['data']['authority']
         SubscriptionOrder.objects.filter(pk=order_obj.id).update(authority=authority)
@@ -54,7 +57,7 @@ class SubscriptionService:
 
     def verify_payment(self, order_obj):
         data = {
-            "merchant_id": self.MERCHANT_ID,
+            "merchant_id": self.merchant_id,
             "amount": order_obj.plan.price,
             "authority": order_obj.authority,
         }
@@ -69,6 +72,7 @@ class SubscriptionService:
         else :
             return False, response['errors']
 
+    @transaction.atomic
     def apply_subscription(self, sub_order_obj):
         """
         applying user subscription information after verify.
@@ -84,7 +88,7 @@ class SubscriptionService:
         sub_obj.expiration_date = new_sub_expiration_date
         sub_obj.is_active = True
         sub_obj.last_validation = date.today()
-        sub_obj.save(update_fields=("expiration_date", "is_subscriber", "last_validation",))
+        sub_obj.save(update_fields=("expiration_date", "is_active", "last_validation",))
 
         return True
 
