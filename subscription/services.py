@@ -52,8 +52,8 @@ class SubscriptionService:
         }
         try:
             res = requests.post(self.payment_request_url, json=data, headers={'Accept': 'application/json'})
-        except requests.exceptions as e:
-            return None , str(e)
+        except requests.exceptions.RequestException as e:
+            return None , "zarinpal request failed"
 
         res = res.json()
         if res['data'].get('authority'):
@@ -75,8 +75,8 @@ class SubscriptionService:
         }
         try: 
             res = requests.post(self.payment_verify_url, json=data, headers={'Accept': 'application/json'})
-        except requests.exceptions as e :
-            return False, str(e)
+        except requests.exceptions.RequestException as e :
+            return False, "zarinpal request failed."
         
         response = res.json()
         code = response['data'].get('code')
