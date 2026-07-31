@@ -47,11 +47,11 @@ INSTALLED_APPS = [
 
     # third party
     'debug_toolbar',
-    'rosetta',
     'rest_framework',
     'djoser',
     'django_ckeditor_5',
     'django_filters',
+    'drf_spectacular',
 
     # my app
     'accounts.apps.AccountsConfig',
@@ -355,6 +355,14 @@ REST_FRAMEWORK = {
 SIMPLE_JWT = {
     'AUTH_HEADER_TYPES': ('JWT',),
     'ACCESS_TOKEN_LIFETIME': timedelta(days=1),
+}
+REST_FRAMEWORK = {
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+}
+
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'Manga Site API',
+    'VERSION': '1.0.0',
 }
 
 ZARINPAL = {

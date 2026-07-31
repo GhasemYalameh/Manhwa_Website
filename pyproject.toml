@@ -1,0 +1,30 @@
+[project]
+name = "manhwa-website"
+version = "0.1.0"
+description = "Manhwa Website"
+readme = "README.md"
+requires-python = ">=3.11,<3.12"
+dependencies = [
+    "django>=5.2.3,<5.3",
+    "djangorestframework>=3.16.0",
+    "djangorestframework-simplejwt>=5.5.1",
+    "djoser>=2.3.3",
+    "drf-nested-routers>=0.94.2",
+    "drf-spectacular>=0.30.0",
+    "django-filter>=25.1",
+    "django-ckeditor-5>=0.2.18",
+    "pillow>=11.2.1",
+    "celery>=5.5.3",
+    "redis>=6.4.0",
+    "django-redis>=6.0.0",
+    "psycopg>=3.3.4",
+    "gunicorn>=21.2.0",
+]
+
+[dependency-groups]
+dev = [
+    "django-debug-toolbar>=5.2.0",
+]
+
+[tool.uv]
+package = false
