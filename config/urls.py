@@ -27,7 +27,7 @@ from . import settings
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    # path('', include('manhwas.urls')),
+    path('', include('manhwas.urls')),
     path('account/', include('accounts.urls')),
     path('login/', CustomLoginView.as_view(), name='login'),
     path('logout/', CustomLogoutView.as_view(), name='logout'),
