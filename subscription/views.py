@@ -25,9 +25,11 @@ class SubscriptionApi(APIView):
         plan_obj = plan_serializer.validated_data['plan']
 
         sub_service = SubscriptionService(request)
-        payment_url = sub_service.create_payment_url(plan_obj)
+        payment_url, error = sub_service.create_payment_url(plan_obj)
+        if payment_url:
+            return Response(payment_url) # an url with payment authority
 
-        return Response(payment_url) # an url with payment authority
+        return Response(error, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class SubscriptionVerify(APIView):
     permission_classes = [IsAuthenticated, ]

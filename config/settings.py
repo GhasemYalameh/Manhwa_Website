@@ -370,5 +370,5 @@ ZARINPAL = {
     "REQUEST_URL": "https://sandbox.zarinpal.com/pg/v4/payment/request.json",
     "START_PAY_URL": "https://sandbox.zarinpal.com/pg/StartPay/",
     "VERIFY_URL": "https://sandbox.zarinpal.com/pg/v4/payment/verify.json",
-    "CALLBACK_URL": "https://yourdomain.com/subscription/verify/",
+    "CALLBACK_URL": "localhost/subscription/verify/",
 }

@@ -26,6 +26,8 @@ class Subscription(models.Model):
         checking of user subscription .
         """
         today = date.today()
+        if self.user.is_staff : # active subscription for admin users
+            return True
         if not self.is_active:
             return False
         if self.last_validation == today:  # if subscription is active and last validation is today

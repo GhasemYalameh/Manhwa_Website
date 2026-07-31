@@ -2,6 +2,7 @@ from datetime import date, timedelta
 import requests
 
 from django.db import transaction
+from rest_framework import status
 
 from .models import SubscriptionOrder, Subscription
 from config.settings import ZARINPAL
@@ -31,7 +32,8 @@ class SubscriptionService:
 
     def create_payment_url(self, plan_obj):
         """
-        return payment url by using subscription plan object
+        return payment url by using subscription plan object,
+        Return : payment_url:(str/None), error:(str/None)
         """
         order_obj = SubscriptionOrder.objects.create(
             user=self.request.user,
@@ -48,29 +50,43 @@ class SubscriptionService:
                 "order_id": str(order_obj.id),
             }
         }
+        try:
+            res = requests.post(self.payment_request_url, json=data, headers={'Accept': 'application/json'})
+        except requests.exceptions as e:
+            return None , str(e)
 
-        res = requests.post(self.payment_request_url, json=data, headers={'Accept': 'application/json'})
         res = res.json()
-        authority = res['data']['authority']
-        SubscriptionOrder.objects.filter(pk=order_obj.id).update(authority=authority)
-        return self.payment_start_pay_url + authority
+        if res['data'].get('authority'):
+            authority = res['data']['authority']
+            SubscriptionOrder.objects.filter(pk=order_obj.id).update(authority=authority)
+            return self.payment_start_pay_url + authority, None
+        
+        return None, "authority not found in response."
 
     def verify_payment(self, order_obj):
+        """
+        verifying payment request.
+        Return: verified:bool, error:(str/None)
+        """
         data = {
             "merchant_id": self.merchant_id,
             "amount": order_obj.plan.price,
             "authority": order_obj.authority,
         }
-        res = requests.post(self.payment_verify_url, json=data, headers={'Accept': 'application/json'})
+        try: 
+            res = requests.post(self.payment_verify_url, json=data, headers={'Accept': 'application/json'})
+        except requests.exceptions as e :
+            return False, str(e)
+        
         response = res.json()
-        if response['data']['code'] in (100, 101):
+        code = response['data'].get('code')
+        if code and code in (100, 101):
             order_obj.payment_response = response
             order_obj.ref_id = response['data']['ref_id']
             order_obj.save(update_fields=("payment_response", "ref_id",))
             return True, None
-
-        else :
-            return False, response['errors']
+        
+        return False, response['errors']
 
     @transaction.atomic
     def apply_subscription(self, sub_order_obj):
