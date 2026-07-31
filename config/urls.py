@@ -20,7 +20,7 @@ from django.conf.urls.static import static
 from accounts.views import CustomLoginView, register_view, CustomLogoutView
 
 from debug_toolbar.toolbar import debug_toolbar_urls
-from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
+from drf_spectacular.views import SpectacularAPIView, SpectacularRedocView, SpectacularSwaggerView
 
 from . import settings
 
@@ -40,9 +40,6 @@ urlpatterns = [
     path('auth/', include('djoser.urls.jwt')),
 
     path('subscription/', include('subscription.urls')),
-
-    path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
-    path('api/docs/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
 
 
 ] + debug_toolbar_urls()
