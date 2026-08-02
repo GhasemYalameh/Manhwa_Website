@@ -1,4 +1,4 @@
-from django.shortcuts import render, redirect, get_object_or_404
+from django.shortcuts import render, redirect
 from django.contrib.auth import login, authenticate
 from django.contrib.auth.views import LoginView, LogoutView
 from django.contrib import messages
@@ -8,11 +8,12 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
+from yaml import serialize
 
 from .forms import CustomUserCreationForm, CustomAuthenticationForm
 from .models import CustomUser
 from .services import OTP
-from .serializers import GetPhoneNumberSerializer, OTPCodeVerifySerializer
+from .serializers import GetPhoneNumberSerializer, LoginWithPasswordSerializer, OTPCodeVerifySerializer, SignInWithPasswordSerializer
 
 
 
@@ -56,7 +57,10 @@ def profile_view(request):
     return render(request, 'accounts/profile.html',)
 
 
-class GenerateOTPView(APIView):
+class GenerateOTPApiView(APIView):
+    """
+    generating OTP and send via sms.
+    """
     def post(self, request):
         serializer = GetPhoneNumberSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -67,10 +71,6 @@ class GenerateOTPView(APIView):
         if otp.is_blacklisted():  # check if user in blacklist
             return Response('your now in blacklist. please try again later', status=status.HTTP_403_FORBIDDEN)
 
-        # if not CustomUser.objects.filter(phone_number=phone_number).exists():  # login or sign up
-        #     CustomUser.objects.create_user(phone_number=phone_number)
-            # return Response('there no any account with this phone number. please sign up first. ', status=status.HTTP_400_BAD_REQUEST)
-
         otp_code = otp.generate_otp_code()
         if not otp_code:
             return Response('the OTP code is already generated. please send it for verification.', status=status.HTTP_406_NOT_ACCEPTABLE)
@@ -78,11 +78,12 @@ class GenerateOTPView(APIView):
         otp.send_sms(otp_code)  # sms the otp here
         return Response('your otp code generated. please send it to us for verification', status=status.HTTP_201_CREATED)
 
-    def get(self, request):
-        return Response('send your Phone number with post methode.')
 
-
-class VerifyOTPView(APIView):
+class VerifyOTPApiView(APIView):
+    """
+    verify otp code and register user.
+    returns access token and refresh token.
+    """
     def post(self, request):
         serializer = OTPCodeVerifySerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -114,3 +115,37 @@ class VerifyOTPView(APIView):
             status=status.HTTP_200_OK
         )
 
+
+class SignInWithPasswordApiView(APIView):
+    def post(self, request):
+        serializer = SignInWithPasswordSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+
+        if CustomUser.objects.filter(phone_number=data['phone_number']).exists():
+            return Response('an user with this phone number is already exist. please login.', status=status.HTTP_400_BAD_REQUEST)
+        
+        user = CustomUser.objects.create_user(
+            phone_number = getattr(data, "phone_number"),
+            first_name=getattr(data, "first_name"),
+            last_name=getattr(data, "last_name", ""),
+            email=getattr(data, "email", ""),
+            password=getattr(data, "password")
+        )
+        refresh = RefreshToken.for_user(user)
+        return Response({"refresh_token": str(refresh), "access_token": str(refresh.access_token)}, status=status.HTTP_200_OK)
+
+
+class LoginWithPasswordApiView(APIView):
+    def post(self, request):
+        serializer = LoginWithPasswordSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+
+        user_query = CustomUser.objects.filter(phone_number=data['phone_number'])
+        if not user_query.exists():
+            return Response('user with that phone number is not exist. please sign in.', status=status.HTTP_400_BAD_REQUEST)
+
+        refresh = RefreshToken.for_user(user_query.first())
+        return Response({"refresh_token": str(refresh), "access_token": str(refresh.access_token)}, status=status.HTTP_200_OK)
+        
