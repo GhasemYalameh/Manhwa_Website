@@ -1,6 +1,7 @@
-from django.contrib.auth.models import AbstractUser, AbstractBaseUser, BaseUserManager
+from django.contrib.auth.models import PermissionsMixin, AbstractBaseUser, BaseUserManager
 from django.db import models
 from django.core.validators import RegexValidator
+from django.utils import timezone
 
 from manhwas.models import Manhwa
 
@@ -45,7 +46,7 @@ class CustomUserManager(BaseUserManager):
         if not password:
             raise ValueError("password is required.")
 
-        user = self.model(phone_number, **extra_fields)
+        user = self.model(phone_number=phone_number, **extra_fields)
         user.set_password(password)
         user.save(using=self._db)
         return user
@@ -64,19 +65,19 @@ class CustomUserManager(BaseUserManager):
 
         return self.create_user(phone_number, password, **extra_fields)
 
-    def create_user_via_otp(self, phone_number, password=None, **extra_fields):
+    def create_user_via_otp(self, phone_number, **extra_fields):
         """"
         creating an user with unusable password hash. just with phone number
         """
         if not phone_number:
             raise ValueError("phone number is required.")
 
-        user = self.model(phone_number, **extra_fields)
-        user.set_password(password)
+        user = self.model(phone_number=phone_number, **extra_fields)
+        user.set_unusable_password()
         user.save(using=self._db)
         return user
 
-class CustomUser(AbstractBaseUser):
+class CustomUser(AbstractBaseUser, PermissionsMixin):
     phone_regex = RegexValidator(regex=r'^09\d{9}$',
         message="mobile format most be 09xxxxxxxxx (11 digits)."
     )
@@ -88,6 +89,8 @@ class CustomUser(AbstractBaseUser):
 
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
+
+    date_joined = models.DateTimeField(default=timezone.now)
 
     objects = CustomUserManager()
 
