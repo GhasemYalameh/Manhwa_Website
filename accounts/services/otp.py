@@ -1,6 +1,5 @@
 from django_redis import get_redis_connection
 import secrets
-from re import fullmatch
 from .conf import (
     OTP_DEFAULT_LENGTH, OTP_TTL, ATTEMPT_TTL, BLACKLIST_TTL,
     MAX_ATTEMPTS, OTP_ATTEMPT_REDIS_KEY, OTP_BLACKLISTED_REDIS_KEY, 

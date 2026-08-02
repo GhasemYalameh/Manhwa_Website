@@ -13,18 +13,9 @@ class CustomUserCreationForm(UserCreationForm):
         label='شماره موبایل'
     )
 
-    username = forms.CharField(
-        max_length=150,
-        widget=forms.TextInput(attrs={
-            'placeholder': 'نام کاربری',
-            'class': 'form-control'
-        }),
-        label='نام کاربری'
-    )
-
     class Meta:
         model = CustomUser
-        fields = ('phone_number', 'username', 'password1', 'password2')
+        fields = ('phone_number', 'password1', 'password2')
 
     def clean_phone_number(self):
         phone = self.cleaned_data.get('phone_number')
@@ -36,7 +27,7 @@ class CustomUserCreationForm(UserCreationForm):
 
 
 class CustomAuthenticationForm(AuthenticationForm):
-    username = forms.CharField(
+    phone_number = forms.CharField(
         widget=forms.TextInput(attrs={
             'placeholder': 'شماره موبایل',
             'class': 'form-control',

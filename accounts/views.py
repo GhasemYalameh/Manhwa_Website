@@ -5,7 +5,6 @@ from django.contrib import messages
 from django.utils.translation import gettext as _
 from rest_framework import status
 
-from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -68,8 +67,8 @@ class GenerateOTPView(APIView):
         if otp.is_blacklisted():  # check if user in blacklist
             return Response('your now in blacklist. please try again later', status=status.HTTP_403_FORBIDDEN)
 
-        if not CustomUser.objects.filter(phone_number=phone_number).exists():  # login or sign up
-            CustomUser.objects.create_user(phone_number=phone_number)
+        # if not CustomUser.objects.filter(phone_number=phone_number).exists():  # login or sign up
+        #     CustomUser.objects.create_user(phone_number=phone_number)
             # return Response('there no any account with this phone number. please sign up first. ', status=status.HTTP_400_BAD_REQUEST)
 
         otp_code = otp.generate_otp_code()
@@ -90,18 +89,28 @@ class VerifyOTPView(APIView):
 
         phone_number = serializer.validated_data['phone_number']
         otp = serializer.validated_data['otp']
-
         otp_service = OTP(phone_number)  # creating otp object.
-
         is_verified = otp_service.verify_otp_code(otp)
-        if is_verified:
-            otp_service.delete_cached_keys()
-            user = get_object_or_404(CustomUser, phone_number=phone_number)
-            refresh = RefreshToken.for_user(user)
-            return Response({'refresh_token': str(refresh), 'access_token': str(refresh.access_token)})
 
-        attempt_count = otp_service.check_attempts()
-        if attempt_count == -1:
-            return Response('you are added to blacklist because of most attempt.', status=status.HTTP_403_FORBIDDEN)
+        if not is_verified:
+            attempt_count = otp_service.check_attempts()
+            if attempt_count == -1:
+                return Response('you are added to blacklist because of most attempt.', status=status.HTTP_403_FORBIDDEN)
 
-        return Response(f'incorrect OTP code!. remaining attempt is : {otp_service.MAX_ATTEMPTS - attempt_count + 1}', status=status.HTTP_400_BAD_REQUEST)
+            return Response(f'incorrect OTP code!. remaining attempt is : {otp_service.MAX_ATTEMPTS - attempt_count + 1}', status=status.HTTP_400_BAD_REQUEST)
+
+        otp_service.delete_cached_keys()
+        user_query = CustomUser.objects.filter(phone_number=phone_number)
+        # login or signin
+        user = user_query.first() if user_query.exists() else CustomUser.objects.create_user(phone_number=phone_number)
+        is_new_user = user.is_new_user
+        refresh = RefreshToken.for_user(user)
+        return Response(
+            {
+                'refresh_token': str(refresh),
+                'access_token': str(refresh.access_token),
+                'is_new_user': is_new_user,
+            },
+            status=status.HTTP_200_OK
+        )
+
