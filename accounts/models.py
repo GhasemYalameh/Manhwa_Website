@@ -79,7 +79,7 @@ class CustomUserManager(BaseUserManager):
 
 class CustomUser(AbstractBaseUser, PermissionsMixin):
     phone_regex = RegexValidator(regex=r'^09\d{9}$',
-        message="mobile format most be 09xxxxxxxxx (11 digits)."
+        message="mobile format must be 09xxxxxxxxx (11 digits)."
     )
     phone_number = models.CharField(max_length=11, unique=True, validators=[phone_regex],)
 
@@ -89,6 +89,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
 
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
+    is_new_user = models.BooleanField(default=True) 
 
     date_joined = models.DateTimeField(default=timezone.now)
 

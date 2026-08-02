@@ -372,3 +372,14 @@ ZARINPAL = {
     "VERIFY_URL": "https://sandbox.zarinpal.com/pg/v4/payment/verify.json",
     "CALLBACK_URL": "https://localhost/subscription/verify/",
 }
+
+OTP_SETTINGS = {
+    "OTP_REDIS_KEY": "otp:{}",
+    "OTP_ATTEMPT_REDIS_KEY": "otp:attempt:{}",
+    "OTP_BLACKLISTED_REDIS_KEY": "otp:blacklisted:{}",
+    "OTP_DEFAULT_LENGTH" : 5,
+    "OTP_TTL" : 120,
+    "ATTEMPT_TTL" : 300,
+    "BLACKLIST_TTL" : 180,
+    "MAX_ATTEMPTS" : 3,
+}
