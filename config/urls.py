@@ -15,23 +15,15 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path, include, re_path
-from django.conf.urls.static import static
-from accounts.views import CustomLoginView, register_view, CustomLogoutView
+from django.urls import path, include
 
 from debug_toolbar.toolbar import debug_toolbar_urls
-from drf_spectacular.views import SpectacularAPIView, SpectacularRedocView, SpectacularSwaggerView
-
-from . import settings
 
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('manhwas.urls')),
     path('account/', include('accounts.urls')),
-    path('login/', CustomLoginView.as_view(), name='login'),
-    path('logout/', CustomLogoutView.as_view(), name='logout'),
-    path('register/', register_view, name='register'),
 
     path("ckeditor5/", include('django_ckeditor_5.urls')),  # ckeditor url
 
@@ -43,9 +35,3 @@ urlpatterns = [
 
 
 ] + debug_toolbar_urls()
-
-
-# if 'rosetta' in settings.INSTALLED_APPS:
-#     urlpatterns += [
-#        re_path(r'^rosetta/', include('rosetta.urls')),
-#     ]

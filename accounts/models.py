@@ -3,37 +3,6 @@ from django.db import models
 from django.core.validators import RegexValidator
 from django.utils import timezone
 
-from manhwas.models import Manhwa
-
-
-# class CustomUser(AbstractUser):
-#     phone_regex = RegexValidator(
-#         regex=r'^09\d{9}$',
-#         message='شماره موبایل باید 11 رقم و با 09 شروع شود'
-#     )
-
-#     phone_number = models.CharField(
-#         validators=[phone_regex],
-#         max_length=11,
-#         unique=True,
-#         verbose_name='شماره موبایل'
-#     )
-#     watch_list = models.ManyToManyField(Manhwa, blank=True)
-
-#     USERNAME_FIELD = 'phone_number'
-#     REQUIRED_FIELDS = ['username']
-
-#     def __str__(self):
-#         try:
-#             return self.username
-#         except:
-#             return self.phone_number
-
-#     def save(self, *args, **kwargs):
-#         if not self.username:
-#             self.username = self.phone_number
-#         super().save(*args, **kwargs)
-
 
 class CustomUserManager(BaseUserManager):
     def create_user(self, phone_number, password=None, **extra_fields):
@@ -75,6 +44,7 @@ class CustomUserManager(BaseUserManager):
         user.set_unusable_password()
         user.save(using=self._db)
         return user
+
 
 class CustomUser(AbstractBaseUser, PermissionsMixin):
     phone_regex = RegexValidator(regex=r'^09\d{9}$',

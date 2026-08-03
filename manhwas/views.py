@@ -26,50 +26,6 @@ from .services import ManhwaService
 def health_check(request):
     return JsonResponse({'status': 'ok'})
 
-
-def home_page(request):
-    manhwas = Manhwa.objects.only(
-        'id', 'en_title', 'season',
-        'cover', 'views_count', 'last_upload'
-    ).annotate(
-        avg_rating=Coalesce(Avg('rates__rating'), Value(0.0)),
-    ).order_by('-datetime_created')
-
-    return render(request, 'home.html', context={'manhwas': manhwas})
-
-
-def manhwa_detail(request, pk):
-    manhwa = get_object_or_404(
-        Manhwa.objects.select_related('studio').prefetch_related(
-            'episodes', 'genres',
-            'rates',
-        ),
-        pk=pk
-    )
-    # if request from AJAX
-    if request.headers.get('Tab-Load') == 'comments':
-        url = request.build_absolute_uri(f'/api/manhwas/{manhwa.id}/comments/')
-        response = requests.get(url, cookies={'sessionid': request.COOKIES.get('sessionid')})
-        data = response.json()
-        html = render_to_string('manhwas/_comments.html', context={'comments': data.get('results'), 'manhwa_id': manhwa.id})
-        return JsonResponse({'html': html})
-
-    return render(
-        request,
-        'manhwas/manhwa_detail_view.html',
-        context={
-            'manhwa': manhwa,
-        }
-      )
-
-
-def show_replied_comment(request, manhwa_id, comment_id):
-    url = request.build_absolute_uri(f'/api/manhwas/{manhwa_id}/comments/{comment_id}/replies/')
-    response = requests.get(url)
-    data = response.json()
-    return render(request, 'manhwas/comment_replies.html', context={'comment': data})
-
-
 # class TicketApiView(ListCreateAPIView):
 #     permission_classes = (IsAuthenticated,)
 #     filter_backends = (DjangoFilterBackend,)
