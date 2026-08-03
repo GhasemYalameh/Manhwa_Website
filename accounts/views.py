@@ -3,12 +3,11 @@ from django.contrib.auth import login, authenticate
 from django.contrib.auth.views import LoginView, LogoutView
 from django.contrib import messages
 from django.utils.translation import gettext as _
-from rest_framework import status
 
+from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
-from yaml import serialize
 
 from .forms import CustomUserCreationForm, CustomAuthenticationForm
 from .models import CustomUser

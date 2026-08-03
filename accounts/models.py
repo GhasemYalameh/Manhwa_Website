@@ -35,7 +35,6 @@ from manhwas.models import Manhwa
 #         super().save(*args, **kwargs)
 
 
-
 class CustomUserManager(BaseUserManager):
     def create_user(self, phone_number, password=None, **extra_fields):
         """
