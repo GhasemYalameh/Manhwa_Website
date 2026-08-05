@@ -8,8 +8,8 @@ from accounts.services.otp import BlackListManager
 from .models import CustomUser
 from .services import OTP
 from .serializers import (
-    CompleteSignInWithOTPSerializer, GetPhoneNumberSerializer, LoginWithPasswordSerializer, 
-    OTPCodeVerifySerializer, SignInWithPasswordSerializer,
+    CompleteSignUpWithOTPSerializer, GetPhoneNumberSerializer, LoginWithPasswordSerializer, 
+    OTPCodeVerifySerializer, SignUpWithPasswordSerializer,
 )
 
 
@@ -72,14 +72,14 @@ class VerifyOTPApiView(APIView):
         )
 
 
-class CompleteSignInWithOTPApiView(APIView):
+class CompleteSignUpWithOTPApiView(APIView):
     """
     after creating new user, user must redirected to this view for completion of signin.
     """
     permission_classes = (IsAuthenticated,)
 
     def post(self, request):
-        serializer = CompleteSignInWithOTPSerializer(data=request.data)
+        serializer = CompleteSignUpWithOTPSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
         user = request.user
@@ -92,9 +92,9 @@ class CompleteSignInWithOTPApiView(APIView):
         return 
 
 
-class SignInWithPasswordApiView(APIView):
+class SignUpWithPasswordApiView(APIView):
     def post(self, request):
-        serializer = SignInWithPasswordSerializer(data=request.data)
+        serializer = SignUpWithPasswordSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
 

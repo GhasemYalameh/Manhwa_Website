@@ -29,7 +29,7 @@ class OTPCodeVerifySerializer(serializers.Serializer):
     otp = serializers.CharField(max_length=8, validators=[otp_regex])
 
 
-class SignInWithPasswordSerializer(serializers.Serializer):
+class SignUpWithPasswordSerializer(serializers.Serializer):
     phone_number = serializers.CharField(max_length=11, validators=[phone_regex,])
     first_name = serializers.CharField(max_length=25)
     last_name = serializers.CharField(max_length=25, required=False)
@@ -48,7 +48,7 @@ class LoginWithPasswordSerializer(serializers.Serializer):
     password = serializers.CharField(required=True, write_only=True, validators=[pass_validation,])
 
 
-class CompleteSignInWithOTPSerializer(serializers.Serializer):
+class CompleteSignUpWithOTPSerializer(serializers.Serializer):
     first_name = serializers.CharField(max_length=25)
     last_name = serializers.CharField(max_length=25, required=False)
     email = serializers.EmailField(required=False)

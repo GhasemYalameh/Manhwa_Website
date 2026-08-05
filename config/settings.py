@@ -49,8 +49,7 @@ INSTALLED_APPS = [
     'debug_toolbar',
     'rest_framework',
     'rest_framework_simplejwt',
-    'rest_framework_simplejwt.token_blacklist'
-    'djoser',
+    'rest_framework_simplejwt.token_blacklist',
     'django_ckeditor_5',
     'django_filters',
     'drf_spectacular',
