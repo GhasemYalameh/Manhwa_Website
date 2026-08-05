@@ -28,8 +28,8 @@ urlpatterns = [
     path("ckeditor5/", include('django_ckeditor_5.urls')),  # ckeditor url
 
     # django djoser
-    path('auth/', include('djoser.urls')),
-    path('auth/', include('djoser.urls.jwt')),
+    # path('auth/', include('djoser.urls')),
+    # path('auth/', include('djoser.urls.jwt')),
 
     path('subscription/', include('subscription.urls')),
 
