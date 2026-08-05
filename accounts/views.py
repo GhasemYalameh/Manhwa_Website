@@ -1,3 +1,4 @@
+from djoser import serializers
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -83,13 +84,12 @@ class CompleteSignUpWithOTPApiView(APIView):
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
         user = request.user
-        user.update(
-            first_name=data.get('first_name'),
-            last_name=data.get('last_name', ''),
-            email=data.get('data', ''),
-            is_new_user=False,
-        )
-        return 
+        user.first_name=data.get('first_name'),
+        user.last_name=data.get('last_name', ''),
+        user.email=data.get('email', ''),
+        user.is_new_user=False,
+        user.save(update_fields=('first_name', 'last_name', 'email', 'is_new_user',))
+        return Response('sign up completed', status=status.HTTP_200_OK)
 
 
 class SignUpWithPasswordApiView(APIView):
@@ -98,9 +98,6 @@ class SignUpWithPasswordApiView(APIView):
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
 
-        if CustomUser.objects.filter(phone_number=data['phone_number']).exists():
-            return Response('an user with this phone number is already exist. please login.', status=status.HTTP_400_BAD_REQUEST)
-        
         user = CustomUser.objects.create_user(
             phone_number = data["phone_number"],
             first_name=data["first_name"],
@@ -117,21 +114,17 @@ class LoginWithPasswordApiView(APIView):
     def post(self, request):
         serializer = LoginWithPasswordSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        data = serializer.validated_data
-
-        # user exist condition
-        user_query = CustomUser.objects.filter(phone_number=data['phone_number'])
-        if not user_query.exists():
-            return Response('user with that phone number is not exist. please sign in.', status=status.HTTP_400_BAD_REQUEST)
+        phone_number = serializer.validated_data['phone_number']
+        password = serializer.validated_data['password']
 
         # user blacklisted condition
-        blk_service = BlackListManager(data['phone_number'])
+        blk_service = BlackListManager(phone_number)
         if blk_service.is_blacklisted():
-            return Response("you are black listed now. please try again later.")
+            return Response("you are black listed now. please try again later.", status=status.HTTP_403_FORBIDDEN)
 
         # wrong password condition
-        user = user_query.first()
-        if not user.check_password(data['password']):
+        user = CustomUser.objects.get(phone_number=phone_number)
+        if not user.check_password(password):
             attempts_count = blk_service.check_attempts()
             if attempts_count == -1:
                 return Response('you added to black list  because of many wrong attempts.', status=status.HTTP_400_BAD_REQUEST)
