@@ -46,3 +46,9 @@ class SignInWithPasswordSerializer(serializers.Serializer):
 class LoginWithPasswordSerializer(serializers.Serializer):
     phone_number = serializers.CharField(max_length=11, validators=[phone_regex,])
     password = serializers.CharField(required=True, write_only=True, validators=[pass_validation,])
+
+
+class CompleteSignInWithOTPSerializer(serializers.Serializer):
+    first_name = serializers.CharField(max_length=25)
+    last_name = serializers.CharField(max_length=25, required=False)
+    email = serializers.EmailField(required=False)

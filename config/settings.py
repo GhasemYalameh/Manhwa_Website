@@ -377,6 +377,8 @@ OTP_SETTINGS = {
     "OTP_REDIS_KEY": "otp:{}",
     "OTP_ATTEMPT_REDIS_KEY": "otp:attempt:{}",
     "OTP_BLACKLISTED_REDIS_KEY": "otp:blacklisted:{}",
+    "PASS_ATTEMPT_REDIS_KEY": "pass:attempt:{}",
+    "PASS_BLACKLISTED_REDIS_KEY": "pass:blacklisted:{}",
     "OTP_DEFAULT_LENGTH" : 5,
     "OTP_TTL" : 120,
     "ATTEMPT_TTL" : 300,
