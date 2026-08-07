@@ -1,4 +1,4 @@
-from django.core.validators import RegexValidator, 
+from django.core.validators import RegexValidator
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError as DjangoValidationError
 from rest_framework import serializers
@@ -31,13 +31,20 @@ class OTPCodeVerifySerializer(serializers.Serializer):
     otp = serializers.CharField(max_length=8, validators=[otp_regex])
 
 
-class SignUpWithPasswordSerializer(serializers.Serializer):
+class CompleteSignUpWithOTPSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CustomUser
+        fields = ("first_name", "last_name", "email")
+
+
+class SignUpWithPasswordSerializer(serializers.ModelSerializer):
     phone_number = serializers.CharField(max_length=11, validators=[phone_regex,])
-    first_name = serializers.CharField(max_length=25)
-    last_name = serializers.CharField(max_length=25, required=False)
-    email = serializers.EmailField(required=False)
     password = serializers.CharField(required=True, write_only=True, validators=[pass_validation,])
     password2 = serializers.CharField(required=True, write_only=True)
+
+    class Meta:
+        model = CustomUser
+        fields = ('phone_number', 'first_name', 'last_name', 'email', 'password', 'password2')
 
     def validate_phone_number(self, value):
         if CustomUser.objects.filter(phone_number=value).exists():
@@ -48,6 +55,10 @@ class SignUpWithPasswordSerializer(serializers.Serializer):
         if fields.get('password') != fields.get('password2'):
             raise serializers.ValidationError({"password2": "passwords not same."})
         return fields
+
+    def create(self, validated_data):
+        password2 = validated_data.pop("password2")
+        return CustomUser.objects.create_user(is_new_user=False, **validated_data)
 
 
 class LoginWithPasswordSerializer(serializers.Serializer):
@@ -60,7 +71,4 @@ class LoginWithPasswordSerializer(serializers.Serializer):
         return value
 
     
-class CompleteSignUpWithOTPSerializer(serializers.Serializer):
-    first_name = serializers.CharField(max_length=25)
-    last_name = serializers.CharField(max_length=25, required=False)
-    email = serializers.EmailField(required=False)
+

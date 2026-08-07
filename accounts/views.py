@@ -1,4 +1,6 @@
-from djoser import serializers
+from functools import partial
+
+from django.template import context
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -10,7 +12,7 @@ from .models import CustomUser
 from .services import OTP
 from .serializers import (
     CompleteSignUpWithOTPSerializer, GetPhoneNumberSerializer, LoginWithPasswordSerializer, 
-    OTPCodeVerifySerializer, SignUpWithPasswordSerializer,
+    OTPCodeVerifySerializer,  SignUpWithPasswordSerializer,
 )
 
 
@@ -46,9 +48,12 @@ class VerifyOTPApiView(APIView):
         serializer.is_valid(raise_exception=True)
         phone_number = serializer.validated_data['phone_number']
         otp = serializer.validated_data['otp']
+        otp_service = OTP(phone_number)  
+
+        if otp_service.is_blacklisted():  # check if user in blacklist
+            return Response('your now in blacklist. please try again later', status=status.HTTP_403_FORBIDDEN)
 
         # Wrong OTP code condition
-        otp_service = OTP(phone_number)  
         is_verified = otp_service.verify_otp_code(otp)
         if not is_verified:
             attempt_count = otp_service.check_attempts()
@@ -80,15 +85,9 @@ class CompleteSignUpWithOTPApiView(APIView):
     permission_classes = (IsAuthenticated,)
 
     def post(self, request):
-        serializer = CompleteSignUpWithOTPSerializer(data=request.data)
+        serializer = CompleteSignUpWithOTPSerializer(data=request.data, instance=request.user, partial=True)
         serializer.is_valid(raise_exception=True)
-        data = serializer.validated_data
-        user = request.user
-        user.first_name=data.get('first_name'),
-        user.last_name=data.get('last_name', ''),
-        user.email=data.get('email', ''),
-        user.is_new_user=False,
-        user.save(update_fields=('first_name', 'last_name', 'email', 'is_new_user',))
+        serializer.save(is_new_user=False)
         return Response('sign up completed', status=status.HTTP_200_OK)
 
 
@@ -96,16 +95,7 @@ class SignUpWithPasswordApiView(APIView):
     def post(self, request):
         serializer = SignUpWithPasswordSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        data = serializer.validated_data
-
-        user = CustomUser.objects.create_user(
-            phone_number = data["phone_number"],
-            first_name=data["first_name"],
-            last_name=data.get("last_name", ""),
-            email=data["email"],
-            password=data["password"],
-            is_new_user=False
-        )
+        user = serializer.save()
         refresh = RefreshToken.for_user(user)
         return Response({"refresh_token": str(refresh), "access_token": str(refresh.access_token)}, status=status.HTTP_200_OK)
 
@@ -129,7 +119,7 @@ class LoginWithPasswordApiView(APIView):
             if attempts_count == -1:
                 return Response('you added to black list  because of many wrong attempts.', status=status.HTTP_400_BAD_REQUEST)
             return Response(
-                f'invalid password. remaining attempts:({blk_service.max_attempts - attempts_count}/{blk_service.max_attempts})',
+                f'invalid password. remaining attempts: {blk_service.max_attempts - attempts_count}',
                 status=status.HTTP_400_BAD_REQUEST
             )
         

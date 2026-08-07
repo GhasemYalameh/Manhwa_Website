@@ -53,6 +53,7 @@ INSTALLED_APPS = [
     'django_ckeditor_5',
     'django_filters',
     'drf_spectacular',
+    'corsheaders',
 
     # my app
     'accounts.apps.AccountsConfig',
@@ -63,6 +64,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -361,9 +363,7 @@ SIMPLE_JWT = {
     'BLACKLIST_AFTER_ROTATION': True,
     'UPDATE_LAST_LOGIN': False,
 }
-REST_FRAMEWORK = {
-    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
-}
+
 
 SPECTACULAR_SETTINGS = {
     'TITLE': 'Manga Site API',
@@ -390,3 +390,7 @@ OTP_SETTINGS = {
     "BLACKLIST_TTL" : 180,
     "MAX_ATTEMPTS" : 3,
 }
+
+CORS_ALLOWED_ORIGINS = [
+    'http://localhost:3000',
+]
