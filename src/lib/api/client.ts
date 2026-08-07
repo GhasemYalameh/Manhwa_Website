@@ -1,4 +1,4 @@
-const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? "https://example.com/v1";
+const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost";
 
 export class ApiError extends Error {
   status: number;
@@ -20,7 +20,7 @@ export async function apiPost<TResponse>(
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
+      ...(accessToken ? { Authorization: `JWT ${accessToken}` } : {}),
     },
     body: JSON.stringify(body),
   });
