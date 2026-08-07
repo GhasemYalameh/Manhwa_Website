@@ -32,6 +32,38 @@ export function completeSignup(payload: CompleteSignupPayload): Promise<void> {
   return apiPost<void>(`${AUTH_PREFIX}/otp/completion/`, payload, accessToken ?? undefined);
 }
 
+export interface PasswordAuthResponse {
+  refresh_token: string;
+  access_token: string;
+}
+
+export interface SignupPasswordPayload {
+  phone_number: string;
+  first_name: string;
+  last_name?: string;
+  email?: string;
+  password: string;
+  password2: string;
+}
+
+// ثبت‌نام مستقیم با رمز عبور؛ برخلاف فلوی OTP، توکن همینجا برمی‌گرده و نیازی به completion نیست
+export function signupWithPassword(
+  payload: SignupPasswordPayload
+): Promise<PasswordAuthResponse> {
+  return apiPost<PasswordAuthResponse>(`${AUTH_PREFIX}/signup/password/`, payload);
+}
+
+// ورود با شماره موبایل + رمز عبور (فقط برای کاربرهایی که با پسورد ثبت‌نام کرده‌ن)
+export function loginWithPassword(
+  phone_number: string,
+  password: string
+): Promise<PasswordAuthResponse> {
+  return apiPost<PasswordAuthResponse>(`${AUTH_PREFIX}/login/password/`, {
+    phone_number,
+    password,
+  });
+}
+
 // --- مدیریت ساده توکن‌ها در localStorage ---
 // در صورت نیاز به سناریوهای پیچیده‌تر (SSR، httpOnly cookie) باید این بخش عوض شود.
 

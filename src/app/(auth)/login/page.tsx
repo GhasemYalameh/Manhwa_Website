@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { PhoneInput } from "@/components/auth/PhoneInput";
@@ -71,6 +72,17 @@ export default function LoginPage() {
           {loading ? "در حال ارسال..." : "دریافت کد تایید"}
         </button>
       </form>
+
+      <p className="mt-6 text-center text-sm text-text-secondary">
+        یا{" "}
+        <Link href="/login-password" className="text-accent hover:text-accent-dark">
+          ورود با رمز عبور
+        </Link>{" "}
+        /{" "}
+        <Link href="/signup" className="text-accent hover:text-accent-dark">
+          ثبت‌نام
+        </Link>
+      </p>
     </>
   );
 }
