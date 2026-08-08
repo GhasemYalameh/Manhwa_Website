@@ -27,9 +27,9 @@ export function verifyOtp(
 
 // تکمیل ثبت‌نام کاربر جدید (فقط بعد از ورود موفق با OTP و برای کاربرهایی که is_new_user=true بودن)
 // توکن جدیدی برنمی‌گردونه؛ توکن‌های مرحله verify هم‌چنان معتبرن.
+// { auth: true } یعنی apiPost خودش توکن رو از storage می‌خونه و اگه ۴۰۱ بگیره، رفرش+retry می‌کنه.
 export function completeSignup(payload: CompleteSignupPayload): Promise<void> {
-  const accessToken = getAccessToken();
-  return apiPost<void>(`${AUTH_PREFIX}/otp/completion/`, payload, accessToken ?? undefined);
+  return apiPost<void>(`${AUTH_PREFIX}/otp/completion/`, payload, { auth: true });
 }
 
 export interface PasswordAuthResponse {
@@ -64,18 +64,6 @@ export function loginWithPassword(
   });
 }
 
-// --- مدیریت ساده توکن‌ها در localStorage ---
-// در صورت نیاز به سناریوهای پیچیده‌تر (SSR، httpOnly cookie) باید این بخش عوض شود.
-
-const ACCESS_TOKEN_KEY = "access_token";
-const REFRESH_TOKEN_KEY = "refresh_token";
-
-export function storeTokens(access: string, refresh: string) {
-  localStorage.setItem(ACCESS_TOKEN_KEY, access);
-  localStorage.setItem(REFRESH_TOKEN_KEY, refresh);
-}
-
-export function getAccessToken(): string | null {
-  if (typeof window === "undefined") return null;
-  return localStorage.getItem(ACCESS_TOKEN_KEY);
-}
+// مدیریت توکن‌ها الان در client.ts هست (چون apiPost خودش بهشون نیاز داره)؛
+// اینجا فقط دوباره export می‌کنیم که importهای بقیه‌ی فایل‌ها تغییر نکنه.
+export { getAccessToken, storeTokens, getRefreshToken, clearTokens } from "./client";

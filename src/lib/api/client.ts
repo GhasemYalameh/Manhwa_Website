@@ -1,4 +1,4 @@
-const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost";
+const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? "https://example.com/v1";
 
 export class ApiError extends Error {
   status: number;
@@ -11,7 +11,38 @@ export class ApiError extends Error {
   }
 }
 
-export async function apiPost<TResponse>(
+// --- مدیریت توکن‌ها در localStorage ---
+// این بخش قبلاً در lib/api/auth.ts بود؛ به اینجا منتقل شد چون apiPost خودش
+// برای منطق رفرش خودکار به این توابع نیاز داره. auth.ts این توابع رو دوباره export می‌کنه.
+
+const ACCESS_TOKEN_KEY = "access_token";
+const REFRESH_TOKEN_KEY = "refresh_token";
+
+export function getAccessToken(): string | null {
+  if (typeof window === "undefined") return null;
+  return localStorage.getItem(ACCESS_TOKEN_KEY);
+}
+
+export function getRefreshToken(): string | null {
+  if (typeof window === "undefined") return null;
+  return localStorage.getItem(REFRESH_TOKEN_KEY);
+}
+
+export function storeTokens(access: string, refresh: string) {
+  localStorage.setItem(ACCESS_TOKEN_KEY, access);
+  localStorage.setItem(REFRESH_TOKEN_KEY, refresh);
+}
+
+export function clearTokens() {
+  localStorage.removeItem(ACCESS_TOKEN_KEY);
+  localStorage.removeItem(REFRESH_TOKEN_KEY);
+}
+
+// --- fetch خام، بدون منطق ریفرش ---
+// فقط همینجا استفاده میشه (هم برای درخواست‌های معمولی، هم خود اندپوینت refresh)
+// تا حلقه‌ی بی‌نهایت (رفرش → ۴۰۱ → رفرش → ...) پیش نیاد.
+
+async function rawPost<TResponse>(
   path: string,
   body: unknown,
   accessToken?: string
@@ -33,4 +64,67 @@ export async function apiPost<TResponse>(
   }
 
   return data as TResponse;
+}
+
+const REFRESH_PATH = "/account/jwt/refresh/";
+
+interface RefreshResponse {
+  access: string;
+  refresh: string;
+}
+
+// اگه چند ریکوئست همزمان به ۴۰۱ بخورن، فقط یک بار رفرش انجام میشه
+// و بقیه منتظر همون یک promise می‌مونن (به‌جای اینکه هرکدوم جدا رفرش بزنن).
+let refreshPromise: Promise<string | null> | null = null;
+
+function refreshAccessToken(): Promise<string | null> {
+  if (refreshPromise) return refreshPromise;
+
+  const refresh = getRefreshToken();
+  if (!refresh) return Promise.resolve(null);
+
+  refreshPromise = rawPost<RefreshResponse>(REFRESH_PATH, { refresh })
+    .then((res) => {
+      storeTokens(res.access, res.refresh);
+      return res.access;
+    })
+    .catch(() => {
+      // رفرش توکن هم نامعتبر/منقضی بوده؛ کاربر باید دوباره لاگین کنه
+      clearTokens();
+      return null;
+    })
+    .finally(() => {""
+      refreshPromise = null;
+    });
+
+  return refreshPromise;
+}
+
+interface ApiPostOptions {
+  // برای اندپوینت‌هایی که نیاز به access token دارن (هدر Authorization: JWT <token>).
+  // وقتی true باشه و به ۴۰۱ بخوره، خودکار رفرش می‌گیره و یک‌بار دوباره تلاش می‌کنه.
+  auth?: boolean;
+}
+
+export async function apiPost<TResponse>(
+  path: string,
+  body: unknown,
+  options: ApiPostOptions = {}
+): Promise<TResponse> {
+  const { auth = false } = options;
+  const token = auth ? getAccessToken() ?? undefined : undefined;
+
+  try {
+    return await rawPost<TResponse>(path, body, token);
+  } catch (err) {
+    const shouldRetry =
+      auth && err instanceof ApiError && err.status === 401 && path !== REFRESH_PATH;
+
+    if (!shouldRetry) throw err;
+
+    const newAccessToken = await refreshAccessToken();
+    if (!newAccessToken) throw err; // رفرش هم شکست خورد؛ همون خطای اولیه (۴۰۱) بالا میره
+
+    return rawPost<TResponse>(path, body, newAccessToken);
+  }
 }
