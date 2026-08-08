@@ -74,50 +74,52 @@ export default function SignupPage() {
 
   return (
     <>
-      <h1 className="mb-1.5 text-xl font-medium text-text-primary">ثبت‌نام با رمز عبور</h1>
-      <p className="mb-6 text-sm text-text-secondary">
+      <h1 className="mb-8 text-2xl font-medium text-text-primary text-center">ثبت‌نام با رمز عبور</h1>
+      {/* <p className="mb-6 text-sm text-text-secondary">
         برای ساخت حساب کاربری جدید، اطلاعات زیر را وارد کنید.
-      </p>
+      </p> */}
 
       <form onSubmit={handleSubmit} className="space-y-5">
         <PhoneInput value={phone} onChange={setPhone} disabled={loading} />
 
         <div>
-          <label htmlFor="firstName" className="mb-1.5 block text-sm text-text-secondary">
+          {/* <label htmlFor="firstName" className="mb-1.5 block text-sm text-text-secondary">
             نام <span className="text-error">*</span>
-          </label>
+          </label> */}
           <input
             id="firstName"
             type="text"
             maxLength={25}
             value={firstName}
+            dir="ltr"
             onChange={(e) => setFirstName(e.target.value)}
             disabled={loading}
             className="w-full rounded-card border border-divider bg-surface px-4 py-3 text-right text-base text-text-primary outline-none transition-colors placeholder:text-text-secondary/60 focus:border-accent disabled:opacity-50"
-            placeholder="مثلاً علی"
+            placeholder="نام"
           />
         </div>
 
         <div>
-          <label htmlFor="lastName" className="mb-1.5 block text-sm text-text-secondary">
+          {/* <label htmlFor="lastName" className="mb-1.5 block text-sm text-text-secondary">
             نام‌خانوادگی
-          </label>
+          </label> */}
           <input
             id="lastName"
             type="text"
             maxLength={25}
             value={lastName}
+            dir="ltr"
             onChange={(e) => setLastName(e.target.value)}
             disabled={loading}
             className="w-full rounded-card border border-divider bg-surface px-4 py-3 text-right text-base text-text-primary outline-none transition-colors placeholder:text-text-secondary/60 focus:border-accent disabled:opacity-50"
-            placeholder="اختیاری"
+            placeholder="نام خانوادگی"
           />
         </div>
 
         <div>
-          <label htmlFor="email" className="mb-1.5 block text-sm text-text-secondary">
+          {/* <label htmlFor="email" className="mb-1.5 block text-sm text-text-secondary">
             ایمیل
-          </label>
+          </label> */}
           <input
             id="email"
             type="email"
@@ -125,8 +127,8 @@ export default function SignupPage() {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             disabled={loading}
-            className="w-full rounded-card border border-divider bg-surface px-4 py-3 text-left text-base text-text-primary outline-none transition-colors placeholder:text-text-secondary/60 focus:border-accent disabled:opacity-50"
-            placeholder="example@mail.com (اختیاری)"
+            className="w-full rounded-card border border-divider bg-surface px-4 py-3 text-right text-base text-text-primary outline-none transition-colors placeholder:text-text-secondary/60 placeholder:text-right focus:border-accent disabled:opacity-50"
+            placeholder="(اختیاری) ایمیل"
           />
         </div>
 
@@ -137,7 +139,7 @@ export default function SignupPage() {
           onChange={setPassword}
           disabled={loading}
           autoComplete="new-password"
-          placeholder="حداقل ۸ کاراکتر"
+          placeholder="رمز عبور"
         />
 
         <PasswordInput
@@ -146,6 +148,7 @@ export default function SignupPage() {
           value={password2}
           onChange={setPassword2}
           disabled={loading}
+          placeholder="تکرار رمز عبور"
           autoComplete="new-password"
           error={
             password2.length > 0 && !passwordsMatch(password, password2)
@@ -166,8 +169,8 @@ export default function SignupPage() {
 
         <p className="text-center text-sm text-text-secondary">
           حساب کاربری دارید؟{" "}
-          <Link href="/login-password" className="text-accent hover:text-accent-dark">
-            ورود با رمز عبور
+          <Link href="/login?tab=password" className="text-accent hover:text-accent-dark">
+            ورود
           </Link>
         </p>
       </form>

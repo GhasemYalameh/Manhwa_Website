@@ -60,6 +60,7 @@ export function OtpInput({ value, onChange, error, disabled }: OtpInputProps) {
             onChange={(e) => handleChange(i, e.target.value)}
             onKeyDown={(e) => handleKeyDown(i, e)}
             disabled={disabled}
+            autoFocus={i === 0}
             className="h-14 w-12 rounded-card border border-divider bg-surface text-center text-xl font-semibold text-text-primary outline-none transition-colors focus:border-accent disabled:opacity-50"
             aria-invalid={!!error}
             aria-label={`رقم ${i + 1} کد تایید`}

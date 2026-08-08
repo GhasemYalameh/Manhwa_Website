@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { OtpInput } from "@/components/auth/OtpInput";
@@ -75,10 +76,13 @@ function VerifyForm() {
 
   return (
     <>
-      <h1 className="mb-1.5 text-xl font-medium text-text-primary">کد تایید را وارد کنید</h1>
+      <h1 className="mb-2 text-2xl font-medium text-text-primary">کد تایید را وارد کنید</h1>
       <p className="mb-6 text-sm text-text-secondary">
         کد ۵ رقمی ارسال‌شده به شماره{" "}
-        <span className="text-text-primary">{formatPhoneDisplay(phone)}</span> را وارد کنید.
+        <span dir="ltr" className="text-text-primary ">{formatPhoneDisplay(phone)}</span> را وارد کنید.{" "}
+        <Link href="/login" className="text-accent hover:text-accent-dark">
+          تغییر شماره
+        </Link>
       </p>
 
       <form onSubmit={handleSubmit} className="space-y-6">
@@ -89,25 +93,32 @@ function VerifyForm() {
             به دلیل تلاش‌های ناموفق زیاد، دسترسی شما موقتاً محدود شده است.
           </p>
         )}
+        {expired && !blacklisted && (
+          <p className="rounded-card bg-accent-light px-4 py-3 text-center text-sm text-error">
+            کد تایید منقضی شده است. لطفاً کد جدید دریافت کنید.
+          </p>
+        )}
 
         <button
           type="submit"
-          disabled={otp.length !== 5 || loading || blacklisted}
+          disabled={otp.length !== 5 || loading || blacklisted || expired}
           className="w-full rounded-card bg-accent py-3 text-sm font-semibold text-white transition-colors hover:bg-accent-dark disabled:cursor-not-allowed disabled:opacity-40"
         >
           {loading ? "در حال بررسی..." : "تایید"}
         </button>
 
-        <div className="flex items-center justify-center gap-1.5 text-sm">
+        <div className="flex items-center justify-center gap-1 text-sm text-text-secondary">
+          {!expired && <span>کد را دریافت نکردید؟</span>}
           {!expired ? (
-            <>
-              <span className="text-text-secondary">ارسال مجدد کد تا</span>
+            <span>
+              ارسال مجدد (
               <CountdownTimer
                 seconds={OTP_TTL_SECONDS}
                 resetKey={timerKey}
                 onExpire={() => setExpired(true)}
               />
-            </>
+              )
+            </span>
           ) : (
             <button
               type="button"
@@ -115,7 +126,7 @@ function VerifyForm() {
               disabled={resending || blacklisted}
               className="text-accent hover:text-accent-dark disabled:opacity-40"
             >
-              {resending ? "در حال ارسال..." : "ارسال مجدد کد"}
+              {resending ? "در حال ارسال..." : "ارسال مجدد"}
             </button>
           )}
         </div>
