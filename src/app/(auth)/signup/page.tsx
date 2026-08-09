@@ -10,6 +10,7 @@ import { isValidPhone } from "@/lib/validators/phone";
 import { isValidEmail, isValidFirstName, isValidLastName } from "@/lib/validators/profile";
 import { isValidPassword, passwordsMatch } from "@/lib/validators/password";
 import { ApiError } from "@/lib/api/client";
+import { UserCircleIcon, MailIcon } from "@/components/icons";
 
 function extractMessage(body: unknown): string | undefined {
   if (body && typeof body === "object") {
@@ -75,17 +76,13 @@ export default function SignupPage() {
   return (
     <>
       <h1 className="mb-8 text-2xl font-medium text-text-primary text-center">ثبت‌نام با رمز عبور</h1>
-      {/* <p className="mb-6 text-sm text-text-secondary">
-        برای ساخت حساب کاربری جدید، اطلاعات زیر را وارد کنید.
-      </p> */}
-
       <form onSubmit={handleSubmit} className="space-y-5">
         <PhoneInput value={phone} onChange={setPhone} disabled={loading} />
 
-        <div>
-          {/* <label htmlFor="firstName" className="mb-1.5 block text-sm text-text-secondary">
-            نام <span className="text-error">*</span>
-          </label> */}
+        <div className="relative">
+          <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-text-secondary">
+            <UserCircleIcon />
+          </span>
           <input
             id="firstName"
             type="text"
@@ -94,15 +91,15 @@ export default function SignupPage() {
             dir="ltr"
             onChange={(e) => setFirstName(e.target.value)}
             disabled={loading}
-            className="w-full rounded-card border border-divider bg-surface px-4 py-3 text-right text-base text-text-primary outline-none transition-colors placeholder:text-text-secondary/60 focus:border-accent disabled:opacity-50"
+            className="w-full rounded-card border border-divider bg-surface py-3 pr-11 pl-4 text-right text-lg text-text-primary outline-none transition-colors placeholder:text-text-secondary/60 placeholder:text-right focus:border-accent disabled:opacity-50"
             placeholder="نام"
           />
         </div>
 
-        <div>
-          {/* <label htmlFor="lastName" className="mb-1.5 block text-sm text-text-secondary">
-            نام‌خانوادگی
-          </label> */}
+        <div className="relative">
+          <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-text-secondary">
+            <UserCircleIcon />
+          </span>
           <input
             id="lastName"
             type="text"
@@ -111,15 +108,15 @@ export default function SignupPage() {
             dir="ltr"
             onChange={(e) => setLastName(e.target.value)}
             disabled={loading}
-            className="w-full rounded-card border border-divider bg-surface px-4 py-3 text-right text-base text-text-primary outline-none transition-colors placeholder:text-text-secondary/60 focus:border-accent disabled:opacity-50"
-            placeholder="نام خانوادگی"
+            className="w-full rounded-card border border-divider bg-surface py-3 pr-11 pl-4 text-right text-lg text-text-primary outline-none transition-colors placeholder:text-text-secondary/60 placeholder:text-right focus:border-accent disabled:opacity-50"
+            placeholder="نام خانوادگی (اختیاری)"
           />
         </div>
 
-        <div>
-          {/* <label htmlFor="email" className="mb-1.5 block text-sm text-text-secondary">
-            ایمیل
-          </label> */}
+        <div className="relative">
+          <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-text-secondary">
+            <MailIcon />
+          </span>
           <input
             id="email"
             type="email"
@@ -127,7 +124,7 @@ export default function SignupPage() {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             disabled={loading}
-            className="w-full rounded-card border border-divider bg-surface px-4 py-3 text-right text-base text-text-primary outline-none transition-colors placeholder:text-text-secondary/60 placeholder:text-right focus:border-accent disabled:opacity-50"
+            className="w-full rounded-card border border-divider bg-surface py-3 pr-11 pl-4 text-right text-lg text-text-primary outline-none transition-colors placeholder:text-text-secondary/60 placeholder:text-right focus:border-accent disabled:opacity-50"
             placeholder="(اختیاری) ایمیل"
           />
         </div>

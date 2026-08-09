@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { PasswordIcon } from "../icons";
 
 interface PasswordInputProps {
   id: string;
@@ -29,15 +30,9 @@ export function PasswordInput({
 
   return (
     <div>
-      {/* <label htmlFor={id} className="mb-1.5 block text-sm text-text-secondary">
-        {label} {required && <span className="text-error">*</span>}
-      </label> */}
       <div className="relative">
         <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-text-secondary">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
-            <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-            <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-          </svg>
+          <PasswordIcon />
         </span>
         <input
           id={id}

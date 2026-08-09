@@ -76,8 +76,8 @@ function VerifyForm() {
 
   return (
     <>
-      <h1 className="mb-2 text-2xl font-medium text-text-primary">کد تایید را وارد کنید</h1>
-      <p className="mb-6 text-sm text-text-secondary">
+      <h1 className="mb-2 text-2xl font-medium text-text-primary text-center">تایید کد</h1>
+      <p className="mb-6 text-sm text-text-secondary text-center">
         کد ۵ رقمی ارسال‌شده به شماره{" "}
         <span dir="ltr" className="text-text-primary ">{formatPhoneDisplay(phone)}</span> را وارد کنید.{" "}
         <Link href="/login" className="text-accent hover:text-accent-dark">
