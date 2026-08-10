@@ -73,7 +73,7 @@ class Manhwa(models.Model):
         return self.en_title
 
     def save(self, *args, **kwargs):
-        if self.en_title:
+        if not self.en_title:
             raise ValueError('en_title cant be empty')
         self.title_slug = generate_manhwa_slug(self.en_title)
         return super().save(*args, **kwargs)

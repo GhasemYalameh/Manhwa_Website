@@ -135,8 +135,8 @@ class CommentViewSet(ModelViewSet):
 
     @cached_property
     def manhwa(self):
-        manhwa_pk = self.kwargs['manhwa_pk']
-        return get_object_or_404(Manhwa, pk=manhwa_pk)
+        manhwa_slug = self.kwargs['manhwa_title_slug']
+        return get_object_or_404(Manhwa, title_slug=manhwa_slug)
 
     def get_permissions(self):
         match self.action:
@@ -189,13 +189,13 @@ class CommentViewSet(ModelViewSet):
 
 
     @action(detail=True, methods=['GET'])
-    def replies(self, request, manhwa_pk=None, pk=None):
+    def replies(self, request, *args, **kwargs):
         comment_obj = self.get_object()
         serializer = self.get_serializer(comment_obj)
         return Response(serializer.data)
 
     @action(detail=True, methods=['post'])
-    def reaction(self, request, manhwa_pk=None, pk=None):
+    def reaction(self, request, *args, **kwargs):
         comment = self.get_object()
         serializer = self.get_serializer(data=request.data, context={'request': request, 'comment_id': pk})
         serializer.is_valid(raise_exception=True)
@@ -208,9 +208,10 @@ class CommentViewSet(ModelViewSet):
 
 
 class ManhwaViewSet(ModelViewSet):
+    lookup_field = 'title_slug'
     pagination_class = CustomPagination
     filter_backends = [SearchFilter, DjangoFilterBackend, OrderingFilter]
-    search_fields = ('en_title',)
+    search_fields = ('en_title', 'fa_title')
     ordering_fields = ('publication_datetime', 'avg_rating')
     filterset_fields = ('day_of_week', 'genres', 'studio')
     # filterset_class = ManhwaFilter

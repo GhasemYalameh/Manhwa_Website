@@ -8,6 +8,8 @@ from django.db import IntegrityError, transaction
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext as _
 
+from accounts.models import CustomUser
+
 from .models import Manhwa, CommentReAction, Comment, Episode, Ticket, TicketMessage, Rate, Genre, View
 from .services import ManhwaService
 
@@ -39,8 +41,20 @@ class CreateCommentSerializer(serializers.ModelSerializer):
             })
 
 
+class CustomUserSerializer(serializers.ModelSerializer):
+    is_subscriber = serializers.SerializerMethodField()
+    class Meta:
+        model = CustomUser
+        # avatar , 
+        fields = ('id', 'first_name', 'is_subscriber', )
+
+    def get_is_subscriber(self, obj):
+        return obj.subscription.is_subscriber()
+
+
+
 class RetrieveCommentSerializer(serializers.ModelSerializer):
-    author = serializers.CharField(source='author.username', read_only=True)
+    author = CustomUserSerializer()
     replies_count = serializers.SerializerMethodField()
     user_reaction = serializers.CharField(max_length=1, read_only=True)
 
@@ -57,13 +71,14 @@ class RetrieveCommentSerializer(serializers.ModelSerializer):
 
 
 class CommentDetailSerializer(serializers.ModelSerializer):
-    author = serializers.CharField(source='author.username', read_only=True)
-    replies = RetrieveCommentSerializer(source='children', many=True, read_only=True)
+    author = CustomUserSerializer(source='author')
+    replies = RetrieveCommentSerializer(source='children', many=True)
     replies_count = serializers.SerializerMethodField()
 
     class Meta:
         model = Comment
         fields = ('id', 'author', 'text', 'parent', 'level', 'likes_count', 'dis_likes_count', 'replies_count', 'replies')
+        read_only_fields = ('author', 'replies',)
 
     def get_replies_count(self, obj):
         return obj.children.count()
@@ -103,7 +118,7 @@ class DetailManhwaSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Manhwa
-        fields = ['id', 'en_title', 'genres', 'rating_data', 'season', 'day_of_week', 'last_upload', 'studio', 'views_count', 'comments_count', 'cover']
+        fields = ['fa_title', 'en_title', 'genres', 'rating_data', 'season', 'day_of_week', 'last_upload', 'studio', 'views_count', 'comments_count', 'cover']
 
     def get_genres(self, obj):
         # return only title of genres instead of many dicts with key&value
@@ -116,14 +131,17 @@ class DetailManhwaSerializer(serializers.ModelSerializer):
         serializer = RatingDetailSerializer(rating_data)
         return serializer.data
 
+
 class ManhwaSerializer(serializers.ModelSerializer):
     comments_count = serializers.IntegerField(source='comments.count', read_only=True)
     cover = serializers.URLField(source='cover.url', read_only=True)
     avg_rating = serializers.DecimalField(max_digits=3, decimal_places=1, read_only=True)
+    slug = serializers.CharField(source='title_slug', read_only=True)
 
     class Meta:
         model = Manhwa
-        fields = ['id', 'en_title', 'avg_rating', 'season', 'day_of_week', 'last_upload', 'views_count', 'comments_count', 'cover']  # + 'comments'
+        fields = ('slug', 'fa_title', 'en_title', 'avg_rating', 'season', 'day_of_week', 'last_upload', 'views_count', 'comments_count', 'cover',)  # + 'comments'
+        read_only_fields = ('comments_count', 'cover', 'avg_rating', 'slug', 'fa_title',)
 
 
 class CreateManhwaSerializer(serializers.ModelSerializer):
@@ -181,7 +199,6 @@ class CommentReActionSerializer(serializers.ModelSerializer):
     @property
     def action(self):
         return self._action
-
 
 
 class CommentReactionToggleSerializer(serializers.Serializer):
