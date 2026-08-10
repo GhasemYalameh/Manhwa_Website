@@ -64,7 +64,10 @@ STOP_WORDS = {
 
 def generate_manhwa_slug(title: str, max_length: int = 50) -> str:
     """
-    
+    using slugify for base slug. then removing Stop Words like 
+    or, the, you, so, etc from the sentence. 
+    and also keep the length of slug less than Max Length by removing 
+    last word.
     """
     base = slugify(title)
 
@@ -87,15 +90,23 @@ def generate_manhwa_slug(title: str, max_length: int = 50) -> str:
 
 
 def manhwa_file_upload_to(instance, filename):
-    # استفاده از slugify برای تمیز کردن عنوان و جلوگیری از مشکلات مسیر
+    """
+    creating manhwa file path by using manhwa title, season number and
+    Episode number.
+    output: Manhwa/<manhwa_title>/season-<season_number>/Episode/<file_name>
+    """
     manhwa_title = instance.manhwa.en_title
     manhwa_season = instance.manhwa.season
     season = str(manhwa_season)
 
-    # manhwas/title/season/episodes/filename
     return os.path.join('Manhwa', slugify(manhwa_title), slugify('Season ' + season), 'Episodes', filename)
 
 def manhwa_cover_upload_to(instance, filename):
+    """
+    creating manhwa cover path by using manhwa title, season and file name.
+    
+    output: Manhwas/<manhwa_title>/season-<manhwa_season>/Covers/filename
+    """
     manhwa_title = instance.en_title
     manhwa_season = instance.season
     season = str(manhwa_season)
@@ -104,6 +115,10 @@ def manhwa_cover_upload_to(instance, filename):
     return os.path.join('Manhwa', slugify(manhwa_title), slugify("Season " + season), 'Covers', filename)
 
 def N(number) -> str:
+    """
+    making the numbers in two digits 
+    like 3 -> 03 or 9 -> 09
+    """
     # if number less than 10
     #  1-9  -> 01-09
     return f'0{number}' if number < 10 else str(number)
