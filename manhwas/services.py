@@ -1,9 +1,9 @@
 from django.db.models import Avg, Count, When, Case
-from django.db.models.functions import Round
-from django.shortcuts import get_object_or_404
+from django.utils.text import slugify
 from django_redis import get_redis_connection
 from django.core.cache import cache
 
+import os
 
 class ManhwaService:
     def __init__(self):
@@ -49,3 +49,61 @@ class ManhwaService:
         manhwa_viewers_key = self.manhwa_viewers_key.format(manhwa_id)
         is_member = self.redis.sismember(manhwa_viewers_key, user_id)
         return is_member
+
+
+STOP_WORDS = {
+    'the', 'a', 'an', 'of', 'to', 'in', 'on', 'at', 'for', 'with', 'by',
+    'from', 'up', 'about', 'into', 'over', 'after', 'why', 'how', 'what',
+    'when', 'where', 'who', 'which', 'is', 'are', 'was', 'were', 'be', 'been',
+    'being', 'have', 'has', 'had', 'do', 'does', 'did', 'will', 'would',
+    'could', 'should', 'may', 'might', 'must', 'shall', 'can', 'need',
+    'i', 'my', 'me', 'we', 'our', 'you', 'your', 'he', 'she', 'it', 'they',
+    'and', 'or', 'but', 'so', 'if', 'as', 'than', 'that', 'this', 'these',
+    'those', 'then', 'there', 'here', 'just', 'only', 'also', 'even', 'still'
+}
+
+def generate_manhwa_slug(title: str, max_length: int = 50) -> str:
+    """
+    
+    """
+    base = slugify(title)
+
+    if not base:
+        return "untitled"
+    
+    words = base.split('-')
+    filtered = [w for w in words if w and w not in STOP_WORDS]
+    
+    if not filtered:  # if all words removed, use words
+        filtered = words
+    
+    while filtered:
+        candidate = '-'.join(filtered)
+        if len(candidate) <= max_length:
+            return candidate
+        filtered.pop() 
+    
+    return '-'.join(words)[:max_length].rstrip('-')
+
+
+def manhwa_file_upload_to(instance, filename):
+    # استفاده از slugify برای تمیز کردن عنوان و جلوگیری از مشکلات مسیر
+    manhwa_title = instance.manhwa.en_title
+    manhwa_season = instance.manhwa.season
+    season = str(manhwa_season)
+
+    # manhwas/title/season/episodes/filename
+    return os.path.join('Manhwa', slugify(manhwa_title), slugify('Season ' + season), 'Episodes', filename)
+
+def manhwa_cover_upload_to(instance, filename):
+    manhwa_title = instance.en_title
+    manhwa_season = instance.season
+    season = str(manhwa_season)
+
+    # manhwas/title/season/covers/filename
+    return os.path.join('Manhwa', slugify(manhwa_title), slugify("Season " + season), 'Covers', filename)
+
+def N(number) -> str:
+    # if number less than 10
+    #  1-9  -> 01-09
+    return f'0{number}' if number < 10 else str(number)

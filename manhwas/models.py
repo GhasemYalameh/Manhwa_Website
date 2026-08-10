@@ -1,39 +1,14 @@
 from django.core.exceptions import ValidationError
 from django.db import models, transaction
-from django.db.models import F, Avg, Count, Case, When
-from django.shortcuts import get_object_or_404
-from django.utils.text import slugify
+from django.db.models import F, Count, When
 from django.utils.translation import gettext as _
 from django_ckeditor_5.fields import CKEditor5Field
 
 from config import settings
-
-import os.path
-
-
-def N(number) -> str:
-    # if number less than 10
-    #  1-9  -> 01-09
-    return f'0{number}' if number < 10 else str(number)
-
-
-def manhwa_file_upload_to(instance, filename):
-    # استفاده از slugify برای تمیز کردن عنوان و جلوگیری از مشکلات مسیر
-    manhwa_title = instance.manhwa.en_title
-    manhwa_season = instance.manhwa.season
-    season = str(manhwa_season)
-
-    # manhwas/title/season/episodes/filename
-    return os.path.join('Manhwa', slugify(manhwa_title), slugify('Season ' + season), 'Episodes', filename)
-
-
-def manhwa_cover_upload_to(instance, filename):
-    manhwa_title = instance.en_title
-    manhwa_season = instance.season
-    season = str(manhwa_season)
-
-    # manhwas/title/season/covers/filename
-    return os.path.join('Manhwa', slugify(manhwa_title), slugify("Season " + season), 'Covers', filename)
+from .services import (
+    generate_manhwa_slug, manhwa_cover_upload_to, manhwa_file_upload_to,
+    N,
+)
 
 
 class Genre(models.Model):
@@ -67,6 +42,7 @@ class Manhwa(models.Model):
 
     fa_title = models.CharField(max_length=500, blank=True, verbose_name=_('persian title'))
     en_title = models.CharField(max_length=500, verbose_name=_('english title'))
+    title_slug = models.SlugField(max_length=60, unique=True, blank=True)
     summary = CKEditor5Field('Text', config_name='extends')
     season = models.PositiveIntegerField(default=1, verbose_name=_('season'))
     day_of_week = models.CharField(max_length=30, choices=DAY_OF_THE_WEEK, verbose_name=_('day of the week'))
@@ -96,18 +72,11 @@ class Manhwa(models.Model):
     def __str__(self):
         return self.en_title
 
-    # @property
-    # def rating_data(self):
-    #     query_set = self.rates.aggregate(
-    #         avg_rating=Avg('rating'),
-    #         raters_count=Count('id'),
-    #         fives_count=Count(Case(When(rating=5, then=1))),
-    #         fours_count=Count(Case(When(rating=4, then=1))),
-    #         threes_count=Count(Case(When(rating=3, then=1))),
-    #         twos_count=Count(Case(When(rating=2, then=1))),
-    #         ones_count=Count(Case(When(rating=1, then=1)))
-    #     )
-    #     return query_set
+    def save(self, *args, **kwargs):
+        if self.en_title:
+            raise ValueError('en_title cant be empty')
+        self.title_slug = generate_manhwa_slug(self.en_title)
+        return super().save(*args, **kwargs)
 
 
 class View(models.Model):
