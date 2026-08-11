@@ -97,3 +97,18 @@ export function LogOutIcon({ className }: IconProps) {
     </svg>
   );
 }
+export function StarIcon({ className }: IconProps) {
+  return (
+    <svg className={className} width="13" height="13" viewBox="0 0 24 24" fill="currentColor" stroke="none">
+      <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+    </svg>
+  );
+}
+
+export function FlameIcon({ className }: IconProps) {
+  return (
+    <svg className={className} width="15" height="15" viewBox="0 0 24 24" fill="red" stroke="none">
+      <path d="M12 2c1 3-2 4-2 7a4 4 0 0 0 8 0c2 2 3 5 3 7a7 7 0 0 1-14 0c0-5 3-6 5-14z" />
+    </svg>
+  );
+}
