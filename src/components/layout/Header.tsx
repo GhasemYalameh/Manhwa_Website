@@ -91,9 +91,9 @@ export function Header() {
     <header className="sticky top-0 z-40 border-b border-divider bg-surface">
       <div className="mx-auto flex h-16 max-w-[1400px] items-center justify-between gap-4 px-4 lg:px-8">
         {/* لوگو + اسم سایت */}
-        <Link href="/" className="flex shrink-0 items-center gap-2">
+        <Link href="/" className="flex shrink-0 items-center gap-2 ">
           {/* TODO: جای لوگو - وقتی لوگو نهایی شد، آیکون/تصویر اینجا اضافه میشه */}
-          <span className="text-xl font-bold text-accent">مانهوالند</span>
+          <span className="text-xl font-bold text-accent">نارنج‌تون</span>
         </Link>
 
         {/* منوی دسکتاپ */}
@@ -104,11 +104,10 @@ export function Header() {
               <Link
                 key={link.href}
                 href={link.href}
-                className={`border-b-2 pb-1 text-sm font-medium transition-colors ${
-                  active
-                    ? "border-accent text-accent"
-                    : "border-transparent text-text-secondary hover:text-text-primary"
-                }`}
+                className={`border-b-2 pb-1 text-sm pb-0 font-medium transition-colors ${active
+                  ? "border-accent text-accent"
+                  : "border-transparent text-text-secondary hover:text-text-primary"
+                  }`}
               >
                 {link.label}
               </Link>
@@ -154,16 +153,16 @@ export function Header() {
                 onClick={() => setUserMenuOpen((v) => !v)}
                 className="flex items-center gap-2 rounded-full py-1 pl-1 pr-2 transition-colors hover:bg-accent-light"
               >
+                <ChevronDownIcon className={`text-text-secondary transition-transform ${userMenuOpen ? "rotate-180" : ""}`} />
                 <span className="text-sm text-text-primary">{MOCK_USER.name}</span>
                 {MOCK_USER.avatarUrl ? (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img src={MOCK_USER.avatarUrl} alt="" className="h-8 w-8 rounded-full object-cover" />
+                  <img src={MOCK_USER.avatarUrl} alt="" className="h-10 w-10 rounded-full object-cover" />
                 ) : (
                   <span className="flex h-8 w-8 items-center justify-center rounded-full bg-accent-light text-sm font-semibold text-accent">
                     {MOCK_USER.name.charAt(0)}
                   </span>
                 )}
-                <ChevronDownIcon className={`text-text-secondary transition-transform ${userMenuOpen ? "rotate-180" : ""}`} />
               </button>
 
               {userMenuOpen && (
@@ -171,7 +170,7 @@ export function Header() {
                   <Link
                     href="/profile"
                     onClick={() => setUserMenuOpen(false)}
-                    className="flex items-center gap-2 px-4 py-2 text-sm text-text-primary hover:bg-accent-light hover:text-accent"
+                    className="flex items-center gap-2 px-4 py-2 text-sm text-text-primary  hover:text-accent"
                   >
                     <UserCircleIcon />
                     پروفایل من
@@ -179,7 +178,7 @@ export function Header() {
                   <Link
                     href="/favorites"
                     onClick={() => setUserMenuOpen(false)}
-                    className="flex items-center gap-2 px-4 py-2 text-sm text-text-primary hover:bg-accent-light hover:text-accent"
+                    className="flex items-center gap-2 px-4 py-2 text-sm text-text-primary  hover:text-accent"
                   >
                     <HeartIcon />
                     علاقه‌مندی‌ها
@@ -238,9 +237,8 @@ export function Header() {
                 <Link
                   key={link.href}
                   href={link.href}
-                  className={`rounded-card px-3 py-2.5 text-sm font-medium transition-colors ${
-                    active ? "bg-accent-light text-accent" : "text-text-secondary hover:bg-bg hover:text-text-primary"
-                  }`}
+                  className={`rounded-card px-3 py-2.5 text-sm font-medium transition-colors ${active ? "bg-accent-light text-accent" : "text-text-secondary hover:bg-bg hover:text-text-primary"
+                    }`}
                 >
                   {link.label}
                 </Link>
