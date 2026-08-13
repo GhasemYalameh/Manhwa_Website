@@ -1,7 +1,7 @@
 import os 
 from .base import *
 
-stage = os.getenv('STAGE', 'production')
+stage = os.getenv('STAGE')
 
 match stage:
     case 'development' :
