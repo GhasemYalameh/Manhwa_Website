@@ -93,7 +93,7 @@ export function Header() {
         {/* لوگو + اسم سایت */}
         <Link href="/" className="flex shrink-0 items-center gap-2 ">
           {/* TODO: جای لوگو - وقتی لوگو نهایی شد، آیکون/تصویر اینجا اضافه میشه */}
-          <span className="text-xl font-bold text-accent">نارنج‌تون</span>
+          <span className="text-2xl font-bold text-accent">نارنج‌تون</span>
         </Link>
 
         {/* منوی دسکتاپ */}

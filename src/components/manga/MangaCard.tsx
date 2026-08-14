@@ -26,17 +26,17 @@ export function MangaCard({
   isHot,
 }: MangaCardProps) {
   return (
-    <Link href={`/manhwa/${slug}`} className="group block">
-      <div className="relative aspect-[2/3] w-full overflow-hidden rounded-card bg-surface">
+    <Link href={`/manhwa/${slug}`} className="group block bg-surface rounded-card">
+      <div className="relative aspect-[3/4] w-full overflow-hidden p-1 pb-0">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={coverUrl}
           alt={title}
-          className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+          className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105  rounded-t-card overflow-hidden backdrop-blur-lg"
         />
 
         {isHot && (
-          <span className="absolute top-2 right-2 flex items-center gap-1 rounded-full bg-error px-2 py-0.5 text-[11px] font-bold text-white">
+          <span className="absolute top-2 right-2 flex items-center gap-1 rounded-full bg-error px-2 py-0.5 text-[11px] font-bold text-primary">
             <FlameIcon />
             داغ
           </span>
@@ -49,21 +49,24 @@ export function MangaCard({
         )}
 
         {typeof rating === "number" && (
-          <span className="absolute bottom-2 left-2 flex items-center gap-1 rounded-full bg-black/60 px-2 py-0.5 text-[11px] font-semibold text-white">
-            <StarIcon className="text-warning" />
+          <span className="absolute bottom-3 left-3 flex items-bottom gap-1 rounded-xl  pl-1 pr-2 pb-0.5 pt-1 text-[14px] font-semibold text-white bg-divider">
             {rating.toFixed(1)}
+            <StarIcon className="text-warning" />
+
           </span>
         )}
       </div>
+      <div className="p-3 pt-0">
+        <h3
+          className="mt-2 mb-4 truncate text-sm font-medium text-text-primary"
+          title={title}
+        >
+          {title}
+        </h3>
 
-      <h3
-        className="mt-2 truncate text-sm font-medium text-text-primary"
-        title={title}
-      >
-        {title}
-      </h3>
+        <p className="mt-0.5 text-xs text-text-secondary">{lastUpload !== "Not Uploaded" ? lastUpload : "اپلود نشده"}</p>
+      </div>
 
-      <p className="mt-0.5 text-xs text-text-secondary">{lastUpload}</p>
     </Link>
   );
 }

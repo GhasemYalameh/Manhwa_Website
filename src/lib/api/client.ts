@@ -128,3 +128,42 @@ export async function apiPost<TResponse>(
     return rawPost<TResponse>(path, body, newAccessToken);
   }
 }
+
+
+async function rawGet<TResponse>(path: string, accessToken?: string): Promise<TResponse> {
+  const res = await fetch(`${BASE_URL}${path}`, {
+    method: "GET",
+    headers: {
+      ...(accessToken ? { Authorization: `JWT ${accessToken}` } : {}),
+    },
+  });
+
+  const isJson = res.headers.get("content-type")?.includes("application/json");
+  const data = isJson ? await res.json() : null;
+
+  if (!res.ok) {
+    throw new ApiError(res.status, data);
+  }
+
+  return data as TResponse;
+}
+
+export async function apiGet<TResponse>(
+  path: string,
+  options: ApiPostOptions = {}
+): Promise<TResponse> {
+  const { auth = false } = options;
+  const token = auth ? getAccessToken() ?? undefined : undefined;
+
+  try {
+    return await rawGet<TResponse>(path, token);
+  } catch (err) {
+    const shouldRetry = auth && err instanceof ApiError && err.status === 401;
+    if (!shouldRetry) throw err;
+
+    const newAccessToken = await refreshAccessToken();
+    if (!newAccessToken) throw err;
+
+    return rawGet<TResponse>(path, newAccessToken);
+  }
+}
