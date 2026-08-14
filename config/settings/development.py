@@ -8,4 +8,4 @@ from .security import *
 
 DEBUG = True
 
-MEDIA_URL = 'http://localhost/media/'
+MEDIA_URL = '/media/'
