@@ -19,7 +19,7 @@ ticket_router.register('messages', views.TicketMessageViewSet, basename='ticket-
 urlpatterns = [
     path('healthy/', views.health_check, name='health-check'),
     path('api/genre/', views.GenreListApiView.as_view(), name='genre-list'),
-View.as_view(), name='studio-list'),    path('api/studio/', views.StudioListApi
+    path('api/studio/', views.StudioListApiView.as_view(), name='studio-list'),
     # path('api/tickets/', views.TicketApiView.as_view(), name='tickets'),
     # path('api/tickets/<int:pk>/', views.TicketMessagesApiView.as_view(), name='ticket-messages'),
 

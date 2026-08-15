@@ -28,16 +28,20 @@ class Studio(models.Model):
 
 
 class Manhwa(models.Model):
-    SATURDAY, SUNDAY, MONDAY, TUESDAY = 'sat', 'sun', 'mon', 'tue'
-    WEDNESDAY, THURSDAY, FRIDAY = 'wed', 'thu', 'fri'
-
     DAY_OF_THE_WEEK = (
-        (SATURDAY, 'Saturday'), (SUNDAY, 'Sunday'), (MONDAY, 'Monday'), (TUESDAY, 'Tuesday'),
-        (WEDNESDAY, 'Wednesday'), (THURSDAY, 'thursday'), (FRIDAY, 'Friday'),
+        (SATURDAY:='sat', 'Saturday'),      (SUNDAY:='sun', 'Sunday'),
+        (MONDAY:='mon', 'Monday'),        (TUESDAY:='tue', 'Tuesday'),
+        (WEDNESDAY:='wed', 'Wednesday'),  (THURSDAY:='thu', 'thursday'),
+        (FRIDAY:='fri', 'Friday'),
     )
     AGE_RANGE = (
         ('all', 'All people'), ('adult', 'older than 18'),
         ('child', 'less than 13'), ('teen', 'older than 13'),
+    )
+    PUB_STATUS_CHOICES = (
+        (CURRENTLY_PUBLISHING:='cp', 'Currently Publishing'),
+        (CONCLUDED:='c', 'Concluded'),
+        (UNPUBLISHED:='up', 'UnPublished'),
     )
 
     fa_title = models.CharField(max_length=500, blank=True, verbose_name=_('persian title'))
@@ -47,10 +51,14 @@ class Manhwa(models.Model):
     season = models.PositiveIntegerField(default=1, verbose_name=_('season'))
     day_of_week = models.CharField(max_length=30, choices=DAY_OF_THE_WEEK, verbose_name=_('day of the week'))
     cover = models.ImageField(upload_to=manhwa_cover_upload_to, verbose_name=_('manhwa cover'))
-    publication_datetime = models.DateTimeField(verbose_name=_('publication datetime'))
     genres = models.ManyToManyField(Genre, related_name='manhwas', verbose_name=_('genre'))
     studio = models.ForeignKey(Studio, on_delete=models.PROTECT, related_name='manhwas', verbose_name=_('studio'))
     views_count = models.PositiveIntegerField(default=0, editable=False, verbose_name=_('views count'))
+    publication_datetime = models.DateTimeField(verbose_name=_('publication datetime'))
+    publication_status = models.CharField(choices=PUB_STATUS_CHOICES, default=UNPUBLISHED)
+    is_hot = models.BooleanField(default=False)
+
+    last_upload_time = models.DateTimeField(null=True, blank=True)  # when an Episode Uploaded.
     last_upload = models.CharField(default='Not Uploaded', editable=False)
 
     datetime_created = models.DateTimeField(auto_now_add=True, verbose_name=_('datetime created'))
@@ -68,6 +76,7 @@ class Manhwa(models.Model):
             models.Index(fields=['-views_count']),
             models.Index(fields=['en_title']),
         )
+        unique_together = ("en_title", "season")
 
     def __str__(self):
         return self.en_title
