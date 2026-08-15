@@ -1,6 +1,7 @@
 *.sqlite3
 .idea/
 .vscode/
+images/
 media/
 venv/
 .venv/

@@ -1,8 +1,9 @@
 from datetime import date
 
 from django.db import models
+from django.utils import timezone
 
-from accounts.models import CustomUser
+from config.settings import AUTH_USER_MODEL
 
 class SubscriptionPlan(models.Model):
     name = models.CharField(max_length=100, unique=True)
@@ -14,10 +15,10 @@ class SubscriptionPlan(models.Model):
         return self.name
 
 class Subscription(models.Model):
-    user = models.OneToOneField(CustomUser, on_delete=models.CASCADE, related_name='subscription')
+    user = models.OneToOneField(AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='subscription')
     is_active = models.BooleanField(default=False)
-    last_validation = models.DateField() # last validation for trust of is_subscriber field
-    expiration_date = models.DateField()
+    last_validation = models.DateField(default=timezone.now) # last validation for trust of is_subscriber field
+    expiration_date = models.DateField(default=timezone.now)
 
     creation_date = models.DateTimeField(auto_now_add=True)
 
@@ -45,7 +46,7 @@ class Subscription(models.Model):
 
 
 class SubscriptionOrder(models.Model):
-    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='subscription_orders')
+    user = models.ForeignKey(AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='subscription_orders')
     plan = models.ForeignKey(SubscriptionPlan, on_delete=models.PROTECT, related_name='subscription_orders')
     is_paid = models.BooleanField(default=False)
     is_consumed = models.BooleanField(default=False)
