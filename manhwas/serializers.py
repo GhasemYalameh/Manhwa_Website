@@ -10,7 +10,7 @@ from django.utils.translation import gettext as _
 
 from accounts.models import CustomUser
 
-from .models import Manhwa, CommentReAction, Comment, Episode, Ticket, TicketMessage, Rate, Genre, View
+from .models import Manhwa, CommentReAction, Comment, Episode, Studio, Ticket, TicketMessage, Rate, Genre, View
 from .services import ManhwaService
 
 
@@ -50,7 +50,6 @@ class CustomUserSerializer(serializers.ModelSerializer):
 
     def get_is_subscriber(self, obj):
         return obj.subscription.is_subscriber()
-
 
 
 class RetrieveCommentSerializer(serializers.ModelSerializer):
@@ -297,3 +296,16 @@ class UpdateTicketMessageSerializer(serializers.ModelSerializer):
     class Meta:
         model = TicketMessage
         fields = ('text',)
+
+
+class GenreListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Genre 
+        fields = ("title", "description",)
+
+class StudioListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Studio 
+        fields = ("title", "description",)
+
+

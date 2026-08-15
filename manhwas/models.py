@@ -309,6 +309,7 @@ class Ticket(models.Model):
     class Meta:
         ordering = ['-created_at']
 
+
 class TicketMessage(models.Model):
     USER = 'user'
     ADMIN = 'admin'

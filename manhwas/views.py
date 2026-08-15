@@ -9,15 +9,16 @@ from django.template.loader import render_to_string
 from django.utils.functional import cached_property
 
 from rest_framework import status
-from rest_framework.decorators import action, api_view
+from rest_framework.decorators import  action
 from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser
 from rest_framework.response import Response
 from rest_framework.viewsets import ReadOnlyModelViewSet, ModelViewSet
+from rest_framework.generics import ListAPIView
 from rest_framework.filters import SearchFilter, OrderingFilter
 from django_filters.rest_framework import DjangoFilterBackend
 
 from . import serializers as srilzr
-from .models import Manhwa, View, CommentReAction, Comment, Episode, Ticket, Rate, TicketMessage
+from .models import Genre, Manhwa, Studio, View, CommentReAction, Comment, Episode, Ticket, Rate, TicketMessage
 from .paginations import CustomPagination
 from .permissions import IsOwnerOrAdmin
 from .services import ManhwaService
@@ -288,6 +289,16 @@ class EpisodeViewSet(ReadOnlyModelViewSet):
     def get_queryset(self):
         manhwa_pk = self.kwargs.get('manhwa_pk')
         return Episode.objects.filter(manhwa_id=manhwa_pk)
+
+
+class GenreListApiView(ListAPIView):
+    serializer_class = srilzr.GenreListSerializer
+    queryset = Genre.objects.all()
+
+
+class StudioListApiView(ListAPIView):
+    serializer_class = srilzr.StudioListSerializer
+    queryset = Studio.objects.all()
 
 
 def delete_db(model_class):
