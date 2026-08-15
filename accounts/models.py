@@ -1,8 +1,12 @@
+import uuid
+
 from django.contrib.auth.models import PermissionsMixin, AbstractBaseUser, BaseUserManager
 from django.db import models
 from django.core.validators import RegexValidator
 from django.utils import timezone
 
+from subscription.models import Subscription
+from .services import user_avatar_upload_to
 
 class CustomUserManager(BaseUserManager):
     def create_user(self, phone_number, password=None, **extra_fields):
@@ -17,6 +21,8 @@ class CustomUserManager(BaseUserManager):
         user = self.model(phone_number=phone_number, **extra_fields)
         user.set_password(password)
         user.save(using=self._db)
+
+        Subscription.objects.create(user=user)
         return user
 
     def create_superuser(self, phone_number, password=None, **extra_fields):
@@ -43,6 +49,8 @@ class CustomUserManager(BaseUserManager):
         user = self.model(phone_number=phone_number, **extra_fields)
         user.set_unusable_password()
         user.save(using=self._db)
+
+        Subscription.objects.create(user=user)
         return user
 
 
@@ -50,11 +58,12 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     phone_regex = RegexValidator(regex=r'^09\d{9}$',
         message="mobile format must be 09xxxxxxxxx (11 digits)."
     )
+    id = models.UUIDField(default=uuid.uuid4, unique=True, primary_key=True, editable=False)
     phone_number = models.CharField(max_length=11, unique=True, validators=[phone_regex],)
-
     first_name = models.CharField(max_length=150, blank=True)
     last_name = models.CharField(max_length=150, blank=True)
     email = models.EmailField(blank=True, null=True)
+    avatar = models.ImageField(upload_to=user_avatar_upload_to, default='User/default.jpg')
 
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)

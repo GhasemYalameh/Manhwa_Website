@@ -22,6 +22,17 @@ def pass_validation(value):
         raise serializers.ValidationError(list(e.messages))
 
 
+class GetMeSerializer(serializers.ModelSerializer):
+    is_subscriber = serializers.SerializerMethodField()
+    class Meta:
+        model = CustomUser
+        fields = ("first_name", "avatar", "last_name", "phone_number", "is_subscriber")
+
+    def get_is_subscriber(self, obj):
+        # return True
+        return obj.subscription.is_subscriber()
+
+
 class GetPhoneNumberSerializer(serializers.Serializer):
     phone_number = serializers.CharField(max_length=11, validators=[phone_regex,])
 

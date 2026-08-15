@@ -11,9 +11,18 @@ from accounts.services.otp import BlackListManager
 from .models import CustomUser
 from .services import OTP
 from .serializers import (
-    CompleteSignUpWithOTPSerializer, GetPhoneNumberSerializer, LoginWithPasswordSerializer, 
+    CompleteSignUpWithOTPSerializer, GetMeSerializer, GetPhoneNumberSerializer, LoginWithPasswordSerializer, 
     OTPCodeVerifySerializer,  SignUpWithPasswordSerializer,
 )
+
+
+class GetMeApiView(APIView):
+    permission_classes=[IsAuthenticated]
+
+    def get(self, request):
+        user = CustomUser.objects.prefetch_related('subscription').get(pk=request.user.id)
+        serializer = GetMeSerializer(user)
+        return Response(serializer.data)
 
 
 class GenerateOTPApiView(APIView):
