@@ -1,16 +1,15 @@
-from keyword import kwlist
+from email.policy import default
 from re import search
 
-from django.db.models import F
 from rest_framework import serializers
+from rest_framework.validators import UniqueTogetherValidator
 
 from django.db import IntegrityError, transaction
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext as _
 
 from accounts.models import CustomUser
-
-from .models import Manhwa, CommentReAction, Comment, Episode, Studio, Ticket, TicketMessage, Rate, Genre, View
+from .models import Manhwa, CommentReAction, Comment, Episode, Studio, Ticket, TicketMessage, Rate, Genre, View, WatchList
 from .services import ManhwaService
 
 
@@ -303,9 +302,28 @@ class GenreListSerializer(serializers.ModelSerializer):
         model = Genre 
         fields = ("title", "description",)
 
+
 class StudioListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Studio 
         fields = ("title", "description",)
 
 
+class WatchListSerializer(serializers.ModelSerializer):
+    manhwa_slug = serializers.SlugRelatedField(source='manhwa', slug_field='title_slug', queryset=Manhwa.objects.all())
+    user = serializers.HiddenField(default=serializers.CurrentUserDefault())
+
+    class Meta:
+        model = WatchList
+        fields = ('id', 'manhwa_slug', 'watching_status', 'user',)
+        validators = (
+            UniqueTogetherValidator(
+                queryset=WatchList.objects.all(), fields=('manhwa_slug', 'user')
+            ),
+        )
+
+
+class PatchWatchListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = WatchList
+        fields = ('watching_status',)

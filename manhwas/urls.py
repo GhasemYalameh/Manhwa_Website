@@ -4,17 +4,17 @@ from rest_framework_nested import routers
 
 router = routers.SimpleRouter()
 router.register('manhwas', views.ManhwaViewSet, basename='manhwa')  # list & retrieve (manhwa-list, manhwa-detail)
-
 manhwa_router = routers.NestedSimpleRouter(router, 'manhwas', lookup='manhwa')
 manhwa_router.register('comments', views.CommentViewSet, basename='manhwa-comments')
 manhwa_router.register('episodes', views.EpisodeViewSet, basename='manhwa-episodes')
 
 router2 = routers.SimpleRouter()
 router2.register('tickets', views.TicketViewSet, basename='ticket')
-
 ticket_router = routers.NestedSimpleRouter(router2, 'tickets', lookup='ticket')
 ticket_router.register('messages', views.TicketMessageViewSet, basename='ticket-messages')
 
+router3 = routers.SimpleRouter()
+router3.register('watchlist', views.WatchListViewSet, basename='watchlist')
 
 urlpatterns = [
     path('healthy/', views.health_check, name='health-check'),
@@ -27,4 +27,5 @@ urlpatterns = [
     path('api/', include(manhwa_router.urls)),
     path('api/', include(router2.urls)),
     path('api/', include(ticket_router.urls)),
+    path('api/', include(router3.urls)),
 ]

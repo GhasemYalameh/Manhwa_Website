@@ -1,5 +1,3 @@
-from pyexpat import model
-
 from django.core.exceptions import ValidationError
 from django.db import models, transaction
 from django.db.models import F, Count, When
@@ -9,8 +7,8 @@ from django_ckeditor_5.fields import CKEditor5Field
 from config import settings
 from config.settings.base import AUTH_USER_MODEL
 from .services import (
-    generate_manhwa_slug, manhwa_cover_upload_to, manhwa_file_upload_to,
-    N,
+    generate_manhwa_slug, manhwa_cover_upload_to, N,
+    manhwa_file_upload_to
 )
 
 
@@ -350,4 +348,7 @@ class WatchList(models.Model):
     )
     manhwa = models.ForeignKey(Manhwa, on_delete=models.CASCADE, related_name='watch_listed')
     user = models.ForeignKey(AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='watch_list')
-    watching_status = models.CharField(choices=WATCHING_STATUS, max_length=10, default=WILL_READING)
+    watching_status = models.CharField(choices=WATCHING_STATUS, max_length=10, default=WILL_READING, blank=True)
+
+    class Meta:
+        unique_together = ('user', 'manhwa')
