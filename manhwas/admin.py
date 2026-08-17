@@ -3,7 +3,7 @@ from django.db.models import Count, OuterRef, Subquery
 from django.utils.html import format_html, urlencode
 from django.urls import reverse
 
-from .models import Manhwa, Episode, Studio, Genre, Rate, View, CommentReAction, Comment, Ticket, TicketMessage
+from .models import Manhwa, Episode, Studio, Genre, Rate, View, CommentReAction, Comment, Ticket, TicketMessage, WatchList
 
 
 class EpisodeInline(admin.TabularInline):
@@ -112,4 +112,10 @@ class TicketAdmin(admin.ModelAdmin):
 class TicketMessageAdmin(admin.ModelAdmin):
     list_display = ('text', 'user', 'created_at',)
     list_filter = ('message_sender',)
+
+
+@admin.register(WatchList)
+class WatchListAdmin(admin.ModelAdmin):
+    list_display = ('manhwa', 'user',)
+    ordering = ('manhwa',)
 

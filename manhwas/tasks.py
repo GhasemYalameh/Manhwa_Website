@@ -1,6 +1,5 @@
 from celery import shared_task
 import logging
-from re import findall
 
 from django.db.models import F
 from django_redis import get_redis_connection

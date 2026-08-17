@@ -4,3 +4,6 @@ from django.apps import AppConfig
 class ManhwasConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
     name = 'manhwas'
+
+    def ready(self):
+        from . import signals

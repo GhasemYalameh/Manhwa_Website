@@ -1,3 +1,5 @@
+from pyexpat import model
+
 from django.core.exceptions import ValidationError
 from django.db import models, transaction
 from django.db.models import F, Count, When
@@ -5,6 +7,7 @@ from django.utils.translation import gettext as _
 from django_ckeditor_5.fields import CKEditor5Field
 
 from config import settings
+from config.settings.base import AUTH_USER_MODEL
 from .services import (
     generate_manhwa_slug, manhwa_cover_upload_to, manhwa_file_upload_to,
     N,
@@ -336,3 +339,15 @@ class TicketMessage(models.Model):
 
     class Meta:
         ordering = ['-created_at']
+
+
+class WatchList(models.Model):
+    WATCHING_STATUS = (
+        (WILL_READING:='WR', 'Will Reading'),
+        (NOW_READING:='NR', 'Now Reading'),
+        (STOPPED:='ST', 'Stopped'),
+        (FINISHED:='FN', 'Finished'),
+    )
+    manhwa = models.ForeignKey(Manhwa, on_delete=models.CASCADE, related_name='watch_listed')
+    user = models.ForeignKey(AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='watch_list')
+    watching_status = models.CharField(choices=WATCHING_STATUS, max_length=10, default=WILL_READING)
