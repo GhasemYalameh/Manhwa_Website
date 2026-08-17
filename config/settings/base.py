@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'accounts.apps.AccountsConfig',
     'manhwas.apps.ManhwasConfig',
     'subscription.apps.SubscriptionConfig',
+    'notifications.apps.NotificationsConfig',
 ]
 
 MIDDLEWARE = [

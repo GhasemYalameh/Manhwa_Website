@@ -23,6 +23,7 @@ from debug_toolbar.toolbar import debug_toolbar_urls
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('manhwas.urls')),
+    path('api/', include('notifications.urls')),
     path('account/', include('accounts.urls')),
     path('subscription/', include('subscription.urls')),
 
