@@ -1,6 +1,6 @@
 from django.core.exceptions import ValidationError
 from django.db import models, transaction
-from django.db.models import F, Count, When
+from django.db.models import F, Count, When, indexes
 from django.utils.translation import gettext as _
 from django_ckeditor_5.fields import CKEditor5Field
 
@@ -32,7 +32,7 @@ class Manhwa(models.Model):
     DAY_OF_THE_WEEK = (
         (SATURDAY:='sat', 'Saturday'),      (SUNDAY:='sun', 'Sunday'),
         (MONDAY:='mon', 'Monday'),        (TUESDAY:='tue', 'Tuesday'),
-        (WEDNESDAY:='wed', 'Wednesday'),  (THURSDAY:='thu', 'thursday'),
+        (WEDNESDAY:='wed', 'Wednesday'),  (THURSDAY:='thu', 'ُThursday'),
         (FRIDAY:='fri', 'Friday'),
     )
     AGE_RANGE = (
@@ -70,12 +70,10 @@ class Manhwa(models.Model):
 
     class Meta:
         indexes = (
-            models.Index(fields=['datetime_created', 'datetime_modified']),
             models.Index(fields=['studio', 'day_of_week']),
             models.Index(fields=['day_of_week']),
             models.Index(fields=['-publication_datetime']),
-            models.Index(fields=['-views_count']),
-            models.Index(fields=['en_title']),
+            models.Index(fields=['publication_status']),
         )
         unique_together = ("en_title", "season")
 
@@ -101,6 +99,10 @@ class View(models.Model):
 
     class Meta:
         unique_together = ('manhwa', 'user')
+        ordering = ('-datetime_viewed',)
+        indexes = (
+            models.Index(fields=('manhwa',))
+        )
 
     def __str__(self):
         return f'user: {self.user.phone_number} manhwa: {self.manhwa.en_title}'
@@ -122,6 +124,10 @@ class Rate(models.Model):
 
     class Meta:
         unique_together = ('user', 'manhwa')
+        indexes = (
+            models.Index(fields=('manhwa', 'rating',)),
+            models.Index(fields=('user', 'rating',))
+        )
 
 
 class Episode(models.Model):
@@ -301,6 +307,9 @@ class CommentReAction(models.Model):
 
     class Meta:
         unique_together = ('user', 'comment')
+        indexes = (
+            models.Index(fields=('comment', 'reaction'))
+        )
 
 
 class Ticket(models.Model):
@@ -318,6 +327,9 @@ class Ticket(models.Model):
 
     class Meta:
         ordering = ['-created_at']
+        indexes = (
+            models.Index(fields=('viewing_status',))
+        )
 
 
 class TicketMessage(models.Model):
@@ -337,6 +349,9 @@ class TicketMessage(models.Model):
 
     class Meta:
         ordering = ['-created_at']
+        indexes = (
+            models.Index(fields=('ticket', 'message_sender',)),
+        )
 
 
 class WatchList(models.Model):
@@ -352,3 +367,7 @@ class WatchList(models.Model):
 
     class Meta:
         unique_together = ('user', 'manhwa')
+        indexes = (
+            models.Index(fields=('user', 'watching_status')),
+            models.Index(fields=('manhwa', 'watching_status')),
+        )
