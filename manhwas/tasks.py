@@ -1,7 +1,8 @@
 from celery import shared_task
 import logging
 
-from django.db.models import F
+from django.db.models import F, Q
+from django.db.models.aggregates import Avg
 from django_redis import get_redis_connection
 
 from .models import Manhwa, View
@@ -70,3 +71,29 @@ def sync_pending_views():
         'total_views': total_viewers,
         'updated_manhwas': update_count,
     }
+
+@shared_task(name='manhwas.mark_five_hot_manhwas')
+def mark_five_hot_manhwas():
+    logger.info('updating manhwas and marking 5 is_hot manhwa starting...')
+
+    currently_publish_manhwa = Manhwa.objects.filter(publication_status=Manhwa.CURRENTLY_PUBLISHING)
+    top_viewed_manhwas_id = list(
+        currently_publish_manhwa
+        .order_by('-views_count')
+        .values_list('id', flat=True)[:15]
+    )
+    hot_manhwas_id = list(
+        Manhwa.objects
+        .filter(id__in=top_viewed_manhwas_id)
+        .annotate(avg_rates=Avg('rates__rating'))
+        .order_by('-avg_rates')
+        .values_list('id', flat=True)[:5]
+    )
+    # updating hot manhwas field
+    Manhwa.objects.filter(id__in=hot_manhwas_id).update(is_hot=True)
+    logger.info('top 5 hot manhwa updated.')
+
+    # updating non hot manhwas field
+    Manhwa.objects.filter(Q(is_hot=True) & ~Q(id__in=hot_manhwas_id)).update(is_hot=False)
+    logger.info('non hot manhwas mark removed')
+    logger.info('manhwas updated successfully.')

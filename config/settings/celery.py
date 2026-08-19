@@ -1,3 +1,4 @@
+from django.utils.timezone import timedelta
 # ===================================
 # Celery Configuration
 # ===================================
@@ -21,8 +22,12 @@ CELERY_TASK_SOFT_TIME_LIMIT = 25 * 60  # 25 minutes
 # ===================================
 
 CELERY_BEAT_SCHEDULE = {
-    'sync-pending-views-every-5-minutes': {
+    'sync-pending-views-every-2-hours': {
         'task': 'manhwas.sync_pending_views',
-        'schedule': 300.0,  # 5 minutes
+        'schedule': timedelta(hours=2),  # 2 hours
+    },
+    'mark-hot-manhwas-every-4-days': {
+        'task': 'manhwas.mark_five_hot_manhwas',
+        'schedule': timedelta(days=4),  # 4 days
     },
 }
