@@ -101,7 +101,7 @@ class View(models.Model):
         unique_together = ('manhwa', 'user')
         ordering = ('-datetime_viewed',)
         indexes = (
-            models.Index(fields=('manhwa',))
+            models.Index(fields=('manhwa',)),
         )
 
     def __str__(self):
@@ -126,7 +126,7 @@ class Rate(models.Model):
         unique_together = ('user', 'manhwa')
         indexes = (
             models.Index(fields=('manhwa', 'rating',)),
-            models.Index(fields=('user', 'rating',))
+            models.Index(fields=('user', 'rating',)),
         )
 
 
@@ -308,7 +308,7 @@ class CommentReAction(models.Model):
     class Meta:
         unique_together = ('user', 'comment')
         indexes = (
-            models.Index(fields=('comment', 'reaction'))
+            models.Index(fields=('comment', 'reaction')),
         )
 
 
@@ -328,7 +328,7 @@ class Ticket(models.Model):
     class Meta:
         ordering = ['-created_at']
         indexes = (
-            models.Index(fields=('viewing_status',))
+            models.Index(fields=('viewing_status',)),
         )
 
 
