@@ -1,8 +1,10 @@
 from celery import shared_task
 import logging
 
-from django.db.models import F, Q
+from django.db.models import F, Q, FloatField, Value
 from django.db.models.aggregates import Avg
+from django.db.models.functions import Coalesce
+from django.forms.fields import FloatField
 from django_redis import get_redis_connection
 
 from .models import Manhwa, View
@@ -85,15 +87,15 @@ def mark_five_hot_manhwas():
     hot_manhwas_id = list(
         Manhwa.objects
         .filter(id__in=top_viewed_manhwas_id)
-        .annotate(avg_rates=Avg('rates__rating'))
+        .annotate(avg_rates=Coalesce(Avg('rates__rating'), Value(0.0), output_field=FloatField()))
         .order_by('-avg_rates')
         .values_list('id', flat=True)[:5]
     )
     # updating hot manhwas field
     Manhwa.objects.filter(id__in=hot_manhwas_id).update(is_hot=True)
-    logger.info('top 5 hot manhwa updated.')
+    logger.info('top 5 hot manhwa updated and marked.')
 
     # updating non hot manhwas field
     Manhwa.objects.filter(Q(is_hot=True) & ~Q(id__in=hot_manhwas_id)).update(is_hot=False)
-    logger.info('non hot manhwas mark removed')
+    logger.info('non-hot manhwas unmarked')
     logger.info('manhwas updated successfully.')
