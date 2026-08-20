@@ -213,7 +213,7 @@ class ManhwaViewSet(ModelViewSet):
     pagination_class = CustomPagination
     filter_backends = [SearchFilter, DjangoFilterBackend, OrderingFilter]
     search_fields = ('en_title', 'fa_title')
-    ordering_fields = ('publication_datetime', 'avg_rating')
+    ordering_fields = ('publication_datetime', 'avg_rating', 'views_count')
     filterset_fields = ('day_of_week', 'genres', 'studio')
     # filterset_class = ManhwaFilter
     queryset = Manhwa.objects.prefetch_related( 'comments' ,'rates')

@@ -13,6 +13,17 @@ from .models import Manhwa, CommentReAction, Comment, Episode, Studio, Ticket, T
 from .services import ManhwaService
 
 
+class CustomUserSerializer(serializers.ModelSerializer):
+    is_subscriber = serializers.SerializerMethodField()
+    class Meta:
+        model = CustomUser
+        # avatar , 
+        fields = ('id', 'first_name', 'is_subscriber', )
+
+    def get_is_subscriber(self, obj):
+        return obj.subscription.is_subscriber()
+
+
 class CreateCommentSerializer(serializers.ModelSerializer):
     author = serializers.CharField(source='author.username', read_only=True)
 
@@ -38,18 +49,7 @@ class CreateCommentSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError({
                 'non_field_error': _('same text for comment not allowed.')
             })
-
-
-class CustomUserSerializer(serializers.ModelSerializer):
-    is_subscriber = serializers.SerializerMethodField()
-    class Meta:
-        model = CustomUser
-        # avatar , 
-        fields = ('id', 'first_name', 'is_subscriber', )
-
-    def get_is_subscriber(self, obj):
-        return obj.subscription.is_subscriber()
-
+        
 
 class RetrieveCommentSerializer(serializers.ModelSerializer):
     author = CustomUserSerializer()
@@ -138,7 +138,7 @@ class ManhwaSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Manhwa
-        fields = ('slug', 'fa_title', 'en_title', 'avg_rating', 'season', 'day_of_week', 'last_upload', 'views_count', 'comments_count', 'cover',)  # + 'comments'
+        fields = ('slug', 'fa_title', 'en_title', 'avg_rating', 'season', 'day_of_week', 'publication_status', 'last_upload', 'last_upload_time', 'views_count', 'comments_count', 'cover',)  # + 'comments'
         read_only_fields = ('comments_count', 'cover', 'avg_rating', 'slug', 'fa_title',)
 
 

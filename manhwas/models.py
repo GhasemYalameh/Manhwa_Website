@@ -1,6 +1,7 @@
 from django.core.exceptions import ValidationError
 from django.db import models, transaction
 from django.db.models import F, Count, When, indexes
+from django.utils import timezone
 from django.utils.translation import gettext as _
 from django_ckeditor_5.fields import CKEditor5Field
 
@@ -162,7 +163,7 @@ class Episode(models.Model):
         manhwa = Manhwa.objects.get(pk=self.manhwa_id)
         season, episode = N(manhwa.season), N(number)
         last_upload = f'S{season}-E{episode}'
-        Manhwa.objects.filter(pk=self.manhwa_id).update(last_upload=last_upload)
+        Manhwa.objects.filter(pk=self.manhwa_id).update(last_upload=last_upload, last_upload_time=timezone.now())
 
     def __str__(self):
         return f'{self.manhwa.en_title}: {self.number}'
