@@ -53,6 +53,7 @@ class Manhwa(models.Model):
     season = models.PositiveIntegerField(default=1, verbose_name=_('season'))
     day_of_week = models.CharField(max_length=30, choices=DAY_OF_THE_WEEK, verbose_name=_('day of the week'))
     cover = models.ImageField(upload_to=manhwa_cover_upload_to, verbose_name=_('manhwa cover'))
+    hero_cover = models.ImageField(upload_to='Manhwa/hero/', blank=True, null=True)
     genres = models.ManyToManyField(Genre, related_name='manhwas', verbose_name=_('genre'))
     studio = models.ForeignKey(Studio, on_delete=models.PROTECT, related_name='manhwas', verbose_name=_('studio'))
     views_count = models.PositiveIntegerField(default=0, editable=False, verbose_name=_('views count'))
