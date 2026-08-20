@@ -15,10 +15,11 @@ from .services import ManhwaService
 
 class CustomUserSerializer(serializers.ModelSerializer):
     is_subscriber = serializers.SerializerMethodField()
+    avatar = serializers.URLField(source='avatar.url')
     class Meta:
         model = CustomUser
         # avatar , 
-        fields = ('id', 'first_name', 'is_subscriber', )
+        fields = ('id', 'first_name', 'is_subscriber', 'avatar')
 
     def get_is_subscriber(self, obj):
         return obj.subscription.is_subscriber()
@@ -227,10 +228,11 @@ class ManhwaViewSerializer(serializers.Serializer):
 
 class EpisodeSerializer(serializers.ModelSerializer):
     file = serializers.URLField(source='file.url')
+    manhwa_slug = serializers.SlugRelatedField(source='manhwa', slug_field='title_slug', queryset=Manhwa.objects.all())
 
     class Meta:
         model = Episode
-        fields = ['id', 'number', 'file', 'datetime_created']
+        fields = ['id', 'manhwa_slug', 'number', 'file', 'datetime_created']
 
 
 class ListTicketSerializer(serializers.ModelSerializer):

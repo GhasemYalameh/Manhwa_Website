@@ -287,8 +287,8 @@ class EpisodeViewSet(ReadOnlyModelViewSet):
     serializer_class = srilzr.EpisodeSerializer
 
     def get_queryset(self):
-        manhwa_pk = self.kwargs.get('manhwa_pk')
-        return Episode.objects.filter(manhwa_id=manhwa_pk)
+        manhwa_slug = self.kwargs.get('manhwa_title_slug')
+        return Episode.objects.select_related('manhwa').filter(manhwa__title_slug=manhwa_slug)
 
 
 class GenreListApiView(ListAPIView):
