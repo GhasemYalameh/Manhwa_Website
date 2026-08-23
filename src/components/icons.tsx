@@ -107,7 +107,7 @@ export function StarIcon({ className }: IconProps) {
 
 export function FlameIcon({ className }: IconProps) {
   return (
-    <svg className={className} width="15" height="15" viewBox="0 0 24 24" fill="red" stroke="none">
+    <svg className={className} width="15" height="15" viewBox="0 0 24 24" fill="currentColor" stroke="none">
       <path d="M12 2c1 3-2 4-2 7a4 4 0 0 0 8 0c2 2 3 5 3 7a7 7 0 0 1-14 0c0-5 3-6 5-14z" />
     </svg>
   );

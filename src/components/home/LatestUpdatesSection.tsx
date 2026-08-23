@@ -1,5 +1,5 @@
 import { MangaCard } from "@/components/manga/MangaCard";
-import type { ManhwaApiItem } from "@/lib/api/manhwa";
+import { getCoverUrl, type ManhwaApiItem } from "@/lib/api/manhwa";
 
 interface LatestUpdatesSectionProps {
   items: ManhwaApiItem[];
@@ -16,7 +16,7 @@ export function LatestUpdatesSection({ items }: LatestUpdatesSectionProps) {
           <MangaCard
             key={item.slug}
             slug={item.slug}
-            coverUrl={`http://localhost${item.cover}`}
+            coverUrl={getCoverUrl(item.cover)}
             title={item.fa_title || item.en_title}
             rating={item.avg_rating ? Number(item.avg_rating) : undefined}
             lastUpload={item.last_upload}

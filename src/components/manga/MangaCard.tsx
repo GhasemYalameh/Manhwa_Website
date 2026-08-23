@@ -36,7 +36,7 @@ export function MangaCard({
         />
 
         {isHot && (
-          <span className="absolute top-2 right-2 flex items-center gap-1 rounded-full bg-error px-2 py-0.5 text-[11px] font-bold text-primary">
+          <span className="absolute top-2 right-2 flex items-center gap-1 rounded-full bg-error px-2 py-0.5 text-[11px] font-bold text-white">
             <FlameIcon />
             داغ
           </span>
@@ -49,7 +49,7 @@ export function MangaCard({
         )}
 
         {typeof rating === "number" && (
-          <span className="absolute bottom-3 left-3 flex items-bottom gap-1 rounded-xl  pl-1 pr-2 pb-0.5 pt-1 text-[14px] font-semibold text-white bg-divider">
+          <span className="absolute bottom-3 left-3 flex gap-1 rounded-xl  pl-1 pr-2 pb-0.5 pt-1 text-[14px] font-semibold text-white bg-divider">
             {rating.toFixed(1)}
             <StarIcon className="text-warning" />
 

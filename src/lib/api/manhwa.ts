@@ -1,6 +1,7 @@
 import { apiGet } from "./client";
 
 const MANHWA_PREFIX = "/api";
+const BASE_MEDIA_URL = process.env.NEXT_PUBLIC_MEDIA_BASE_URL ?? "http://localhost/";
 
 export interface PaginatedResponse<T> {
   count: number;
@@ -43,4 +44,9 @@ export function getManhwas(
   return apiGet<PaginatedResponse<ManhwaApiItem>>(
     `${MANHWA_PREFIX}/manhwas/${qs ? `?${qs}` : ""}`
   );
+}
+
+
+export function getCoverUrl(cover: string): string {
+  return `${BASE_MEDIA_URL}/${cover}`;
 }
