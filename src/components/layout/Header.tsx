@@ -5,6 +5,9 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { NAV_LINKS } from "@/lib/constants/nav";
 import { getAccessToken, clearTokens } from "@/lib/api/client";
+import { getMe, type UserProfile } from "@/lib/api/auth";
+import { getCoverUrl } from "@/lib/api/manhwa";
+import { getUnreadNotificationsCount } from "@/lib/api/notifications";
 import {
   SearchIcon,
   BellIcon,
@@ -16,11 +19,6 @@ import {
   LogOutIcon,
 } from "@/components/icons";
 
-// TODO: وقتی endpoint پروفایل کاربر آماده شد، این mock با داده واقعی جایگزین بشه
-const MOCK_USER = { name: "محسن", avatarUrl: null as string | null };
-
-// TODO: وقتی endpoint نوتیفیکیشن‌ها آماده شد، این عدد از سرور خونده بشه
-const MOCK_UNREAD_NOTIFICATIONS = 1;
 
 function isActiveLink(pathname: string, href: string): boolean {
   if (href === "/") return pathname === "/";
@@ -32,6 +30,8 @@ export function Header() {
   const router = useRouter();
 
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [unreadCount, setUnreadCount] = useState(0);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
 
@@ -47,6 +47,28 @@ export function Header() {
     window.addEventListener("storage", handleStorage);
     return () => window.removeEventListener("storage", handleStorage);
   }, []);
+
+  // پروفایل کاربر — فقط وقتی لاگینیم
+  useEffect(() => {
+    if (!isLoggedIn) {
+      setProfile(null);
+      return;
+    }
+    getMe()
+      .then(setProfile)
+      .catch(() => setProfile(null));
+  }, [isLoggedIn]);
+
+  // تعداد نوتیف خونده‌نشده — فقط وقتی لاگینیم
+  useEffect(() => {
+    if (!isLoggedIn) {
+      setUnreadCount(0);
+      return;
+    }
+    getUnreadNotificationsCount()
+      .then((res) => setUnreadCount(res.unread_count))
+      .catch(() => setUnreadCount(0));
+  }, [isLoggedIn]);
 
   // بستن منوی کاربر با کلیک بیرون از اون
   useEffect(() => {
@@ -141,7 +163,7 @@ export function Header() {
             className="relative rounded-full p-2 text-text-secondary transition-colors hover:bg-accent-light hover:text-accent"
           >
             <BellIcon />
-            {MOCK_UNREAD_NOTIFICATIONS > 0 && (
+            {unreadCount > 0 && (
               <span className="absolute left-1.5 top-1.5 h-2 w-2 rounded-full bg-error" />
             )}
           </Link>
@@ -154,13 +176,13 @@ export function Header() {
                 className="flex items-center gap-2 rounded-full py-1 pl-1 pr-2 transition-colors hover:bg-accent-light"
               >
                 <ChevronDownIcon className={`text-text-secondary transition-transform ${userMenuOpen ? "rotate-180" : ""}`} />
-                <span className="text-sm text-text-primary">{MOCK_USER.name}</span>
-                {MOCK_USER.avatarUrl ? (
+                <span className="text-sm text-text-primary">{profile?.first_name ?? ""}</span>
+                {profile?.avatar ? (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img src={MOCK_USER.avatarUrl} alt="" className="h-10 w-10 rounded-full object-cover" />
+                  <img src={getCoverUrl(profile.avatar)} alt="" className="h-10 w-10 rounded-full object-cover" />
                 ) : (
                   <span className="flex h-8 w-8 items-center justify-center rounded-full bg-accent-light text-sm font-semibold text-accent">
-                    {MOCK_USER.name.charAt(0)}
+                    {profile?.first_name?.charAt(0) ?? "?"}
                   </span>
                 )}
               </button>
@@ -254,7 +276,7 @@ export function Header() {
           >
             <BellIcon />
             اعلان‌ها
-            {MOCK_UNREAD_NOTIFICATIONS > 0 && <span className="h-2 w-2 rounded-full bg-error" />}
+            {unreadCount > 0 && <span className="h-2 w-2 rounded-full bg-error" />}
           </Link>
 
           {isLoggedIn ? (
@@ -264,7 +286,7 @@ export function Header() {
                 className="flex items-center gap-2 rounded-card px-3 py-2.5 text-sm text-text-secondary hover:bg-bg hover:text-text-primary"
               >
                 <UserCircleIcon />
-                {MOCK_USER.name}
+                {profile?.first_name ?? ""}
               </Link>
               <Link
                 href="/favorites"

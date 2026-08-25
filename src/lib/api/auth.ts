@@ -1,4 +1,4 @@
-import { apiPost } from "./client";
+import { apiPost, apiGet } from "./client";
 
 const AUTH_PREFIX = "/account";
 
@@ -67,3 +67,15 @@ export function loginWithPassword(
 // مدیریت توکن‌ها الان در client.ts هست (چون apiPost خودش بهشون نیاز داره)؛
 // اینجا فقط دوباره export می‌کنیم که importهای بقیه‌ی فایل‌ها تغییر نکنه.
 export { getAccessToken, storeTokens, getRefreshToken, clearTokens } from "./client";
+
+export interface UserProfile {
+  first_name: string;
+  last_name: string;
+  avatar: string | null; // relative URL
+  phone_number: string;
+  is_subscriber: boolean;
+}
+
+export function getMe(): Promise<UserProfile> {
+  return apiGet<UserProfile>(`${AUTH_PREFIX}/me/`, { auth: true });
+}

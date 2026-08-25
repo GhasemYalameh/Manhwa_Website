@@ -15,13 +15,16 @@ export interface ManhwaApiItem {
   slug: string;
   en_title: string;
   fa_title: string;
-  avg_rating: string; // رشته میاد از سریالایزر، نه عدد
+  avg_rating: string;
   season: number;
   day_of_week: string;
+  publication_status: "cp" | "c" | "up";
   last_upload: string;
+  created_datetime: string;
   views_count: number;
   comments_count: number;
   cover: string;
+  is_hot: boolean;
 }
 
 export interface GetManhwasParams {

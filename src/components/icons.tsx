@@ -112,3 +112,29 @@ export function FlameIcon({ className }: IconProps) {
     </svg>
   );
 }
+
+export function FlameSolidIcon({ className }: IconProps) {
+  return (
+    <svg className={className} viewBox="2 1 20 22" fill="currentColor" stroke="none">
+      <path d="M12.75 2c.4 3.1-1 4.9-2.6 6.6C8.6 10.2 7 12 7 14.8 7 18.8 9.8 22 13.5 22c4 0 7-2.9 7-7 0-3-1.7-5-3-6.3.2 1.8-.7 2.6-1.4 2.2-.9-.5-.6-1.6-.3-2.4C16.6 5.8 15 3.3 12.75 2Z" />
+      <path d="M13.2 12c.6 1.3-.1 2.1-.8 2.8-.7.7-1.4 1.5-1.4 2.7 0 1.7 1.3 3 3 3 1.9 0 3.5-1.5 3.5-3.4 0-1.7-1-2.8-1.9-3.6.1 1-.5 1.3-1 1-.6-.4-.4-1.1-.1-1.6.3-.5.5-.9.7-.9Z" fill="var(--color-bg)" opacity="0.55" />
+    </svg>
+  );
+}
+
+export function EyeIcon({ className }: IconProps) {
+  return (
+    <svg className={className} width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z" />
+      <circle cx="12" cy="12" r="3" />
+    </svg>
+  );
+}
+
+export function CommentIcon({ className }: IconProps) {
+  return (
+    <svg className={className} width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z" />
+    </svg>
+  );
+}
