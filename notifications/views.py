@@ -1,5 +1,8 @@
+from rest_framework import status
+from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.viewsets import ModelViewSet
+from rest_framework.decorators import action
 
 from manhwas.paginations import CustomPagination
 from .models import Notification
@@ -22,5 +25,11 @@ class NotificationViewSet(ModelViewSet):
         if user.is_staff :
             return base_q
         return base_q.filter(recipient_id=user.id)
+
+    @action(detail=False, methods=['get'])
+    def unread_count(self, request):
+        user_id = request.user.id
+        unread_notif_count = Notification.objects.filter(recipient_id=user_id, is_read=False).count()
+        return Response({'unread_count': unread_notif_count}, status=status.HTTP_200_OK)
 
 

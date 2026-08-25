@@ -139,7 +139,7 @@ class ManhwaSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Manhwa
-        fields = ('slug', 'fa_title', 'en_title', 'avg_rating', 'season', 'day_of_week', 'publication_status', 'last_upload', 'last_upload_time', 'views_count', 'comments_count', 'cover',)  # + 'comments'
+        fields = ('slug', 'fa_title', 'en_title', 'is_hot', 'avg_rating', 'season', 'day_of_week', 'publication_status', 'last_upload', 'last_upload_time', 'views_count', 'comments_count', 'cover', 'hero_cover')  # + 'comments'
         read_only_fields = ('comments_count', 'cover', 'avg_rating', 'slug', 'fa_title',)
 
 
@@ -302,13 +302,13 @@ class UpdateTicketMessageSerializer(serializers.ModelSerializer):
 class GenreListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Genre 
-        fields = ("title", "description",)
+        fields = ("id", "title", "description",)
 
 
 class StudioListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Studio 
-        fields = ("title", "description",)
+        fields = ("id", "title", "description",)
 
 
 class WatchListSerializer(serializers.ModelSerializer):

@@ -358,10 +358,10 @@ class TicketMessage(models.Model):
 
 class WatchList(models.Model):
     WATCHING_STATUS = (
-        (WILL_READING:='WR', 'Will Reading'),
-        (NOW_READING:='NR', 'Now Reading'),
-        (STOPPED:='ST', 'Stopped'),
-        (FINISHED:='FN', 'Finished'),
+        (WILL_READING:='wr', 'Will Reading'),
+        (NOW_READING:='nr', 'Now Reading'),
+        (STOPPED:='ost', 'Stpped'),
+        (FINISHED:='fn', 'Finished'),
     )
     manhwa = models.ForeignKey(Manhwa, on_delete=models.CASCADE, related_name='watch_listed')
     user = models.ForeignKey(AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='watch_list')

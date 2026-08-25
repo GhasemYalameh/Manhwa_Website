@@ -7,12 +7,12 @@ from config.settings import AUTH_USER_MODEL
 
 class Notification(models.Model):
     NOTIFICATION_LEVELS = (
-        (SUCCESS:= 'SUC', 'Success'),   (INFO:= 'INF', 'Info'),
-        (WARNING:= 'WAR', 'Warning'),   (FAIL:= 'FAL', 'Fail'),
+        (SUCCESS:= 'suc', 'Success'),   (INFO:= 'inf', 'Info'),
+        (WARNING:= 'war', 'Warning'),   (FAIL:= 'fal', 'Fail'),
     )
     NOTIFICATION_TYPES = (
-        (EPISODE_PUBLISHED:= 'EPP', 'Episode Published'),   (REACTED_COMMENT:= 'RAC', 'Reacted Comment'),
-        (REPLIED_COMMENT:= 'RPC', 'Replied Comment'),   (SYSTEM:= 'SYS', 'System Notify'),
+        (EPISODE_PUBLISHED:= 'epp', 'Episode Published'),   (REACTED_COMMENT:= 'rac', 'Reacted Comment'),
+        (REPLIED_COMMENT:= 'rpc', 'Replied Comment'),   (SYSTEM:= 'sys', 'System Notify'),
     )
 
     recipient = models.ForeignKey(AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='notifications')

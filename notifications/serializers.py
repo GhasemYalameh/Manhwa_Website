@@ -1,8 +1,9 @@
 from rest_framework import serializers
 
 from .models import Notification
-from manhwas.serializers import CommentDetailSerializer, EpisodeSerializer, RetrieveCommentSerializer
+from manhwas.serializers import EpisodeSerializer, RetrieveCommentSerializer
 from manhwas.models import Episode, Comment
+
 
 class ListNotificationSerializer(serializers.ModelSerializer):
     target_content_type = serializers.SerializerMethodField()
@@ -28,6 +29,7 @@ class ListNotificationSerializer(serializers.ModelSerializer):
         elif isinstance(obj, Comment):
             return RetrieveCommentSerializer(obj).data
         return None
+
 
 class PatchNotificationSerializer(serializers.ModelSerializer):
     class Meta:

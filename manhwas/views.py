@@ -304,6 +304,7 @@ class StudioListApiView(ListAPIView):
 class WatchListViewSet(ModelViewSet):
     http_method_names = ('get', 'post', 'patch', 'delete',)
     permission_classes = (IsAuthenticated,)
+    pagination_class = CustomPagination
 
     def get_serializer_class(self):
         if self.action == 'partial_update':
