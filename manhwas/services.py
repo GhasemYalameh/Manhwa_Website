@@ -1,3 +1,5 @@
+import datetime
+
 from django.db.models import Avg, Count, When, Case
 from django.utils.text import slugify
 from django_redis import get_redis_connection
@@ -50,6 +52,16 @@ class ManhwaService:
         is_member = self.redis.sismember(manhwa_viewers_key, user_id)
         return is_member
 
+
+def get_today_weekly_name():
+    """getting db value of today weekly name for"""
+    today = datetime.datetime.today()
+    today_week_number = today.weekday()
+    week_days = (
+        'mon', 'tue', 'wed', 'thu', 
+        'fri', 'sat', 'sun'
+    )
+    return week_days[int(today_week_number)]
 
 STOP_WORDS = {
     'the', 'a', 'an', 'of', 'to', 'in', 'on', 'at', 'for', 'with', 'by',

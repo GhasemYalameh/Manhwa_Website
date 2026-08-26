@@ -25,6 +25,18 @@ class CustomUserSerializer(serializers.ModelSerializer):
         return obj.subscription.is_subscriber()
 
 
+class GenreListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Genre 
+        fields = ("id", "title", "description",)
+
+
+class StudioListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Studio 
+        fields = ("id", "title", "description",)
+
+
 class CreateCommentSerializer(serializers.ModelSerializer):
     author = serializers.CharField(source='author.username', read_only=True)
 
@@ -114,6 +126,7 @@ class DetailManhwaSerializer(serializers.ModelSerializer):
     cover = serializers.URLField(source='cover.url', read_only=True)
     rating_data = serializers.SerializerMethodField()
     genres = serializers.SerializerMethodField()
+    studio = StudioListSerializer()
 
     class Meta:
         model = Manhwa
@@ -299,19 +312,7 @@ class UpdateTicketMessageSerializer(serializers.ModelSerializer):
         fields = ('text',)
 
 
-class GenreListSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Genre 
-        fields = ("id", "title", "description",)
-
-
-class StudioListSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Studio 
-        fields = ("id", "title", "description",)
-
-
-class WatchListSerializer(serializers.ModelSerializer):
+class PostWatchListSerializer(serializers.ModelSerializer):
     manhwa_slug = serializers.SlugRelatedField(source='manhwa', slug_field='title_slug', queryset=Manhwa.objects.all())
     user = serializers.HiddenField(default=serializers.CurrentUserDefault())
 
@@ -323,6 +324,13 @@ class WatchListSerializer(serializers.ModelSerializer):
                 queryset=WatchList.objects.all(), fields=('manhwa_slug', 'user')
             ),
         )
+
+
+class WatchListSerializer(serializers.ModelSerializer):
+    manhwa = ManhwaSerializer()
+    class Meta:
+        model = WatchList
+        fields = ('id', 'manhwa', 'watching_status')
 
 
 class PatchWatchListSerializer(serializers.ModelSerializer):

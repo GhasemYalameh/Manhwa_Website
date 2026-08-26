@@ -21,7 +21,7 @@ from . import serializers as srilzr
 from .models import Genre, Manhwa, Studio, View, CommentReAction, Comment, Episode, Ticket, Rate, TicketMessage, WatchList
 from .paginations import CustomPagination
 from .permissions import IsOwnerOrAdmin
-from .services import ManhwaService
+from .services import ManhwaService, get_today_weekly_name
 
 
 def health_check(request):
@@ -247,6 +247,17 @@ class ManhwaViewSet(ModelViewSet):
             return [IsAuthenticated()]
         return [AllowAny()]
 
+    @action(detail=False, methods=('get',))
+    def today(self, request):
+        today_name = get_today_weekly_name()
+        manhwas = Manhwa.objects.prefetch_related('rates').filter(
+            publication_status=Manhwa.CURRENTLY_PUBLISHING, 
+            day_of_week=today_name,
+            ).annotate(avg_rating=Avg('rates__rating'))
+        serializer = self.get_serializer(manhwas, many=True)
+        return Response(serializer.data)
+
+
     @action(detail=True, methods=['post'])
     def set_view(self, request, pk=None):
         view_obj, created = View.objects.get_or_create(
@@ -305,15 +316,18 @@ class WatchListViewSet(ModelViewSet):
     http_method_names = ('get', 'post', 'patch', 'delete',)
     permission_classes = (IsAuthenticated,)
     pagination_class = CustomPagination
+    filterset_fields = ('user',)
 
     def get_serializer_class(self):
         if self.action == 'partial_update':
             return srilzr.PatchWatchListSerializer
+        elif self.action == 'create':
+            return srilzr.PostWatchListSerializer
 
         return srilzr.WatchListSerializer
 
     def get_queryset(self):
-        qs = WatchList.objects.select_related('manhwa')
+        qs = WatchList.objects.select_related('manhwa', ).prefetch_related('manhwa__comments')
         return qs.filter(user_id=self.request.user.id)
 
 

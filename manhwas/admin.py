@@ -118,4 +118,5 @@ class TicketMessageAdmin(admin.ModelAdmin):
 class WatchListAdmin(admin.ModelAdmin):
     list_display = ('manhwa', 'user',)
     ordering = ('manhwa',)
+    autocomplete_fields = ('user', 'manhwa')
 

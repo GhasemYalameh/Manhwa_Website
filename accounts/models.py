@@ -21,8 +21,6 @@ class CustomUserManager(BaseUserManager):
         user = self.model(phone_number=phone_number, **extra_fields)
         user.set_password(password)
         user.save(using=self._db)
-
-        Subscription.objects.create(user=user)
         return user
 
     def create_superuser(self, phone_number, password=None, **extra_fields):
@@ -49,8 +47,6 @@ class CustomUserManager(BaseUserManager):
         user = self.model(phone_number=phone_number, **extra_fields)
         user.set_unusable_password()
         user.save(using=self._db)
-
-        Subscription.objects.create(user=user)
         return user
 
 
