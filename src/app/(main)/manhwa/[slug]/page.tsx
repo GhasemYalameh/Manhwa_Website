@@ -1,6 +1,5 @@
 import { notFound } from "next/navigation";
 import { getManhwaBySlug } from "@/lib/api/manhwa";
-import { getEpisodes } from "@/lib/api/episode";
 import { getComments } from "@/lib/api/comment";
 import { ManhwaHeader } from "@/components/manga/ManhwaHeader";
 import { EpisodeList } from "@/components/manga/EpisodeList";
@@ -18,7 +17,6 @@ export default async function ManhwaDetailPage({ params }: ManhwaDetailPageProps
   try {
     detailResult = await Promise.all([
       getManhwaBySlug(slug),
-      getEpisodes(slug),
       getComments(slug),
     ]);
   } catch (err) {
@@ -28,12 +26,12 @@ export default async function ManhwaDetailPage({ params }: ManhwaDetailPageProps
     throw err;
   }
 
-  const [detail, episodes, commentsRes] = detailResult;
+  const [detail, commentsRes] = detailResult;
 
   return (
     <main className="min-h-screen bg-bg pb-12">
       <ManhwaHeader slug={slug} detail={detail} />
-      <EpisodeList episodes={episodes} />
+      <EpisodeList manhwaSlug={slug} />
       <CommentList comments={commentsRes.results} totalCount={commentsRes.count} />
     </main>
   );

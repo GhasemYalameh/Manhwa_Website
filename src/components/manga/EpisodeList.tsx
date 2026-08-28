@@ -1,20 +1,48 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import type { EpisodeApiItem } from "@/lib/api/episode";
+import { getAccessToken } from "@/lib/api/client";
+import { getEpisodes, type EpisodeApiItem } from "@/lib/api/episode";
 
 interface EpisodeListProps {
-  episodes: EpisodeApiItem[];
+  manhwaSlug: string;
 }
 
 const PAGE_SIZE_OPTIONS = [24, 48, 96] as const;
 
-export function EpisodeList({ episodes }: EpisodeListProps) {
+export function EpisodeList({ manhwaSlug }: EpisodeListProps) {
+  const [episodes, setEpisodes] = useState<EpisodeApiItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
   const [fromNumber, setFromNumber] = useState("");
   const [toNumber, setToNumber] = useState("");
   const [pageSize, setPageSize] = useState<number>(24);
   const [page, setPage] = useState(1);
+
+  useEffect(() => {
+    const loggedIn = !!getAccessToken();
+    setIsLoggedIn(loggedIn);
+    if (!loggedIn) {
+      setIsLoading(false);
+      return;
+    }
+    let cancelled = false;
+    getEpisodes(manhwaSlug)
+      .then((res) => {
+        if (!cancelled) setEpisodes(res);
+      })
+      .catch(() => {
+        if (!cancelled) setEpisodes([]);
+      })
+      .finally(() => {
+        if (!cancelled) setIsLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [manhwaSlug]);
 
   const sorted = useMemo(() => [...episodes].sort((a, b) => b.number - a.number), [episodes]);
 
@@ -37,6 +65,33 @@ export function EpisodeList({ episodes }: EpisodeListProps) {
       setter(e.target.value);
       setPage(1);
     };
+  }
+
+  if (!isLoggedIn) {
+    return (
+      <section id="episodes" className="mx-auto max-w-[1400px] px-4 py-8 lg:px-8">
+        <h2 className="text-lg font-bold text-text-primary">قسمت‌ها</h2>
+        <div className="mt-4 rounded-card bg-surface p-6 text-center">
+          <p className="text-sm text-text-secondary">
+            برای مشاهده‌ی قسمت‌ها ابتدا وارد حساب کاربری خود شوید.
+          </p>
+          <Link
+            href="/login"
+            className="mt-3 inline-block rounded-card bg-accent px-5 py-2.5 text-sm font-semibold text-white hover:bg-accent-dark"
+          >
+            ورود
+          </Link>
+        </div>
+      </section>
+    );
+  }
+
+  if (isLoading) {
+    return (
+      <section id="episodes" className="mx-auto max-w-[1400px] px-4 py-8 lg:px-8">
+        <p className="text-sm text-text-secondary">در حال بارگذاری قسمت‌ها...</p>
+      </section>
+    );
   }
 
   return (
@@ -89,10 +144,9 @@ export function EpisodeList({ episodes }: EpisodeListProps) {
             {pageItems.map((episode) => (
               <Link
                 key={episode.id}
-                href={episode.file}
+                href={`/manhwa/${manhwaSlug}/chapter/${episode.id}`}
                 className="group flex flex-col overflow-hidden rounded-card bg-surface transition-colors hover:bg-accent-light"
               >
-                {/* TODO: جای کاور اختصاصی اپیزود — فعلاً بلوک رنگی placeholder تا وقتی کاور واقعی اضافه بشه */}
                 <div className="flex aspect-[3/4] items-center justify-center bg-accent-light text-2xl font-bold text-accent transition-colors group-hover:bg-accent group-hover:text-white">
                   {episode.number.toLocaleString("fa-IR")}
                 </div>
