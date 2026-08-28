@@ -60,7 +60,7 @@ export function GenreTabsSection({ genres }: GenreTabsSectionProps) {
       </div>
 
       <div
-        className={`mt-5 grid grid-cols-[repeat(auto-fill,minmax(160px,1fr))] gap-4 transition-opacity duration-200 ${isLoading ? "opacity-50" : "opacity-100"
+        className={`mt-5 grid grid-cols-[repeat(auto-fill,minmax(200px,1fr))] gap-4 transition-opacity duration-200 ${isLoading ? "opacity-50" : "opacity-100"
           }`}
       >
         {!isLoading && items.length === 0 ? (

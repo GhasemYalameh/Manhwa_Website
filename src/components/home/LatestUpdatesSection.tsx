@@ -3,13 +3,14 @@ import { getCoverUrl, type ManhwaApiItem } from "@/lib/api/manhwa";
 
 interface LatestUpdatesSectionProps {
   items: ManhwaApiItem[];
+  title?: string;
 }
 
-export function LatestUpdatesSection({ items }: LatestUpdatesSectionProps) {
+export function LatestUpdatesSection({ items, title = "آخرین به‌روزرسانی‌ها" }: LatestUpdatesSectionProps) {
   return (
     <section className="mx-auto max-w-[1400px] px-4 py-8 lg:px-8">
       <div className="mb-4 flex items-center justify-between">
-        <h2 className="text-lg font-bold text-text-primary">آخرین به‌روزرسانی‌ها</h2>
+        <h2 className="text-lg font-bold text-text-primary">{title}</h2>
       </div>
       <div className="grid grid-cols-[repeat(auto-fill,minmax(200px,1fr))] gap-4">
         {items.map((item) => (

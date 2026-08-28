@@ -1,4 +1,5 @@
 import { apiGet } from "./client";
+import { type PublicationStatus } from "@/lib/constants/publicationStatus";
 
 const MANHWA_PREFIX = "/api";
 const BASE_MEDIA_URL = process.env.NEXT_PUBLIC_MEDIA_BASE_URL ?? "http://localhost/";
@@ -52,4 +53,52 @@ export function getManhwas(
 
 export function getCoverUrl(cover: string): string {
   return `${BASE_MEDIA_URL}/${cover}`;
+}
+
+export interface StudioRef {
+  id: number;
+  title: string;
+  description: string;
+}
+
+export interface GenreRef {
+  id: number;
+  title: string;
+  description: string;
+}
+// شکل واقعی DetailManhwaSerializer
+export interface ManhwaDetailApiItem {
+  en_title: string;
+  fa_title: string;
+  summary: string;
+  genres: GenreRef[];
+  rating_data: {
+    avg_rating: string;
+    raters_count: number;
+    fives_count: number;
+    fours_count: number;
+    threes_count: number;
+    twos_count: number;
+    ones_count: number;
+  };
+  season: number;
+  day_of_week: string;
+  last_upload: string;
+  studio: StudioRef;
+  views_count: number;
+  comments_count: number;
+  cover: string;
+  publication_datetime: string;
+  publication_status: PublicationStatus;
+  is_hot: boolean;
+  last_upload_time: string;
+}
+
+
+export function getTodayManhwas(): Promise<ManhwaApiItem[]> {
+  return apiGet<ManhwaApiItem[]>(`${MANHWA_PREFIX}/manhwas/today/`);
+}
+
+export function getManhwaBySlug(slug: string): Promise<ManhwaDetailApiItem> {
+  return apiGet<ManhwaDetailApiItem>(`${MANHWA_PREFIX}/manhwas/${slug}/`);
 }

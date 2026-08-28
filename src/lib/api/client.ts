@@ -167,3 +167,79 @@ export async function apiGet<TResponse>(
     return rawGet<TResponse>(path, newAccessToken);
   }
 }
+async function rawPatch<TResponse>(
+  path: string,
+  body: unknown,
+  accessToken?: string
+): Promise<TResponse> {
+  const res = await fetch(`${BASE_URL}${path}`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+      ...(accessToken ? { Authorization: `JWT ${accessToken}` } : {}),
+    },
+    body: JSON.stringify(body),
+  });
+
+  const isJson = res.headers.get("content-type")?.includes("application/json");
+  const data = isJson ? await res.json() : null;
+
+  if (!res.ok) {
+    throw new ApiError(res.status, data);
+  }
+
+  return data as TResponse;
+}
+
+export async function apiPatch<TResponse>(
+  path: string,
+  body: unknown,
+  options: ApiPostOptions = {}
+): Promise<TResponse> {
+  const { auth = false } = options;
+  const token = auth ? getAccessToken() ?? undefined : undefined;
+
+  try {
+    return await rawPatch<TResponse>(path, body, token);
+  } catch (err) {
+    const shouldRetry = auth && err instanceof ApiError && err.status === 401;
+    if (!shouldRetry) throw err;
+
+    const newAccessToken = await refreshAccessToken();
+    if (!newAccessToken) throw err;
+
+    return rawPatch<TResponse>(path, body, newAccessToken);
+  }
+}
+
+async function rawDelete(path: string, accessToken?: string): Promise<void> {
+  const res = await fetch(`${BASE_URL}${path}`, {
+    method: "DELETE",
+    headers: {
+      ...(accessToken ? { Authorization: `JWT ${accessToken}` } : {}),
+    },
+ });
+
+  if (!res.ok) {
+    const isJson = res.headers.get("content-type")?.includes("application/json");
+    const data = isJson ? await res.json() : null;
+    throw new ApiError(res.status, data);
+ }
+}
+
+export async function apiDelete(path: string, options: ApiPostOptions = {}): Promise<void> {
+  const { auth = false } = options;
+  const token = auth ? getAccessToken() ?? undefined : undefined;
+
+  try {
+    return await rawDelete(path, token);
+  } catch (err) {
+    const shouldRetry = auth && err instanceof ApiError && err.status === 401;
+    if (!shouldRetry) throw err;
+
+    const newAccessToken = await refreshAccessToken();
+    if (!newAccessToken) throw err;
+
+    return rawDelete(path, newAccessToken);
+  }
+}

@@ -8,8 +8,8 @@ import { getAccessToken, clearTokens } from "@/lib/api/client";
 import { getMe, type UserProfile } from "@/lib/api/auth";
 import { getCoverUrl } from "@/lib/api/manhwa";
 import { getUnreadNotificationsCount } from "@/lib/api/notifications";
+import { SearchDropdown } from "@/components/layout/SearchDropdown";
 import {
-  SearchIcon,
   BellIcon,
   ChevronDownIcon,
   MenuIcon,
@@ -36,7 +36,6 @@ export function Header() {
   const [userMenuOpen, setUserMenuOpen] = useState(false);
 
   const userMenuRef = useRef<HTMLDivElement>(null);
-  const searchInputRef = useRef<HTMLInputElement>(null);
 
   // وضعیت لاگین از localStorage خونده میشه (بعداً جای این با فراخوانی endpoint پروفایل عوض میشه)
   useEffect(() => {
@@ -79,20 +78,6 @@ export function Header() {
     }
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-
-  // میانبر کیبورد "/" برای فوکوس روی سرچ (وقتی داخل یه فیلد دیگه تایپ نمی‌کنیم)
-  useEffect(() => {
-    function handleKeyDown(e: KeyboardEvent) {
-      const target = e.target as HTMLElement;
-      const isTyping = target.tagName === "INPUT" || target.tagName === "TEXTAREA";
-      if (e.key === "/" && !isTyping) {
-        e.preventDefault();
-        searchInputRef.current?.focus();
-      }
-    }
-    document.addEventListener("keydown", handleKeyDown);
-    return () => document.removeEventListener("keydown", handleKeyDown);
   }, []);
 
   // بستن منوی موبایل هروقت مسیر عوض شد
@@ -139,20 +124,7 @@ export function Header() {
 
         {/* سرچ - دسکتاپ */}
         <div className="hidden max-w-xs flex-1 lg:block">
-          <div className="relative">
-            <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-text-secondary">
-              <SearchIcon />
-            </span>
-            <input
-              ref={searchInputRef}
-              type="text"
-              placeholder="جستجو کنید..."
-              className="w-full rounded-card border border-divider bg-bg py-2 pr-10 pl-10 text-right text-sm text-text-primary outline-none transition-colors placeholder:text-text-secondary/60 focus:border-accent"
-            />
-            <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 rounded border border-divider px-1.5 py-0.5 text-xs text-text-secondary">
-              /
-            </span>
-          </div>
+          <SearchDropdown variant="desktop" enableSlashShortcut />
         </div>
 
         {/* آیکون‌ها و کاربر - دسکتاپ */}
@@ -241,15 +213,8 @@ export function Header() {
       {/* منوی موبایل */}
       {mobileMenuOpen && (
         <div className="border-t border-divider bg-surface px-4 py-4 lg:hidden">
-          <div className="relative mb-4">
-            <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-text-secondary">
-              <SearchIcon />
-            </span>
-            <input
-              type="text"
-              placeholder="جستجو کنید..."
-              className="w-full rounded-card border border-divider bg-bg py-2.5 pr-10 pl-4 text-right text-sm text-text-primary outline-none transition-colors placeholder:text-text-secondary/60 focus:border-accent"
-            />
+          <div className="mb-4">
+            <SearchDropdown variant="mobile" />
           </div>
 
           <nav className="flex flex-col gap-1">

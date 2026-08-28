@@ -1,7 +1,12 @@
 import Link from "next/link";
 import { StarIcon, FlameSolidIcon, EyeIcon, CommentIcon } from "@/components/icons";
+import {
+  type PublicationStatus,
+  PUBLICATION_STATUS_LABEL as STATUS_LABEL,
+  PUBLICATION_STATUS_COLOR as STATUS_COLOR,
+} from "@/lib/constants/publicationStatus";
 
-export type PublicationStatus = "cp" | "c" | "up";
+export type { PublicationStatus };
 
 export interface MangaCardProps {
   slug: string; // lookup_field بک‌اند title_slug هست، نه id
@@ -14,17 +19,6 @@ export interface MangaCardProps {
   isHot: boolean;
   publicationStatus?: PublicationStatus; // cp: در حال پخش | c: پایان‌یافته | up: منتشرنشده (بج نشون داده نمیشه)
 }
-
-const STATUS_LABEL: Record<PublicationStatus, string> = {
-  cp: "در حال پخش",
-  c: "پایان‌یافته",
-  up: "منتشرنشده",
-};
-const STATUS_COLOR: Record<PublicationStatus, string> = {
-  cp: "bg-warning",
-  c: "bg-success",
-  up: "bg-error",
-};
 
 
 export function MangaCard({
