@@ -3,11 +3,13 @@ from django.db.models import Count, OuterRef, Subquery
 from django.utils.html import format_html, urlencode
 from django.urls import reverse
 
-from .models import Manhwa, Episode, Studio, Genre, Rate, View, CommentReAction, Comment, Ticket, TicketMessage, WatchList
+from manhwas.tasks import create_chapter_image_objects
+
+from .models import ChapterImage, Manhwa, Chapter, Studio, Genre, Rate, View, CommentReAction, Comment, Ticket, TicketMessage, WatchList
 
 
-class EpisodeInline(admin.TabularInline):
-    model = Episode
+class ChapterInline(admin.TabularInline):
+    model = Chapter
     fields = ['number', 'file']
     readonly_fields = ['number']
     extra = 0
@@ -15,11 +17,11 @@ class EpisodeInline(admin.TabularInline):
 
 @admin.register(Manhwa)
 class ManhwaAdmin(admin.ModelAdmin):
-    list_display = ('en_title', 'season', 'views_count', 'get_genres', 'episodes_count', 'comments_count')
+    list_display = ('en_title', 'season', 'views_count', 'get_genres', 'chapters_count', 'comments_count')
     autocomplete_fields = ['genres', 'studio']
     list_filter = ['genres', 'day_of_week', 'studio']
     search_fields = ['en_title']
-    inlines = [EpisodeInline]
+    inlines = [ChapterInline]
 
     def get_queryset(self, request):
         return super(ManhwaAdmin, self)\
@@ -27,8 +29,8 @@ class ManhwaAdmin(admin.ModelAdmin):
             .prefetch_related('genres')\
             .select_related('studio')\
             .annotate(
-                episodes_count=Subquery(
-                    Episode.objects
+                chapters_count=Subquery(
+                    Chapter.objects
                     .filter(manhwa=OuterRef('pk'))
                     .values('manhwa')
                     .annotate(count=Count('id'))
@@ -47,10 +49,10 @@ class ManhwaAdmin(admin.ModelAdmin):
         return ', '.join([genre.title for genre in obj.genres.all()])
     get_genres.short_description = 'Genre'
 
-    @admin.display(description='Episodes', ordering='episodes_count')
-    def episodes_count(self, manhwa):
-        url = reverse('admin:manhwas_episode_changelist') + "?" + urlencode({'manhwa__id': manhwa.id})
-        return format_html('<a href="{}">{}</a>', url, manhwa.episodes_count or 0)
+    @admin.display(description='Chapters', ordering='chapters_count')
+    def chapters_count(self, manhwa):
+        url = reverse('admin:manhwas_chapter_changelist') + "?" + urlencode({'manhwa__id': manhwa.id})
+        return format_html('<a href="{}">{}</a>', url, manhwa.chapters_count or 0)
 
     @admin.display(description='Comments', ordering='comments_count')
     def comments_count(self, manhwa):
@@ -81,9 +83,20 @@ class StudioAdmin(admin.ModelAdmin):
     search_fields = ['title']
 
 
-@admin.register(Episode)
-class EpisodeAdmin(admin.ModelAdmin):
+@admin.register(Chapter)
+class ChapterAdmin(admin.ModelAdmin):
     list_display = ('manhwa', 'downloads_count', 'number',)
+
+    def save_model(self, request, obj, form, change):
+        is_new_zip = 'zip_file' in form.changed_data and obj.zip_file
+        super().save_model(request, obj, form, change)
+
+        if is_new_zip:
+            create_chapter_image_objects.delay(obj.id)
+
+@admin.register(ChapterImage)
+class ChapterImageAdmin(admin.ModelAdmin):
+    list_display = ('chapter', 'order',)
 
 
 @admin.register(Comment)

@@ -1,13 +1,17 @@
+import os
+
 from celery import shared_task
 import logging
+import zipfile
 
 from django.db.models import F, Q, FloatField, Value
 from django.db.models.aggregates import Avg
 from django.db.models.functions import Coalesce
 from django.forms.fields import FloatField
 from django_redis import get_redis_connection
+from django.core.files.base import ContentFile
 
-from .models import Manhwa, View
+from .models import Chapter, ChapterImage, Manhwa, View
 
 logger = logging.getLogger(__name__)
 
@@ -99,3 +103,43 @@ def mark_five_hot_manhwas():
     Manhwa.objects.filter(Q(is_hot=True) & ~Q(id__in=hot_manhwas_id)).update(is_hot=False)
     logger.info('non-hot manhwas unmarked')
     logger.info('manhwas updated successfully.')
+
+
+IMAGE_ALLOWED_FORMATS = {'.jpg', '.jpeg', '.png', '.webp'}
+
+@shared_task(name='manhwas.create_chapter_image_objects')
+def create_chapter_image_objects(obj_id):
+    logger.info("starting to create Chapter Images...")
+
+    chapter_obj = Chapter.objects.get(id=obj_id)
+
+    if not chapter_obj.zip_file:
+        return 
+
+    zip_path = chapter_obj.zip_file.path
+    with zipfile.ZipFile(zip_path, 'r') as zip_ref:
+        files_list = [
+            f for f in zip_ref.namelist()
+            if os.path.splitext(f)[1].lower() in IMAGE_ALLOWED_FORMATS
+            and not f.startswith('__MACOSX')
+        ]
+        logger.info("images extracted from zip file.")
+        files_list.sort()
+
+        images_to_create = []
+        for index, file_name in enumerate(files_list, start=1):
+            image_data = zip_ref.read(file_name)
+            clean_filename = os.path.basename(file_name)
+            
+            chapter_image = ChapterImage(
+                chapter=chapter_obj,
+                order=index
+            )
+            # منتسب کردن فایل مستقیماً به ImageField بدون ذخیره روی دیسک اولیه
+            chapter_image.image.save(clean_filename, ContentFile(image_data), save=False)
+            images_to_create.append(chapter_image)
+
+        ChapterImage.objects.bulk_create(images_to_create)
+
+
+

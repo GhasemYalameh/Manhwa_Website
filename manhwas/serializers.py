@@ -9,7 +9,7 @@ from django.core.exceptions import ValidationError
 from django.utils.translation import gettext as _
 
 from accounts.models import CustomUser
-from .models import Manhwa, CommentReAction, Comment, Episode, Studio, Ticket, TicketMessage, Rate, Genre, View, WatchList
+from .models import Manhwa, CommentReAction, Comment, Chapter, Studio, Ticket, TicketMessage, Rate, Genre, View, WatchList
 from .services import ManhwaService
 
 
@@ -125,18 +125,22 @@ class DetailManhwaSerializer(serializers.ModelSerializer):
     comments_count = serializers.IntegerField(source='comments.count', read_only=True)
     cover = serializers.URLField(source='cover.url', read_only=True)
     rating_data = serializers.SerializerMethodField()
-    genres = serializers.SerializerMethodField()
+    genres = GenreListSerializer(many=True)
     studio = StudioListSerializer()
 
     class Meta:
         model = Manhwa
-        fields = ['fa_title', 'en_title', 'genres', 'rating_data', 'season', 'day_of_week', 'last_upload', 'studio', 'views_count', 'comments_count', 'cover']
+        fields = (
+            'fa_title', 'en_title', 'summary', 'genres', 'rating_data', 'season',
+            'day_of_week', 'last_upload', 'studio', 'views_count', 'comments_count',
+            'cover', 'publication_datetime', 'publication_status', 'is_hot', 'last_upload_time',
+        )
 
-    def get_genres(self, obj):
-        # return only title of genres instead of many dicts with key&value
-        genres_qs = obj.genres.all()
-        genres_obj = ManhwaGenresSerializer(genres_qs, many=True).data
-        return [genre.get('title') for genre in genres_obj]
+    # def get_genres(self, obj):
+    #     # return only title of genres instead of many dicts with key&value
+    #     genres_qs = obj.genres.all()
+    #     genres_obj = ManhwaGenresSerializer(genres_qs, many=True).data
+    #     return [genre.get('title') for genre in genres_obj]
 
     def get_rating_data(self, obj):
         rating_data = ManhwaService().get_rating_data(obj)
@@ -239,12 +243,12 @@ class ManhwaViewSerializer(serializers.Serializer):
         return value
 
 
-class EpisodeSerializer(serializers.ModelSerializer):
+class ChapterSerializer(serializers.ModelSerializer):
     file = serializers.URLField(source='file.url')
     manhwa_slug = serializers.SlugRelatedField(source='manhwa', slug_field='title_slug', queryset=Manhwa.objects.all())
 
     class Meta:
-        model = Episode
+        model = Chapter
         fields = ['id', 'manhwa_slug', 'number', 'file', 'datetime_created']
 
 

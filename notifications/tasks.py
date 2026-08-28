@@ -2,20 +2,20 @@ from celery import shared_task
 from django.db.models import Q
 import logging
 
-from manhwas.models import Episode, WatchList
+from manhwas.models import Chapter, WatchList
 from notifications.models import Notification
 
 logger = logging.getLogger(__name__)
 
-@shared_task(name='notifications.episode_published_notification')
-def episode_published_notification(episode_id):
+@shared_task(name='notifications.chapter_published_notification')
+def chapter_published_notification(chapter_id):
     """
-    notifying users after publishing new episode who added the manhwa to his watch list.
+    notifying users after publishing new chapter who added the manhwa to his watch list.
     """
-    logger.info('starting to create notification for episode publication...')
+    logger.info('starting to create notification for chapter publication...')
 
-    episode_obj = Episode.objects.get(pk=episode_id)
-    manhwa_id = episode_obj.manhwa_id
+    chapter_obj = Chapter.objects.get(id=chapter_id)
+    manhwa_id = chapter_obj.manhwa_id
     curser = 0
     BACH_SIZE = 1000
     while True:
@@ -33,8 +33,8 @@ def episode_published_notification(episode_id):
             notif_objects.append(
                 Notification(
                     recipient_id=row['user_id'],
-                    notif_type=Notification.EPISODE_PUBLISHED,
-                    target_object=episode_obj
+                    notif_type=Notification.CHAPTER_PUBLISHED,
+                    target_object=chapter_obj
                 )
             )
         Notification.objects.bulk_create(notif_objects, ignore_conflicts=True)

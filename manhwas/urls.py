@@ -6,7 +6,7 @@ router = routers.SimpleRouter()
 router.register('manhwas', views.ManhwaViewSet, basename='manhwa')  # list & retrieve (manhwa-list, manhwa-detail)
 manhwa_router = routers.NestedSimpleRouter(router, 'manhwas', lookup='manhwa')
 manhwa_router.register('comments', views.CommentViewSet, basename='manhwa-comments')
-manhwa_router.register('episodes', views.EpisodeViewSet, basename='manhwa-episodes')
+manhwa_router.register('episodes', views.ChapterViewSet, basename='manhwa-episodes')
 
 router2 = routers.SimpleRouter()
 router2.register('tickets', views.TicketViewSet, basename='ticket')

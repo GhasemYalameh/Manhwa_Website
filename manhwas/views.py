@@ -18,7 +18,7 @@ from rest_framework.filters import SearchFilter, OrderingFilter
 from django_filters.rest_framework import DjangoFilterBackend
 
 from . import serializers as srilzr
-from .models import Genre, Manhwa, Studio, View, CommentReAction, Comment, Episode, Ticket, Rate, TicketMessage, WatchList
+from .models import Genre, Manhwa, Studio, View, CommentReAction, Comment, Chapter, Ticket, Rate, TicketMessage, WatchList
 from .paginations import CustomPagination
 from .permissions import IsOwnerOrAdmin
 from .services import ManhwaService, get_today_weekly_name
@@ -294,12 +294,12 @@ class ManhwaViewSet(ModelViewSet):
         return Response({'tracked': True, 'message': 'view added.'}, status=status.HTTP_200_OK)
 
 
-class EpisodeViewSet(ReadOnlyModelViewSet):
-    serializer_class = srilzr.EpisodeSerializer
+class ChapterViewSet(ReadOnlyModelViewSet):
+    serializer_class = srilzr.ChapterSerializer
 
     def get_queryset(self):
         manhwa_slug = self.kwargs.get('manhwa_title_slug')
-        return Episode.objects.select_related('manhwa').filter(manhwa__title_slug=manhwa_slug)
+        return Chapter.objects.select_related('manhwa').filter(manhwa__title_slug=manhwa_slug)
 
 
 class GenreListApiView(ListAPIView):

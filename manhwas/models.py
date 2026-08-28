@@ -1,3 +1,5 @@
+from ssl import create_default_context
+
 from django.core.exceptions import ValidationError
 from django.db import models, transaction
 from django.db.models import F, Count, When, indexes
@@ -8,8 +10,7 @@ from django_ckeditor_5.fields import CKEditor5Field
 from config import settings
 from config.settings.base import AUTH_USER_MODEL
 from .services import (
-    generate_manhwa_slug, manhwa_cover_upload_to, N,
-    manhwa_file_upload_to
+    chapter_cover_upload_to, chapter_images_upload_to, generate_manhwa_slug, manhwa_cover_upload_to, N,
 )
 
 
@@ -61,7 +62,7 @@ class Manhwa(models.Model):
     publication_status = models.CharField(choices=PUB_STATUS_CHOICES, default=UNPUBLISHED)
     is_hot = models.BooleanField(default=False)
 
-    last_upload_time = models.DateTimeField(null=True, blank=True)  # when an Episode Uploaded.
+    last_upload_time = models.DateTimeField(null=True, blank=True)  # when an Chapter Uploaded.
     last_upload = models.CharField(default='Not Uploaded', editable=False)
 
     datetime_created = models.DateTimeField(auto_now_add=True, verbose_name=_('datetime created'))
@@ -132,14 +133,15 @@ class Rate(models.Model):
         )
 
 
-class Episode(models.Model):
-    manhwa = models.ForeignKey(Manhwa, on_delete=models.PROTECT, related_name='episodes', verbose_name=_('manhwas'))
-    number = models.PositiveIntegerField(blank=True, editable=False, verbose_name=_('number of episode'))
-    file = models.FileField(upload_to=manhwa_file_upload_to, verbose_name=_('episode file'))
+class Chapter(models.Model):
+    manhwa = models.ForeignKey(Manhwa, on_delete=models.PROTECT, related_name='chapters', verbose_name=_('manhwas'))
+    title = models.CharField(max_length=255, blank=True)
+    cover = models.ImageField(upload_to=chapter_cover_upload_to, blank=True, null=True)
+    number = models.PositiveIntegerField(blank=True, editable=False, verbose_name=_('number of chapters'))
+    zip_file = models.FileField(upload_to='temp_zips/', verbose_name=_('chapter zip file'))
     downloads_count = models.PositiveIntegerField(default=0, editable=False, verbose_name=_('download count'))
 
-    datetime_created = models.DateTimeField(auto_now_add=True, verbose_name=_('datetime created'))
-    datetime_modified = models.DateTimeField(auto_now=True, verbose_name=_('datetime modified'))
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name=_('datetime created'))
 
     class Meta:
         unique_together = ('number', 'manhwa')
@@ -147,27 +149,43 @@ class Episode(models.Model):
         indexes = (
             models.Index(fields=['manhwa', 'number']),
             models.Index(fields=['-downloads_count']),
-            models.Index(fields=['-datetime_created']),
+            models.Index(fields=['-created_at']),
         )
         
     def save(self, *args, **kwargs):
-        last_episode = self.__class__.objects.filter(
+        last_chapter = self.__class__.objects.filter(
             manhwa_id=self.manhwa_id
-        ).order_by('-datetime_created').values('number').first()
-        self.number = 1 if last_episode is None else last_episode.get('number') + 1
+        ).order_by('-created_at').values('number').first()
+        self.number = 1 if last_chapter is None else last_chapter.get('number') + 1
 
-        self.update_last_episode_on_manhwa(self.number)
+        self.update_last_chapter_on_manhwa(self.number)
 
         super().save(*args, **kwargs)
 
-    def update_last_episode_on_manhwa(self, number):
+    def update_last_chapter_on_manhwa(self, number):
         manhwa = Manhwa.objects.get(pk=self.manhwa_id)
-        season, episode = N(manhwa.season), N(number)
-        last_upload = f'S{season}-E{episode}'
+        season, chapter = N(manhwa.season), N(number)
+        last_upload = f'S{season}-E{chapter}'
         Manhwa.objects.filter(pk=self.manhwa_id).update(last_upload=last_upload, last_upload_time=timezone.now())
 
     def __str__(self):
-        return f'{self.manhwa.en_title}: {self.number}'
+        return f'manhwa {self.manhwa.title_slug}: chapter {self.number}'
+
+class ChapterImage(models.Model):
+    chapter = models.ForeignKey(Chapter, on_delete=models.CASCADE, related_name='images')
+    image = models.ImageField(upload_to=chapter_images_upload_to, )
+    order = models.PositiveIntegerField()
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ('order',)
+        indexes = (
+            models.Index(fields=('chapter', )),
+        )
+
+    def __str__(self):
+        return str(self.order)
 
 
 class Comment(models.Model):
@@ -360,7 +378,7 @@ class WatchList(models.Model):
     WATCHING_STATUS = (
         (WILL_READING:='wr', 'Will Reading'),
         (NOW_READING:='nr', 'Now Reading'),
-        (STOPPED:='ost', 'Stpped'),
+        (STOPPED:='st', 'Stpped'),
         (FINISHED:='fn', 'Finished'),
     )
     manhwa = models.ForeignKey(Manhwa, on_delete=models.CASCADE, related_name='watch_listed')

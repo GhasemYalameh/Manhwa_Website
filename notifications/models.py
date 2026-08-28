@@ -11,7 +11,7 @@ class Notification(models.Model):
         (WARNING:= 'war', 'Warning'),   (FAIL:= 'fal', 'Fail'),
     )
     NOTIFICATION_TYPES = (
-        (EPISODE_PUBLISHED:= 'epp', 'Episode Published'),   (REACTED_COMMENT:= 'rac', 'Reacted Comment'),
+        (CHAPTER_PUBLISHED:= 'epp', 'Chapter Published'),   (REACTED_COMMENT:= 'rac', 'Reacted Comment'),
         (REPLIED_COMMENT:= 'rpc', 'Replied Comment'),   (SYSTEM:= 'sys', 'System Notify'),
     )
 

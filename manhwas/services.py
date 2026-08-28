@@ -101,30 +101,52 @@ def generate_manhwa_slug(title: str, max_length: int = 50) -> str:
     return '-'.join(words)[:max_length].rstrip('-')
 
 
-def manhwa_file_upload_to(instance, filename):
+def chapter_images_upload_to(instance, filename):
     """
-    creating manhwa file path by using manhwa title, season number and
-    Episode number.
-    output: Manhwa/<manhwa_title>/season-<season_number>/Episode/<file_name>
+    creating chapters images path by using manhwa title, season number and
+    chapter number.
+    output: manhwa/<manhwa_slug>/season-<season_number>/chapters/<chapter_number>/file_name
     """
-    manhwa_title = instance.manhwa.en_title
+    manhwa_slug = instance.chapter.manhwa.title_slug
+    manhwa_season = instance.chapter.manhwa.season
+    season = str(manhwa_season)
+    chapter_number = instance.chapter.number
+
+    return os.path.join(
+        'manhwa', manhwa_slug, slugify('season ' + season),
+        'chapters', str(chapter_number,), filename
+    )
+def chapter_cover_upload_to(instance, filename):
+    """
+    creating chapter cover path by using manhwa title, season number and
+    chapter number.
+    output: manhwa/<manhwa_slug>/season-<season_number>/chapters/<chapter_number>/file_name
+    """
+    manhwa_slug = instance.manhwa.title_slug
     manhwa_season = instance.manhwa.season
     season = str(manhwa_season)
+    chapter_number = instance.number
 
-    return os.path.join('Manhwa', slugify(manhwa_title), slugify('Season ' + season), 'Episodes', filename)
+    return os.path.join(
+        'manhwa', manhwa_slug, slugify('season ' + season),
+        'chapters', str(chapter_number,), filename
+    )
 
 def manhwa_cover_upload_to(instance, filename):
     """
     creating manhwa cover path by using manhwa title, season and file name.
     
-    output: Manhwas/<manhwa_title>/season-<manhwa_season>/Covers/filename
+    output: manhwas/<manhwa_title>/season-<manhwa_season>/covers/filename
     """
     manhwa_title = instance.en_title
     manhwa_season = instance.season
     season = str(manhwa_season)
 
     # manhwas/title/season/covers/filename
-    return os.path.join('Manhwa', slugify(manhwa_title), slugify("Season " + season), 'Covers', filename)
+    return os.path.join(
+        'manhwa', slugify(manhwa_title), slugify("season " + season),
+        'covers', filename
+    )
 
 def N(number) -> str:
     """

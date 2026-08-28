@@ -76,6 +76,9 @@ services:
   celery_worker:
     <<: *django-app
     command: celery -A config worker --loglevel=info
+    volumes:
+      - .:/code
+      - media_volume:/code/media
 
   celery_beat:
     <<: *django-app
