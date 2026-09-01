@@ -1,13 +1,14 @@
 from rest_framework import serializers
 
 from .models import Notification
-from manhwas.serializers import ChapterSerializer, RetrieveCommentSerializer
+from manhwas.serializers import ChapterSerializer, RetrieveCommentSerializer, CustomUserSerializer
 from manhwas.models import Chapter, Comment
 
 
 class ListNotificationSerializer(serializers.ModelSerializer):
     target_content_type = serializers.SerializerMethodField()
     target_object = serializers.SerializerMethodField()
+    sender = CustomUserSerializer()
     class Meta:
         model = Notification
         fields = (
