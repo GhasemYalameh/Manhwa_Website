@@ -1,7 +1,8 @@
-from email.policy import default
+from os import read
 from re import search
 
-from rest_framework import serializers
+from django.urls import reverse
+from rest_framework import exceptions, serializers, permissions
 from rest_framework.validators import UniqueTogetherValidator
 
 from django.db import IntegrityError, transaction
@@ -9,7 +10,7 @@ from django.core.exceptions import ValidationError
 from django.utils.translation import gettext as _
 
 from accounts.models import CustomUser
-from .models import Manhwa, CommentReAction, Comment, Chapter, Studio, Ticket, TicketMessage, Rate, Genre, View, WatchList
+from .models import ChapterImage, Manhwa, CommentReAction, Comment, Chapter, Studio, Ticket, TicketMessage, Rate, Genre, View, WatchList
 from .services import ManhwaService
 
 
@@ -38,11 +39,13 @@ class StudioListSerializer(serializers.ModelSerializer):
 
 
 class CreateCommentSerializer(serializers.ModelSerializer):
-    author = serializers.CharField(source='author.username', read_only=True)
+    author = CustomUserSerializer(read_only=True)
+    user = serializers.HiddenField(source='author', default=serializers.CurrentUserDefault())
 
     class Meta:
         model = Comment
-        fields = ('id', 'author', 'text', 'parent',)
+        fields = ('id', 'author', 'text', 'parent', 'user')
+        read_only_fields = ('author',)
 
     def validate_text(self, value):
         is_html = search(r'<[^>]+>', value)
@@ -68,11 +71,12 @@ class RetrieveCommentSerializer(serializers.ModelSerializer):
     author = CustomUserSerializer()
     replies_count = serializers.SerializerMethodField()
     user_reaction = serializers.CharField(max_length=1, read_only=True)
+    manhwa_slug = serializers.CharField(source='manhwa.title_slug')
 
     class Meta:
         model = Comment
         fields = (
-            'id', 'author', 'text', 'parent',
+            'id', 'manhwa_slug', 'author', 'text', 'parent',
             'level', 'likes_count', 'dis_likes_count',
             'replies_count', 'user_reaction'
         )
@@ -82,7 +86,7 @@ class RetrieveCommentSerializer(serializers.ModelSerializer):
 
 
 class CommentDetailSerializer(serializers.ModelSerializer):
-    author = CustomUserSerializer(source='author')
+    author = CustomUserSerializer()
     replies = RetrieveCommentSerializer(source='children', many=True)
     replies_count = serializers.SerializerMethodField()
 
@@ -243,14 +247,36 @@ class ManhwaViewSerializer(serializers.Serializer):
         return value
 
 
-class ChapterSerializer(serializers.ModelSerializer):
-    file = serializers.URLField(source='file.url')
-    manhwa_slug = serializers.SlugRelatedField(source='manhwa', slug_field='title_slug', queryset=Manhwa.objects.all())
+class ChapterImageSerializer(serializers.ModelSerializer):
+    image_url = serializers.SerializerMethodField()
+    image_number = serializers.CharField(source='order')
+    class Meta:
+        model = ChapterImage
+        fields = ('image_number', 'image_url',)
 
+    def get_image_url(self, obj):
+        manhwa_slug = obj.chapter.manhwa.title_slug
+        chapter_id = obj.chapter_id
+        chapter_image_id = obj.id
+        url = reverse('manhwa-chapter-image-list', args=[manhwa_slug, chapter_id, chapter_image_id])
+        return url
+
+
+class ChapterSerializer(serializers.ModelSerializer):
+    images = serializers.SerializerMethodField()
+    manhwa_slug = serializers.SlugRelatedField(source='manhwa', slug_field='title_slug', queryset=Manhwa.objects.all())
+    is_accessible = serializers.SerializerMethodField()
     class Meta:
         model = Chapter
-        fields = ['id', 'manhwa_slug', 'number', 'file', 'datetime_created']
+        fields = ['id', 'manhwa_slug', 'number', 'is_accessible', 'cover', 'images',  'created_at']
 
+    def get_images(self, obj):
+        images = obj.images.all()
+        return ChapterImageSerializer(images, many=True).data
+
+    def get_is_accessible(self, obj):
+        request = self.context['request']
+        return obj.is_accessible_by(request.user)
 
 class ListTicketSerializer(serializers.ModelSerializer):
     messages_count = serializers.IntegerField(source='messages.count')

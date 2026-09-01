@@ -17,6 +17,8 @@ logger = logging.getLogger(__name__)
 
 redis_con = get_redis_connection('default')
 
+IMAGE_ALLOWED_FORMATS = {'.jpg', '.jpeg', '.png', '.webp'}
+
 # TODO: add a task to sync real views to manhwa field every 10 days.
 
 @shared_task(name='manhwas.sync_pending_views')
@@ -104,9 +106,6 @@ def mark_five_hot_manhwas():
     logger.info('non-hot manhwas unmarked')
     logger.info('manhwas updated successfully.')
 
-
-IMAGE_ALLOWED_FORMATS = {'.jpg', '.jpeg', '.png', '.webp'}
-
 @shared_task(name='manhwas.create_chapter_image_objects')
 def create_chapter_image_objects(obj_id):
     logger.info("starting to create Chapter Images...")
@@ -139,7 +138,13 @@ def create_chapter_image_objects(obj_id):
             chapter_image.image.save(clean_filename, ContentFile(image_data), save=False)
             images_to_create.append(chapter_image)
 
+        logger.info("all images recognized. starting to create ChapterImage objects...")
         ChapterImage.objects.bulk_create(images_to_create)
-
+        logger.info('successfully completed.')
+        
+    if os.path.exists(zip_path):
+        os.remove(zip_path)
+    logger.info('zip file removed from temp.')
+    
 
 

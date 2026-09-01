@@ -1,12 +1,13 @@
-from ssl import create_default_context
+import uuid
 
 from django.core.exceptions import ValidationError
 from django.db import models, transaction
-from django.db.models import F, Count, When, indexes
+from django.db.models import F, Count, When
 from django.utils import timezone
 from django.utils.translation import gettext as _
 from django_ckeditor_5.fields import CKEditor5Field
 
+from .storages import protected_storage
 from config import settings
 from config.settings.base import AUTH_USER_MODEL
 from .services import (
@@ -138,6 +139,7 @@ class Chapter(models.Model):
     title = models.CharField(max_length=255, blank=True)
     cover = models.ImageField(upload_to=chapter_cover_upload_to, blank=True, null=True)
     number = models.PositiveIntegerField(blank=True, editable=False, verbose_name=_('number of chapters'))
+    is_free = models.BooleanField(default=False)
     zip_file = models.FileField(upload_to='temp_zips/', verbose_name=_('chapter zip file'))
     downloads_count = models.PositiveIntegerField(default=0, editable=False, verbose_name=_('download count'))
 
@@ -168,12 +170,20 @@ class Chapter(models.Model):
         last_upload = f'S{season}-E{chapter}'
         Manhwa.objects.filter(pk=self.manhwa_id).update(last_upload=last_upload, last_upload_time=timezone.now())
 
+    def is_accessible_by(self, user):
+        is_admin = user.is_staff
+        is_subscriber = user.subscription.is_subscriber()
+        is_free = self.is_free
+        return is_free or is_admin or is_subscriber 
+
     def __str__(self):
         return f'manhwa {self.manhwa.title_slug}: chapter {self.number}'
 
+
 class ChapterImage(models.Model):
+    token = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
     chapter = models.ForeignKey(Chapter, on_delete=models.CASCADE, related_name='images')
-    image = models.ImageField(upload_to=chapter_images_upload_to, )
+    image = models.ImageField(upload_to=chapter_images_upload_to, storage=protected_storage)
     order = models.PositiveIntegerField()
 
     created_at = models.DateTimeField(auto_now_add=True)
@@ -183,6 +193,7 @@ class ChapterImage(models.Model):
         indexes = (
             models.Index(fields=('chapter', )),
         )
+
 
     def __str__(self):
         return str(self.order)

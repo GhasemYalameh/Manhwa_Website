@@ -6,7 +6,7 @@ router = routers.SimpleRouter()
 router.register('manhwas', views.ManhwaViewSet, basename='manhwa')  # list & retrieve (manhwa-list, manhwa-detail)
 manhwa_router = routers.NestedSimpleRouter(router, 'manhwas', lookup='manhwa')
 manhwa_router.register('comments', views.CommentViewSet, basename='manhwa-comments')
-manhwa_router.register('episodes', views.ChapterViewSet, basename='manhwa-episodes')
+manhwa_router.register('chapters', views.ChapterViewSet, basename='manhwa-chapters')
 
 router2 = routers.SimpleRouter()
 router2.register('tickets', views.TicketViewSet, basename='ticket')
@@ -23,6 +23,7 @@ urlpatterns = [
     # path('api/tickets/', views.TicketApiView.as_view(), name='tickets'),
     # path('api/tickets/<int:pk>/', views.TicketMessagesApiView.as_view(), name='ticket-messages'),
 
+    path('api/manhwas/<slug:title_slug>/chapters/<int:chapter_id>/images/<int:image_id>', views.ProtectedChapterImageView.as_view(), name='manhwa-chapter-image-list'),
     path('api/', include(router.urls)),
     path('api/', include(manhwa_router.urls)),
     path('api/', include(router2.urls)),

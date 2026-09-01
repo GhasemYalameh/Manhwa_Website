@@ -1,15 +1,12 @@
-import requests
-
 from django.db import connection
 from django.db.models import Avg, F, Value, Subquery, OuterRef, Prefetch
 from django.db.models.functions import Coalesce
-from django.http import JsonResponse
-from django.shortcuts import render, get_object_or_404
-from django.template.loader import render_to_string
+from django.http import HttpResponse, JsonResponse
+from django.shortcuts import get_object_or_404
 from django.utils.functional import cached_property
 
-from rest_framework import status
-from rest_framework.decorators import  action
+from rest_framework import status, exceptions
+from rest_framework.decorators import  APIView, action
 from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser
 from rest_framework.response import Response
 from rest_framework.viewsets import ReadOnlyModelViewSet, ModelViewSet
@@ -18,7 +15,7 @@ from rest_framework.filters import SearchFilter, OrderingFilter
 from django_filters.rest_framework import DjangoFilterBackend
 
 from . import serializers as srilzr
-from .models import Genre, Manhwa, Studio, View, CommentReAction, Comment, Chapter, Ticket, Rate, TicketMessage, WatchList
+from .models import ChapterImage, Genre, Manhwa, Studio, View, CommentReAction, Comment, Chapter, Ticket, Rate, TicketMessage, WatchList
 from .paginations import CustomPagination
 from .permissions import IsOwnerOrAdmin
 from .services import ManhwaService, get_today_weekly_name
@@ -174,8 +171,8 @@ class CommentViewSet(ModelViewSet):
 
     def get_serializer_class(self):
         match self.action:
-            case 'replies':
-                return srilzr.CommentDetailSerializer
+            # case 'replies':
+            #     return srilzr.CommentDetailSerializer
             case 'create':
                 return srilzr.CreateCommentSerializer
             case 'reaction':
@@ -192,11 +189,11 @@ class CommentViewSet(ModelViewSet):
     @action(detail=True, methods=['GET'])
     def replies(self, request, *args, **kwargs):
         comment_obj = self.get_object()
-        serializer = self.get_serializer(comment_obj)
+        serializer = self.get_serializer(comment_obj.children.all(), many=True)
         return Response(serializer.data)
 
     @action(detail=True, methods=['post'])
-    def reaction(self, request, *args, **kwargs):
+    def reaction(self, request, pk, *args, **kwargs):
         comment = self.get_object()
         serializer = self.get_serializer(data=request.data, context={'request': request, 'comment_id': pk})
         serializer.is_valid(raise_exception=True)
@@ -213,7 +210,7 @@ class ManhwaViewSet(ModelViewSet):
     pagination_class = CustomPagination
     filter_backends = [SearchFilter, DjangoFilterBackend, OrderingFilter]
     search_fields = ('en_title', 'fa_title')
-    ordering_fields = ('publication_datetime', 'avg_rating', 'views_count')
+    ordering_fields = ('publication_datetime', 'avg_rating', 'views_count', 'last_upload_time', 'datetime_created',)
     filterset_fields = ('day_of_week', 'genres', 'studio')
     # filterset_class = ManhwaFilter
     queryset = Manhwa.objects.prefetch_related( 'comments' ,'rates')
@@ -295,11 +292,27 @@ class ManhwaViewSet(ModelViewSet):
 
 
 class ChapterViewSet(ReadOnlyModelViewSet):
+    permission_classes = (IsAuthenticated,)
     serializer_class = srilzr.ChapterSerializer
 
     def get_queryset(self):
         manhwa_slug = self.kwargs.get('manhwa_title_slug')
-        return Chapter.objects.select_related('manhwa').filter(manhwa__title_slug=manhwa_slug)
+        return Chapter.objects.select_related('manhwa').prefetch_related('images').filter(manhwa__title_slug=manhwa_slug)
+
+
+class ProtectedChapterImageView(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request, title_slug, chapter_id, image_id):
+        chapter_image = get_object_or_404(ChapterImage, id=image_id, chapter_id=chapter_id)
+        user = request.user
+        if not chapter_image.chapter.is_accessible_by(user):
+            raise exceptions.PermissionDenied(detail='you have to by subscription for continue', code=status.HTTP_403_FORBIDDEN)
+
+        response = HttpResponse()
+        response['X-Accel-Redirect'] = f'/internal/{chapter_image.image.name}'
+        return response
+
 
 
 class GenreListApiView(ListAPIView):

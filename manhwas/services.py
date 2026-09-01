@@ -7,6 +7,18 @@ from django.core.cache import cache
 
 import os
 
+STOP_WORDS = {
+    'the', 'a', 'an', 'of', 'to', 'in', 'on', 'at', 'for', 'with', 'by',
+    'from', 'up', 'about', 'into', 'over', 'after', 'why', 'how', 'what',
+    'when', 'where', 'who', 'which', 'is', 'are', 'was', 'were', 'be', 'been',
+    'being', 'have', 'has', 'had', 'do', 'does', 'did', 'will', 'would',
+    'could', 'should', 'may', 'might', 'must', 'shall', 'can', 'need',
+    'i', 'my', 'me', 'we', 'our', 'you', 'your', 'he', 'she', 'it', 'they',
+    'and', 'or', 'but', 'so', 'if', 'as', 'than', 'that', 'this', 'these',
+    'those', 'then', 'there', 'here', 'just', 'only', 'also', 'even', 'still'
+}
+
+
 class ManhwaService:
     def __init__(self):
         self.redis = get_redis_connection('default')
@@ -63,17 +75,6 @@ def get_today_weekly_name():
     )
     return week_days[int(today_week_number)]
 
-STOP_WORDS = {
-    'the', 'a', 'an', 'of', 'to', 'in', 'on', 'at', 'for', 'with', 'by',
-    'from', 'up', 'about', 'into', 'over', 'after', 'why', 'how', 'what',
-    'when', 'where', 'who', 'which', 'is', 'are', 'was', 'were', 'be', 'been',
-    'being', 'have', 'has', 'had', 'do', 'does', 'did', 'will', 'would',
-    'could', 'should', 'may', 'might', 'must', 'shall', 'can', 'need',
-    'i', 'my', 'me', 'we', 'our', 'you', 'your', 'he', 'she', 'it', 'they',
-    'and', 'or', 'but', 'so', 'if', 'as', 'than', 'that', 'this', 'these',
-    'those', 'then', 'there', 'here', 'just', 'only', 'also', 'even', 'still'
-}
-
 def generate_manhwa_slug(title: str, max_length: int = 50) -> str:
     """
     using slugify for base slug. then removing Stop Words like 
@@ -100,22 +101,17 @@ def generate_manhwa_slug(title: str, max_length: int = 50) -> str:
     
     return '-'.join(words)[:max_length].rstrip('-')
 
-
 def chapter_images_upload_to(instance, filename):
     """
     creating chapters images path by using manhwa title, season number and
     chapter number.
-    output: manhwa/<manhwa_slug>/season-<season_number>/chapters/<chapter_number>/file_name
+    output: chapters/chapter_id/uuid.jpg
     """
-    manhwa_slug = instance.chapter.manhwa.title_slug
-    manhwa_season = instance.chapter.manhwa.season
-    season = str(manhwa_season)
-    chapter_number = instance.chapter.number
+    chapter_id= instance.chapter_id
+    token = instance.token
+    ext = filename.split('.')[-1]
+    return os.path.join('chapters', str(chapter_id), f"{token}.{ext}")
 
-    return os.path.join(
-        'manhwa', manhwa_slug, slugify('season ' + season),
-        'chapters', str(chapter_number,), filename
-    )
 def chapter_cover_upload_to(instance, filename):
     """
     creating chapter cover path by using manhwa title, season number and

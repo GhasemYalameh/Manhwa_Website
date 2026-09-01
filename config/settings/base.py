@@ -151,6 +151,7 @@ STATICFILES_DIRS = [BASE_DIR / 'static']  # initial root static
 # media settings
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
+PROTECTED_MEDIA_ROOT = BASE_DIR / 'protected'
 
 
 # Default primary key field type
