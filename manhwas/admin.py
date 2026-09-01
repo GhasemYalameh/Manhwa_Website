@@ -10,7 +10,7 @@ from .models import ChapterImage, Manhwa, Chapter, Studio, Genre, Rate, View, Co
 
 class ChapterInline(admin.TabularInline):
     model = Chapter
-    fields = ['number', 'file']
+    fields = ['number', 'zip_file']
     readonly_fields = ['number']
     extra = 0
 

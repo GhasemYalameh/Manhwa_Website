@@ -29,8 +29,8 @@ class StudioFactory(DjangoModelFactory):
     class Meta:
         model = Studio
         django_get_or_create = ('title',)
-    title = factory.Faker('name')
-    description = factory.Faker('paragraph', nb_sentences=2)
+    title = factory.Faker('name',)
+    description = factory.Faker('paragraph', nb_sentences=2, locale='fa_IR')
 
 
 # class TranslatorFactory(DjangoModelFactory):
@@ -46,7 +46,7 @@ class GenreFactory(DjangoModelFactory):
         model = Genre
         django_get_or_create = ('title',)
     title = factory.LazyFunction(lambda : random.choice(MANHWA_GENRES))
-    description = factory.Faker('paragraph', nb_sentences=2)
+    description = factory.Faker('paragraph', nb_sentences=2, locale='fa_IR')
 
 
 class GenresList:
@@ -62,7 +62,8 @@ class ManhwaFactory(DjangoModelFactory):
         django_get_or_create = ('en_title',)
 
     en_title = factory.Faker('sentence', nb_words=6)
-    summary = factory.Faker('paragraph', nb_sentences=10 )
+    fa_title = factory.Faker('sentence', nb_words=4, locale='fa_IR')
+    summary = factory.Faker('paragraph', nb_sentences=10, locale='fa_IR')
     day_of_week = factory.LazyFunction(lambda : random.choice(DAY_OF_WEEK))
     cover = factory.django.ImageField(size=(450, 350),format='JPEG')
     hero_cover = factory.django.ImageField(size=(720, 1080),format='JPEG')
@@ -94,8 +95,8 @@ class UserFactory(DjangoModelFactory):
         model = get_user_model()
         django_get_or_create = ('phone_number',)
 
-    first_name = factory.Faker('first_name')
-    last_name = factory.Faker('last_name')
+    first_name = factory.Faker('first_name', locale='fa_IR')
+    last_name = factory.Faker('last_name', locale='fa_IR')
     phone_number = factory.LazyFunction(lambda : random.choice(PREFIX_NUMBERS) + ''.join([str(random.randint(0, 9)) for _ in range(7)]))
     email = factory.LazyAttribute(lambda obj: f'{obj.first_name}-{obj.last_name}@gmail.com')
     avatar = factory.django.ImageField(size=[50, 50], format='JPEG')
@@ -105,7 +106,7 @@ class CommentFactory(DjangoModelFactory):
     class Meta:
         model = Comment
 
-    text = factory.Faker('paragraph', nb_sentences=2)
+    text = factory.Faker('paragraph', nb_sentences=3, locale='fa_IR')
     created_at = factory.LazyFunction(
         lambda : fake.date_time_between(start_date='-3y', end_date='now')
     )
