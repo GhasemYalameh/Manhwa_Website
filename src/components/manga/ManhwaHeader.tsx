@@ -46,8 +46,8 @@ export function ManhwaHeader({ slug, detail }: ManhwaHeaderProps) {
           </div>
 
           {detail.is_hot && (
-            <span className="absolute top-2 left-2 flex h-9 w-9 items-center justify-center rounded-lg bg-white shadow-md ring-1 ring-black/5">
-              <FlameSolidIcon className="h-6 w-6 text-error" />
+            <span className="absolute top-1 left-2 flex h-9 w-9 items-center justify-center ">
+              <FlameSolidIcon className="h-8 w-8 text-error" />
             </span>
           )}
 
@@ -65,7 +65,7 @@ export function ManhwaHeader({ slug, detail }: ManhwaHeaderProps) {
             {detail.fa_title || detail.en_title}
           </h1>
           {detail.fa_title && detail.en_title && (
-            <p dir="ltr" className="mt-1 text-right text-sm text-text-secondary">
+            <p dir="ltr" className="mt-3 text-right text-sm text-text-secondary">
               {detail.en_title}
             </p>
           )}
@@ -75,7 +75,7 @@ export function ManhwaHeader({ slug, detail }: ManhwaHeaderProps) {
               {detail.genres.map((genre) => (
                 <Link
                   key={genre.id}
-                  href={`/genres/${genre.id}`}
+                  href={`/manhwa?genres=${genre.id}`}
                   className="rounded-full bg-accent-light px-3 py-1 text-xs font-medium text-accent transition-colors hover:bg-accent hover:text-white"
                 >
                   {genre.title}
@@ -85,13 +85,6 @@ export function ManhwaHeader({ slug, detail }: ManhwaHeaderProps) {
           )}
 
           <div className="mt-4 flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-text-secondary">
-            {/* <span className="flex items-center gap-1 font-semibold text-text-primary">
-              <StarIcon className="text-warning h-5 w-5" />
-              {rating.toFixed(1)}
-              <span className="font-normal text-text-secondary">
-                ({detail.rating_data.raters_count.toLocaleString("fa-IR")} رأی)
-              </span>
-            </span> */}
             <span className="flex items-center gap-1">
 
               {detail.views_count.toLocaleString("fa-IR")}
@@ -108,8 +101,7 @@ export function ManhwaHeader({ slug, detail }: ManhwaHeaderProps) {
 
             <span>روز پخش: {DAY_LABELS[detail.day_of_week] ?? detail.day_of_week}</span>
 
-            <span>استودیو:  <Link href={`/studio/${detail.studio.id}`} className="text-accent hover:underline">
-              {detail.studio.title}
+            <span>استودیو:  <Link href={`/manhwa?studio=${detail.studio.id}`} className="text-accent hover:underline">              {detail.studio.title}
             </Link>
             </span>
           </div>

@@ -5,12 +5,12 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { NAV_LINKS } from "@/lib/constants/nav";
 import { getAccessToken, clearTokens } from "@/lib/api/client";
-import { getMe, type UserProfile } from "@/lib/api/auth";
+import { getMe, logout, type UserProfile } from "@/lib/api/auth";
 import { getCoverUrl } from "@/lib/api/manhwa";
 import { getUnreadNotificationsCount } from "@/lib/api/notifications";
 import { SearchDropdown } from "@/components/layout/SearchDropdown";
+import { NotificationDropdown } from "@/components/layout/NotificationDropdown";
 import {
-  BellIcon,
   ChevronDownIcon,
   MenuIcon,
   XIcon,
@@ -37,7 +37,6 @@ export function Header() {
 
   const userMenuRef = useRef<HTMLDivElement>(null);
 
-  // وضعیت لاگین از localStorage خونده میشه (بعداً جای این با فراخوانی endpoint پروفایل عوض میشه)
   useEffect(() => {
     setIsLoggedIn(!!getAccessToken());
     function handleStorage() {
@@ -47,7 +46,6 @@ export function Header() {
     return () => window.removeEventListener("storage", handleStorage);
   }, []);
 
-  // پروفایل کاربر — فقط وقتی لاگینیم
   useEffect(() => {
     if (!isLoggedIn) {
       setProfile(null);
@@ -58,7 +56,6 @@ export function Header() {
       .catch(() => setProfile(null));
   }, [isLoggedIn]);
 
-  // تعداد نوتیف خونده‌نشده — فقط وقتی لاگینیم
   useEffect(() => {
     if (!isLoggedIn) {
       setUnreadCount(0);
@@ -69,7 +66,6 @@ export function Header() {
       .catch(() => setUnreadCount(0));
   }, [isLoggedIn]);
 
-  // بستن منوی کاربر با کلیک بیرون از اون
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
       if (userMenuRef.current && !userMenuRef.current.contains(e.target as Node)) {
@@ -80,14 +76,16 @@ export function Header() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // بستن منوی موبایل هروقت مسیر عوض شد
   useEffect(() => {
     setMobileMenuOpen(false);
   }, [pathname]);
 
-  function handleLogout() {
-    // TODO: قبل از پاک کردن توکن‌ها، /account/jwt/blacklist/ صدا زده بشه
-    // (لاگ‌اوت سمت سرور هنوز پیاده نشده - آیتم بعدی auth؛ این فعلاً فقط سمت کلاینت پاک می‌کنه)
+  async function handleLogout() {
+    try {
+      await logout();
+    } catch {
+      // توکن رفرش ممکنه از قبل نامعتبر باشه؛ لاگ‌اوت کلاینت در هر صورت انجام میشه
+    }
     clearTokens();
     setIsLoggedIn(false);
     setUserMenuOpen(false);
@@ -97,13 +95,10 @@ export function Header() {
   return (
     <header className="sticky top-0 z-40 border-b border-divider bg-surface">
       <div className="mx-auto flex h-16 max-w-[1400px] items-center justify-between gap-4 px-4 lg:px-8">
-        {/* لوگو + اسم سایت */}
         <Link href="/" className="flex shrink-0 items-center gap-2 ">
-          {/* TODO: جای لوگو - وقتی لوگو نهایی شد، آیکون/تصویر اینجا اضافه میشه */}
           <span className="text-2xl font-bold text-accent">نارنج‌تون</span>
         </Link>
 
-        {/* منوی دسکتاپ */}
         <nav className="hidden items-center gap-6 lg:flex">
           {NAV_LINKS.map((link) => {
             const active = isActiveLink(pathname, link.href);
@@ -122,23 +117,14 @@ export function Header() {
           })}
         </nav>
 
-        {/* سرچ - دسکتاپ */}
         <div className="hidden max-w-xs flex-1 lg:block">
           <SearchDropdown variant="desktop" enableSlashShortcut />
         </div>
 
-        {/* آیکون‌ها و کاربر - دسکتاپ */}
         <div className="hidden items-center gap-3 lg:flex">
-          <Link
-            href="/notifications"
-            aria-label="اعلان‌ها"
-            className="relative rounded-full p-2 text-text-secondary transition-colors hover:bg-accent-light hover:text-accent"
-          >
-            <BellIcon />
-            {unreadCount > 0 && (
-              <span className="absolute left-1.5 top-1.5 h-2 w-2 rounded-full bg-error" />
-            )}
-          </Link>
+          {isLoggedIn && (
+            <NotificationDropdown unreadCount={unreadCount} onUnreadCountChange={setUnreadCount} />
+          )}
 
           {isLoggedIn ? (
             <div ref={userMenuRef} className="relative">
@@ -199,7 +185,6 @@ export function Header() {
           )}
         </div>
 
-        {/* دکمه همبرگری - موبایل */}
         <button
           type="button"
           onClick={() => setMobileMenuOpen((v) => !v)}
@@ -210,7 +195,6 @@ export function Header() {
         </button>
       </div>
 
-      {/* منوی موبایل */}
       {mobileMenuOpen && (
         <div className="border-t border-divider bg-surface px-4 py-4 lg:hidden">
           <div className="mb-4">
@@ -235,14 +219,11 @@ export function Header() {
 
           <div className="my-3 border-t border-divider" />
 
-          <Link
-            href="/notifications"
-            className="flex items-center gap-2 rounded-card px-3 py-2.5 text-sm text-text-secondary hover:bg-bg hover:text-text-primary"
-          >
-            <BellIcon />
-            اعلان‌ها
-            {unreadCount > 0 && <span className="h-2 w-2 rounded-full bg-error" />}
-          </Link>
+          {isLoggedIn && (
+            <div className="px-3 py-1">
+              <NotificationDropdown unreadCount={unreadCount} onUnreadCountChange={setUnreadCount} />
+            </div>
+          )}
 
           {isLoggedIn ? (
             <>

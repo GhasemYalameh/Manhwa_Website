@@ -4,6 +4,8 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { getAccessToken } from "@/lib/api/client";
 import { getEpisodes, type EpisodeApiItem } from "@/lib/api/episode";
+import { getCoverUrl } from "@/lib/api/manhwa";
+import { LockIcon } from "@/components/icons";
 
 interface EpisodeListProps {
   manhwaSlug: string;
@@ -44,7 +46,8 @@ export function EpisodeList({ manhwaSlug }: EpisodeListProps) {
     };
   }, [manhwaSlug]);
 
-  const sorted = useMemo(() => [...episodes].sort((a, b) => b.number - a.number), [episodes]);
+  // const sorted = useMemo(() => [...episodes].sort((a, b) => b.number - a.number), [episodes]);
+  const sorted = useMemo(() => [...episodes].sort((a, b) => a.number - b.number), [episodes]);
 
   const filtered = useMemo(() => {
     const from = fromNumber ? Number(fromNumber) : null;
@@ -140,18 +143,46 @@ export function EpisodeList({ manhwaSlug }: EpisodeListProps) {
         <p className="text-sm text-text-secondary">قسمتی با این بازه پیدا نشد.</p>
       ) : (
         <>
-          <div className="grid grid-cols-[repeat(auto-fill,minmax(120px,1fr))] gap-3">
+          <div className="grid grid-cols-[repeat(auto-fill,minmax(120px,1fr))] content-end gap-3">
             {pageItems.map((episode) => (
               <Link
                 key={episode.id}
                 href={`/manhwa/${manhwaSlug}/chapter/${episode.id}`}
-                className="group flex flex-col overflow-hidden rounded-card bg-surface transition-colors hover:bg-accent-light"
+                className={`group flex flex-col overflow-hidden rounded-card bg-surface transition-colors ${episode.is_accessible ? "hover:bg-accent-light" : ""
+                  }`}
               >
-                <div className="flex aspect-[3/4] items-center justify-center bg-accent-light text-2xl font-bold text-accent transition-colors group-hover:bg-accent group-hover:text-white">
-                  {episode.number.toLocaleString("fa-IR")}
+                <div
+                  className={`relative flex aspect-[3/4] items-center justify-center overflow-hidden text-2xl font-bold transition-colors ${episode.cover
+                    ? "bg-bg"
+                    : episode.is_accessible
+                      ? "bg-accent-light text-accent group-hover:bg-accent group-hover:text-white"
+                      : "bg-accent-light/40 text-text-secondary/50"
+                    }`}
+                >
+                  {episode.cover ? (
+                    <>
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={getCoverUrl(episode.cover)}
+                        alt={`قسمت ${episode.number}`}
+                        className={`h-full w-full object-cover transition-transform duration-300 ${episode.is_accessible ? "group-hover:scale-105" : "brightness-50"
+                          }`}
+                      />
+                      <span className="absolute inset-x-0 bottom-0 bg-black/60 py-1 text-center text-sm text-white">
+                        {new Date(episode.created_at).toLocaleDateString("fa-IR")}
+                      </span>
+                    </>
+                  ) : (
+                    new Date(episode.created_at).toLocaleDateString("fa-IR")
+                  )}
+                  {!episode.is_accessible && (
+                    <span className="absolute inset-0 flex items-center justify-center bg-black/45">
+                      <LockIcon className="h-6 w-6 text-white" />
+                    </span>
+                  )}
                 </div>
-                <div className="px-2 py-2 text-center text-xs text-text-secondary">
-                  {new Date(episode.datetime_created).toLocaleDateString("fa-IR")}
+                <div className="px-2 py-2 text-center text-s font-semibold text-text-secondary">
+                  {episode.number.toLocaleString("fa-IR")}
                 </div>
               </Link>
             ))}

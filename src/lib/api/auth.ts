@@ -1,4 +1,4 @@
-import { apiPost, apiGet } from "./client";
+import { apiPost, apiGet, getRefreshToken } from "./client";
 
 const AUTH_PREFIX = "/account";
 
@@ -78,4 +78,11 @@ export interface UserProfile {
 
 export function getMe(): Promise<UserProfile> {
   return apiGet<UserProfile>(`${AUTH_PREFIX}/me/`, { auth: true });
+}
+
+// خروج سمت سرور — رفرش توکن فعلی رو بلاک‌لیست می‌کنه (best-effort)
+export function logout(): Promise<void> {
+  const refresh = getRefreshToken();
+  if (!refresh) return Promise.resolve();
+  return apiPost<void>(`${AUTH_PREFIX}/jwt/blacklist/`, { refresh });
 }

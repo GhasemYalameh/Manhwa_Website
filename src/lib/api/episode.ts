@@ -5,7 +5,9 @@ export interface EpisodeApiItem {
   manhwa_slug: string;
   number: number;
   file: string;
-  datetime_created: string;
+  cover: string | null;
+  created_at: string;
+  is_accessible: boolean;
 }
 
 // نیاز به احراز هویت — سایت اشتراکیه، بدون لاگین لیست چپترها برنمیگرده
@@ -24,6 +26,7 @@ export interface ChapterDetailApiItem {
   number: number;
   images: ChapterImage[];
   created_at: string;
+  is_accessible: boolean;
 }
 
 // نیاز به احراز هویت

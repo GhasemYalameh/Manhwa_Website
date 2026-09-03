@@ -8,10 +8,10 @@ import { getGenres } from "@/lib/api/genre";
 
 export default async function HomePage() {
   const [latestUpdates, heroCandidates, topThisWeek, newlyAdded, todayReleases, genres] = await Promise.all([
-    getManhwas({ ordering: "-publication_datetime" }),
+    getManhwas({ ordering: "-last_upload_time" }),
     getManhwas({ ordering: "-avg_rating" }),
     getManhwas({ ordering: "-views_count" }),
-    getManhwas({ ordering: "-created_datetime" }),
+    getManhwas({ ordering: "-datetime_created" }),
     getTodayManhwas(),
     getGenres(),
   ]);

@@ -93,7 +93,8 @@ function refreshAccessToken(): Promise<string | null> {
       clearTokens();
       return null;
     })
-    .finally(() => {""
+    .finally(() => {
+      ""
       refreshPromise = null;
     });
 
@@ -218,13 +219,13 @@ async function rawDelete(path: string, accessToken?: string): Promise<void> {
     headers: {
       ...(accessToken ? { Authorization: `JWT ${accessToken}` } : {}),
     },
- });
+  });
 
   if (!res.ok) {
     const isJson = res.headers.get("content-type")?.includes("application/json");
     const data = isJson ? await res.json() : null;
     throw new ApiError(res.status, data);
- }
+  }
 }
 
 export async function apiDelete(path: string, options: ApiPostOptions = {}): Promise<void> {
@@ -241,5 +242,40 @@ export async function apiDelete(path: string, options: ApiPostOptions = {}): Pro
     if (!newAccessToken) throw err;
 
     return rawDelete(path, newAccessToken);
+  }
+}
+
+async function rawGetBlob(path: string, accessToken?: string): Promise<Blob> {
+  const res = await fetch(`${BASE_URL}${path}`, {
+    method: "GET",
+    headers: {
+      ...(accessToken ? { Authorization: `JWT ${accessToken}` } : {}),
+    },
+  });
+
+  if (!res.ok) {
+    const isJson = res.headers.get("content-type")?.includes("application/json");
+    const data = isJson ? await res.json() : null;
+    throw new ApiError(res.status, data);
+  }
+
+  return res.blob();
+}
+
+// برای اندپوینت‌هایی که خود تصویر (باینری) برمی‌گردونن، نه JSON — مثل تصاویر محافظت‌شده‌ی چپتر
+export async function apiGetBlob(path: string, options: ApiPostOptions = {}): Promise<Blob> {
+  const { auth = false } = options;
+  const token = auth ? getAccessToken() ?? undefined : undefined;
+
+  try {
+    return await rawGetBlob(path, token);
+  } catch (err) {
+    const shouldRetry = auth && err instanceof ApiError && err.status === 401;
+    if (!shouldRetry) throw err;
+
+    const newAccessToken = await refreshAccessToken();
+    if (!newAccessToken) throw err;
+
+    return rawGetBlob(path, newAccessToken);
   }
 }

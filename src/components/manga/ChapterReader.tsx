@@ -2,8 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { getAccessToken, ApiError } from "@/lib/api/client";
-import { getCoverUrl } from "@/lib/api/manhwa";
+import { getAccessToken, ApiError, apiGetBlob } from "@/lib/api/client";
 import { getChapterDetail, getEpisodes, type ChapterDetailApiItem } from "@/lib/api/episode";
 
 interface ChapterReaderProps {
@@ -15,6 +14,8 @@ const PRELOAD_MARGIN = "800px";
 
 function LazyPage({ url, index }: { url: string; index: number }) {
   const [isVisible, setIsVisible] = useState(false);
+  const [objectUrl, setObjectUrl] = useState<string | null>(null);
+  const [hasError, setHasError] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -32,18 +33,42 @@ function LazyPage({ url, index }: { url: string; index: number }) {
     return () => observer.disconnect();
   }, []);
 
+  useEffect(() => {
+    if (!isVisible) return;
+    let cancelled = false;
+    let createdUrl: string | null = null;
+
+    apiGetBlob(url, { auth: true })
+      .then((blob) => {
+        if (cancelled) return;
+        createdUrl = URL.createObjectURL(blob);
+        setObjectUrl(createdUrl);
+      })
+      .catch(() => {
+        if (!cancelled) setHasError(true);
+      });
+
+    return () => {
+      cancelled = true;
+      if (createdUrl) URL.revokeObjectURL(createdUrl);
+    };
+  }, [isVisible, url]);
+
   return (
     <div ref={ref} className="w-full">
-      {isVisible ? (
+      {objectUrl ? (
         // eslint-disable-next-line @next/next/no-img-element
         <img
-          src={getCoverUrl(url)}
+          src={objectUrl}
           alt={`صفحه ${index + 1}`}
           draggable={false}
           onContextMenu={(e) => e.preventDefault()}
           className="block w-full select-none"
-          loading="lazy"
         />
+      ) : hasError ? (
+        <div className="flex aspect-[2/3] w-full items-center justify-center bg-surface text-xs text-text-secondary">
+          خطا در بارگذاری تصویر
+        </div>
       ) : (
         <div className="aspect-[2/3] w-full animate-pulse bg-surface" />
       )}
@@ -55,7 +80,9 @@ export function ChapterReader({ slug, chapterId }: ChapterReaderProps) {
   const [chapter, setChapter] = useState<ChapterDetailApiItem | null>(null);
   const [prevEpisodeId, setPrevEpisodeId] = useState<number | null>(null);
   const [nextEpisodeId, setNextEpisodeId] = useState<number | null>(null);
-  const [status, setStatus] = useState<"loading" | "unauthorized" | "notfound" | "ready">("loading");
+  const [status, setStatus] = useState<"loading" | "unauthorized" | "forbidden" | "notfound" | "ready">(
+    "loading"
+  );
 
   useEffect(() => {
     if (!getAccessToken()) {
@@ -75,12 +102,16 @@ export function ChapterReader({ slug, chapterId }: ChapterReaderProps) {
         setNextEpisodeId(
           currentIndex >= 0 && currentIndex < sorted.length - 1 ? sorted[currentIndex + 1].id : null
         );
-        setStatus("ready");
+
+        // چک سطح چپتر — قبل از رندر هیچ تصویری، اگه اشتراک کافی نیست پیام یکبار نشون داده بشه
+        setStatus(chapterRes.is_accessible ? "ready" : "forbidden");
       })
       .catch((err) => {
         if (cancelled) return;
-        if (err instanceof ApiError && (err.status === 401 || err.status === 403)) {
+        if (err instanceof ApiError && err.status === 401) {
           setStatus("unauthorized");
+        } else if (err instanceof ApiError && err.status === 403) {
+          setStatus("forbidden");
         } else {
           setStatus("notfound");
         }
@@ -108,6 +139,26 @@ export function ChapterReader({ slug, chapterId }: ChapterReaderProps) {
           className="rounded-card bg-accent px-5 py-2.5 text-sm font-semibold text-white hover:bg-accent-dark"
         >
           ورود
+        </Link>
+      </div>
+    );
+  }
+
+  if (status === "forbidden") {
+    return (
+      <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-bg px-4 text-center">
+        <p className="text-text-primary">برای خواندن این قسمت نیاز به اشتراک فعال دارید.</p>
+        <Link
+          href="/profile"
+          className="rounded-card bg-accent px-5 py-2.5 text-sm font-semibold text-white hover:bg-accent-dark"
+        >
+          خرید اشتراک
+        </Link>
+        <Link
+          href={`/manhwa/${slug}`}
+          className="text-sm text-text-secondary hover:text-accent"
+        >
+          بازگشت به صفحه‌ی مانهوا
         </Link>
       </div>
     );

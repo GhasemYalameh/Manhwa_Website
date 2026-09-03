@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { getManhwas, getCoverUrl, type ManhwaApiItem } from "@/lib/api/manhwa";
 import { SearchIcon } from "@/components/icons";
@@ -15,6 +16,7 @@ const MAX_RESULTS = 5;
 const MIN_QUERY_LENGTH = 2;
 
 export function SearchDropdown({ variant = "desktop", enableSlashShortcut = false }: SearchDropdownProps) {
+  const router = useRouter();
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<ManhwaApiItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -84,6 +86,13 @@ export function SearchDropdown({ variant = "desktop", enableSlashShortcut = fals
     setQuery("");
   }
 
+  function handleSeeAll() {
+    const trimmed = query.trim();
+    if (trimmed.length < MIN_QUERY_LENGTH) return;
+    setIsOpen(false);
+    router.push(`/manhwa?search=${encodeURIComponent(trimmed)}`);
+  }
+
   const showDropdown = isOpen && query.trim().length >= MIN_QUERY_LENGTH;
 
   return (
@@ -98,6 +107,9 @@ export function SearchDropdown({ variant = "desktop", enableSlashShortcut = fals
         dir="auto"
         onChange={(e) => setQuery(e.target.value)}
         onFocus={() => setIsOpen(true)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") handleSeeAll();
+        }}
         placeholder="جستجو کنید"
         className={`w-full rounded-card border border-divider bg-bg text-right text-sm text-text-primary outline-none transition-colors placeholder:text-text-secondary/60 focus:border-accent ${variant === "desktop" ? "py-2 pr-10 pl-10" : "py-2.5 pr-10 pl-4"
           }`}
@@ -133,6 +145,16 @@ export function SearchDropdown({ variant = "desktop", enableSlashShortcut = fals
                 </span>
               </Link>
             ))
+          )}
+
+          {!isLoading && (
+            <button
+              type="button"
+              onClick={handleSeeAll}
+              className="mt-1 block w-full border-t border-divider px-4 py-2.5 text-center text-sm font-medium text-accent hover:bg-accent-light"
+            >
+              مشاهده همه‌ی نتایج
+            </button>
           )}
         </div>
       )}

@@ -8,10 +8,12 @@ import { ApiError } from "@/lib/api/client";
 
 interface ManhwaDetailPageProps {
   params: Promise<{ slug: string }>;
+  searchParams: Promise<{ highlightComment?: string }>;
 }
 
-export default async function ManhwaDetailPage({ params }: ManhwaDetailPageProps) {
+export default async function ManhwaDetailPage({ params, searchParams }: ManhwaDetailPageProps) {
   const { slug } = await params;
+  const { highlightComment } = await searchParams;
 
   let detailResult;
   try {
@@ -32,7 +34,12 @@ export default async function ManhwaDetailPage({ params }: ManhwaDetailPageProps
     <main className="min-h-screen bg-bg pb-12">
       <ManhwaHeader slug={slug} detail={detail} />
       <EpisodeList manhwaSlug={slug} />
-      <CommentList comments={commentsRes.results} totalCount={commentsRes.count} />
+      <CommentList
+        manhwaSlug={slug}
+        initialComments={commentsRes.results}
+        initialCount={commentsRes.count}
+        highlightCommentId={highlightComment ? Number(highlightComment) : undefined}
+      />
     </main>
   );
 }
