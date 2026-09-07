@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
 from .models import Notification
-from manhwas.serializers import ChapterSerializer, RetrieveCommentSerializer, CustomUserSerializer
+from manhwas.serializers import ChapterSerializer, CommentSerializer, CustomUserSerializer
 from manhwas.models import Chapter, Comment
 
 
@@ -26,9 +26,9 @@ class ListNotificationSerializer(serializers.ModelSerializer):
             return None
         obj = obj.target_object
         if isinstance(obj, Chapter):
-            return ChapterSerializer(obj).data
+            return ChapterSerializer(obj, context=self.context).data
         elif isinstance(obj, Comment):
-            return RetrieveCommentSerializer(obj).data
+            return CommentSerializer(obj, context=self.context).data
         return None
 
 
