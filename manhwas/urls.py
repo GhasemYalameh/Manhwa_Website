@@ -18,15 +18,16 @@ router3.register('watchlist', views.WatchListViewSet, basename='watchlist')
 
 urlpatterns = [
     path('healthy/', views.health_check, name='health-check'),
-    path('api/genre/', views.GenreListApiView.as_view(), name='genre-list'),
-    path('api/studio/', views.StudioListApiView.as_view(), name='studio-list'),
+    path('genre/', views.GenreListApiView.as_view(), name='genre-list'),
+    path('studio/', views.StudioListApiView.as_view(), name='studio-list'),
+    path('comments/mine/', views.MyComment.as_view(), name='my-comment-list'),
     # path('api/tickets/', views.TicketApiView.as_view(), name='tickets'),
     # path('api/tickets/<int:pk>/', views.TicketMessagesApiView.as_view(), name='ticket-messages'),
 
-    path('api/manhwas/<slug:title_slug>/chapters/<int:chapter_id>/images/<int:image_id>', views.ProtectedChapterImageView.as_view(), name='manhwa-chapter-image-list'),
-    path('api/', include(router.urls)),
-    path('api/', include(manhwa_router.urls)),
-    path('api/', include(router2.urls)),
-    path('api/', include(ticket_router.urls)),
-    path('api/', include(router3.urls)),
+    path('manhwas/<slug:title_slug>/chapters/<int:chapter_id>/images/<int:image_id>', views.ProtectedChapterImageView.as_view(), name='manhwa-chapter-image-list'),
+    path('', include(router.urls)),
+    path('', include(manhwa_router.urls)),
+    path('', include(router2.urls)),
+    path('', include(ticket_router.urls)),
+    path('', include(router3.urls)),
 ]

@@ -27,9 +27,10 @@ class SubscriptionApi(APIView):
         sub_service = SubscriptionService(request)
         payment_url, error = sub_service.create_payment_url(plan_obj)
         if payment_url:
-            return Response(payment_url) # an url with payment authority
+            return Response({'payment_url': payment_url}) # an url with payment authority
 
         return Response(error, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 
 class SubscriptionVerify(APIView):
     permission_classes = [IsAuthenticated, ]
@@ -57,3 +58,11 @@ class SubscriptionVerify(APIView):
 class SubscriptionPlanList(ListAPIView):
     serializer_class = srlzr.SubscriptionPlanListSerializer
     queryset = SubscriptionPlan.objects.filter(is_purchasable=True)
+
+
+class SubscriptionOrderList(ListAPIView):
+    permission_classes = (IsAuthenticated,)
+    serializer_class = srlzr.SubscriptionOrderSerializer
+
+    def get_queryset(self):
+        return SubscriptionOrder.objects.filter(user=self.request.user)

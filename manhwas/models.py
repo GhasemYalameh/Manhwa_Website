@@ -85,9 +85,10 @@ class Manhwa(models.Model):
         return self.en_title
 
     def save(self, *args, **kwargs):
-        if not self.en_title:
-            raise ValueError('en_title cant be empty')
-        self.title_slug = generate_manhwa_slug(self.en_title)
+        if not self.pk:
+            if not self.en_title:
+                raise ValueError('en_title cant be empty')
+            self.title_slug = generate_manhwa_slug(self.en_title)
         return super().save(*args, **kwargs)
 
 
@@ -137,7 +138,7 @@ class Rate(models.Model):
 class Chapter(models.Model):
     manhwa = models.ForeignKey(Manhwa, on_delete=models.PROTECT, related_name='chapters', verbose_name=_('manhwas'))
     title = models.CharField(max_length=255, blank=True)
-    cover = models.ImageField(upload_to=chapter_cover_upload_to, blank=True, null=True)
+    cover = models.ImageField(upload_to=chapter_cover_upload_to, blank=True)
     number = models.PositiveIntegerField(blank=True, editable=False, verbose_name=_('number of chapters'))
     is_free = models.BooleanField(default=False)
     zip_file = models.FileField(upload_to='temp_zips/', verbose_name=_('chapter zip file'))
@@ -155,14 +156,15 @@ class Chapter(models.Model):
         )
         
     def save(self, *args, **kwargs):
-        last_chapter = self.__class__.objects.filter(
-            manhwa_id=self.manhwa_id
-        ).order_by('-created_at').values('number').first()
-        self.number = 1 if last_chapter is None else last_chapter.get('number') + 1
+        if not self.pk :
+            last_chapter = self.__class__.objects.filter(manhwa_id=self.manhwa_id).order_by('-created_at').values('number').first()
+            self.number = 1 if last_chapter is None else last_chapter.get('number') + 1
+            if not self.cover:
+                self.cover = self.manhwa.cover
 
-        self.update_last_chapter_on_manhwa(self.number)
+            self.update_last_chapter_on_manhwa(self.number)
 
-        super().save(*args, **kwargs)
+        return super().save(*args, **kwargs)
 
     def update_last_chapter_on_manhwa(self, number):
         manhwa = Manhwa.objects.get(pk=self.manhwa_id)
@@ -207,6 +209,7 @@ class Comment(models.Model):
         )
     manhwa = models.ForeignKey(Manhwa, on_delete=models.CASCADE, related_name='comments')
     text = models.TextField()
+    is_spoiler = models.BooleanField(default=False)
 
     parent = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True, related_name='children')
     level = models.PositiveSmallIntegerField(default=0, editable=False)  # level of comment depth
@@ -228,7 +231,7 @@ class Comment(models.Model):
         )
 
     def save(self, *args, **kwargs):
-        if self.parent:
+        if self.parent and not self.pk:
 
             if self.parent.manhwa_id != self.manhwa_id:
                 raise ValidationError('parent & child must sign to same manhwa.')
@@ -361,6 +364,12 @@ class Ticket(models.Model):
         indexes = (
             models.Index(fields=('viewing_status',)),
         )
+
+    def is_accessible_by(self, user):
+        obj_owner = self.user.id
+        is_owner = obj_owner == user.id
+        is_admin = user.is_staff
+        return is_admin or is_owner
 
 
 class TicketMessage(models.Model):

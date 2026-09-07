@@ -45,44 +45,36 @@ def health_check(request):
 
 class TicketViewSet(ModelViewSet):
     http_method_names = ('get', 'post',)
-    permission_classes = (IsOwnerOrAdmin, IsAuthenticated)
+    permission_classes = (IsAuthenticated,)
+    pagination_class = CustomPagination
     filter_backends = (DjangoFilterBackend,)
     filterset_fields = ('viewing_status',)
 
     def get_queryset(self):
         query = Ticket.objects.select_related('user').prefetch_related('messages').all()
-        if self.action == 'list' and not self.request.user.is_staff:
+        if (self.action in ['list', 'retrieve']) and not self.request.user.is_staff:
             return query.filter(user=self.request.user)
         return query
 
     def get_serializer_class(self):
-        if self.request.method == 'POST':
+        if self.action == 'create':
             return srilzr.CreateTicketSerializer
-        elif self.request.method == 'GET':
-            return srilzr.ListTicketSerializer
         return srilzr.ListTicketSerializer
 
 
 class TicketMessageViewSet(ModelViewSet):
-    permission_classes = [IsOwnerOrAdmin]
+    permission_classes = (IsAuthenticated, IsOwnerOrAdmin)
+    pagination_class = CustomPagination
     http_method_names = ('get', 'post', 'patch', 'delete',)
-
-    def list(self, request, *args, **kwargs):
-        # check owner of ticket
-        ticket_obj = self.check_ticket_object_owner(request, pk=self.kwargs['ticket_pk'])
-        serializer = self.get_serializer(ticket_obj)
-        return Response(serializer.data)
-
-    def create(self, request, *args, **kwargs):
-        # check ticket owner
-        self.check_ticket_object_owner(request, pk=self.kwargs.get('pk'))
-        return super().create(request, *args, **kwargs)
 
     def get_queryset(self):
         ticket_id = int(self.kwargs['ticket_pk'])
-        if self.action in ('list', 'create'):
-            return Ticket.objects.select_related('user').filter(pk=ticket_id)
-        return TicketMessage.objects.select_related('user').filter(ticket_id=ticket_id)
+        # ticket_obj = get_object_or_404(Ticket, id=ticket_id)
+        # if ticket_obj.is_accessible_by(self.request.user):
+        #     return exceptions.PermissionDenied(detail='your not owner of this ticket.', code=status.HTTP_403_FORBIDDEN)
+
+        ticket_messages_qs = TicketMessage.objects.filter(ticket_id=ticket_id)
+        return ticket_messages_qs
 
     def get_serializer_context(self):
         context = {'ticket_id': self.kwargs['ticket_pk'],}
@@ -90,15 +82,13 @@ class TicketMessageViewSet(ModelViewSet):
 
     def get_serializer_class(self):
         match self.action:
-            case 'list':
-                return srilzr.ListTicketMessagesSerializer
             case 'partial_update':
                 return srilzr.UpdateTicketMessageSerializer
-            case 'retrieve':
-                return srilzr.GetTicketMessageSerializer
-            case _:
+            case 'create':
                 return srilzr.CreateTicketMessageSerializer
-
+            case _:
+                return srilzr.GetTicketMessageSerializer
+            
     def check_ticket_object_owner(self, request, pk):
         """
         check Ticket owner permission before create or list TicketMessages.
@@ -171,16 +161,14 @@ class CommentViewSet(ModelViewSet):
 
     def get_serializer_class(self):
         match self.action:
-            # case 'replies':
-            #     return srilzr.CommentDetailSerializer
             case 'create':
                 return srilzr.CreateCommentSerializer
             case 'reaction':
                 return srilzr.CommentReActionSerializer
             case 'partial_update':
-                return srilzr.UpdateCommentSerializer
+                return srilzr.PatchCommentSerializer
             case _:
-                return srilzr.RetrieveCommentSerializer
+                return srilzr.CommentSerializer
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user, manhwa=self.manhwa)
@@ -205,14 +193,23 @@ class CommentViewSet(ModelViewSet):
         return Response({'action': serializer.action, 'comment': comment_data, 'reaction': serializer.data}, status=status.HTTP_200_OK)
 
 
-class ManhwaViewSet(ModelViewSet):
+class MyComment(APIView):
+    permission_classes = (IsAuthenticated,)
+    pagination_class = CustomPagination
+
+    def get(self, request):
+        my_comments_qs =  Comment.objects.filter(author_id=request.user.id).order_by('-created_at')
+        serializer = srilzr.CommentDetailSerializer(my_comments_qs, many=True)
+        return Response(serializer.data)
+
+
+class ManhwaViewSet(ReadOnlyModelViewSet):
     lookup_field = 'title_slug'
     pagination_class = CustomPagination
     filter_backends = [SearchFilter, DjangoFilterBackend, OrderingFilter]
     search_fields = ('en_title', 'fa_title')
     ordering_fields = ('publication_datetime', 'avg_rating', 'views_count', 'last_upload_time', 'datetime_created',)
     filterset_fields = ('day_of_week', 'genres', 'studio')
-    # filterset_class = ManhwaFilter
     queryset = Manhwa.objects.prefetch_related( 'comments' ,'rates')
 
 # ---- many query in filter --------
@@ -228,21 +225,12 @@ class ManhwaViewSet(ModelViewSet):
         match self.action:
             case 'rate':
                 return srilzr.ManhwaRatingSerializer
-            case 'set_view':
-                return srilzr.SetViewManhwaSerializer
+            case 'cache_view':
+                return srilzr.ManhwaTrackViewSerializer
             case 'retrieve':
-                return srilzr.DetailManhwaSerializer
-            case 'create':
-                return srilzr.CreateManhwaSerializer
+                return srilzr.ManhwaDetailSerializer
             case _:
                 return srilzr.ManhwaSerializer
-
-    def get_permissions(self):
-        if self.action in ('create', 'update', 'partial_update', 'destroy'):
-            return [IsAdminUser()]
-        elif self.action in ('set_view', 'rate', 'cache_view'):
-            return [IsAuthenticated()]
-        return [AllowAny()]
 
     @action(detail=False, methods=('get',))
     def today(self, request):
@@ -254,40 +242,28 @@ class ManhwaViewSet(ModelViewSet):
         serializer = self.get_serializer(manhwas, many=True)
         return Response(serializer.data)
 
-
-    @action(detail=True, methods=['post'])
-    def set_view(self, request, pk=None):
-        view_obj, created = View.objects.get_or_create(
-            user=request.user,
-            manhwa_id=pk
-        )
-        if created:
-            Manhwa.objects.filter(pk=pk).update(views_count=F('views_count') + 1)
-            return Response(status=status.HTTP_201_CREATED)
-        return Response(status=status.HTTP_200_OK)
-
-    @action(detail=True, methods=['post', 'get'])
-    def rate(self, request, pk=None):
-        self.get_object()
+    @action(detail=True, methods=['post', 'get'], permission_classes=(IsAuthenticated,))
+    def rate(self, request, title_slug=None):
+        manhwa_obj = self.get_object()
         if request.method == 'GET':
-            serializer = self.get_serializer(get_object_or_404(Rate, user=request.user, manhwa_id=pk))
+            serializer = self.get_serializer(get_object_or_404(Rate, user=request.user, manhwa_id=manhwa_obj.id))
             return Response(serializer.data, status=status.HTTP_200_OK)
 
-        serializer = self.get_serializer(data=request.data, context={'request': request, 'manhwa_id': pk})
+        serializer = self.get_serializer(data=request.data, context={'request': request, 'manhwa_id': manhwa_obj.id})
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data, status=status.HTTP_201_CREATED if serializer.was_created else status.HTTP_200_OK)
 
-    @action(detail=True, methods=['post'])
-    def cache_view(self, request, pk=None):
-        self.get_object()
-        if ManhwaService().is_exist_view(manhwa_id=pk, user_id=request.user.pk):
+    @action(detail=True, methods=['post'], permission_classes=(IsAuthenticated,))
+    def cache_view(self, request, title_slug=None):
+        manhwa_obj = self.get_object()
+        if ManhwaService().is_exist_view(manhwa_id=manhwa_obj.id, user_id=request.user.id):
             return Response({'tracked': False, 'message': 'view exists in cache.'}, status=status.HTTP_200_OK)
 
-        if View.objects.filter(user=request.user, manhwa_id=pk).exists():
+        if View.objects.filter(user=request.user, manhwa_id=manhwa_obj.id).exists():
             return Response({'tracked': False, 'message': 'view exists in db.'}, status=status.HTTP_200_OK)
 
-        ManhwaService().track_view(user_id=request.user.id, manhwa_id=pk)
+        ManhwaService().track_view(user_id=request.user.id, manhwa_id=manhwa_obj.id)
         return Response({'tracked': True, 'message': 'view added.'}, status=status.HTTP_200_OK)
 
 
@@ -312,7 +288,6 @@ class ProtectedChapterImageView(APIView):
         response = HttpResponse()
         response['X-Accel-Redirect'] = f'/internal/{chapter_image.image.name}'
         return response
-
 
 
 class GenreListApiView(ListAPIView):
