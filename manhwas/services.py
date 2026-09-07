@@ -49,19 +49,19 @@ class ManhwaService:
         return rating_data
 
 
-    def track_view(self, manhwa_id:int, user_id:int)-> bool:
+    def track_view(self, manhwa_id:int, user_id:str)-> bool:
         """
         adding user_id to cache. check user_id exists in cache.
         returns true if user exists in cache, false otherwise.
         """
         manhwa_viewers_key = self.manhwa_viewers_key.format(manhwa_id)
-        added = self.redis.sadd(manhwa_viewers_key, user_id) # returns true if user_id added to set.
+        added = self.redis.sadd(manhwa_viewers_key, str(user_id)) # returns true if user_id added to set.
         return added
 
 
     def is_exist_view(self, manhwa_id, user_id)-> bool:
         manhwa_viewers_key = self.manhwa_viewers_key.format(manhwa_id)
-        is_member = self.redis.sismember(manhwa_viewers_key, user_id)
+        is_member = self.redis.sismember(manhwa_viewers_key, str(user_id))
         return is_member
 
 
@@ -125,7 +125,7 @@ def chapter_cover_upload_to(instance, filename):
 
     return os.path.join(
         'manhwa', manhwa_slug, slugify('season ' + season),
-        'chapters', str(chapter_number,), filename
+        'chapters', str(chapter_number), filename
     )
 
 def manhwa_cover_upload_to(instance, filename):

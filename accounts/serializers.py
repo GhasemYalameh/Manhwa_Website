@@ -24,13 +24,21 @@ def pass_validation(value):
 
 class GetMeSerializer(serializers.ModelSerializer):
     is_subscriber = serializers.SerializerMethodField()
+    avatar = serializers.CharField(source='avatar.url')
     class Meta:
         model = CustomUser
-        fields = ("first_name", "avatar", "last_name", "phone_number", "is_subscriber")
+        fields = ("phone_number", "first_name", "last_name", "is_subscriber", "avatar",)
+
 
     def get_is_subscriber(self, obj):
         # return True
         return obj.subscription.is_subscriber()
+
+
+class PatchMeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CustomUser
+        fields = ("first_name", "last_name", "avatar",)
 
 
 class GetPhoneNumberSerializer(serializers.Serializer):

@@ -1,9 +1,8 @@
-from functools import partial
-
-from django.template import context
+from djoser import serializers
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework.generics import RetrieveUpdateAPIView
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.permissions import IsAuthenticated
 
@@ -11,18 +10,24 @@ from accounts.services.otp import BlackListManager
 from .models import CustomUser
 from .services import OTP
 from .serializers import (
-    CompleteSignUpWithOTPSerializer, GetMeSerializer, GetPhoneNumberSerializer, LoginWithPasswordSerializer, 
-    OTPCodeVerifySerializer,  SignUpWithPasswordSerializer,
+    CompleteSignUpWithOTPSerializer, GetPhoneNumberSerializer, LoginWithPasswordSerializer, GetMeSerializer, 
+    OTPCodeVerifySerializer, PatchMeSerializer,  SignUpWithPasswordSerializer,
 )
 
 
-class GetMeApiView(APIView):
+class MeApiView(APIView):
     permission_classes=[IsAuthenticated]
 
     def get(self, request):
         user = CustomUser.objects.prefetch_related('subscription').get(pk=request.user.id)
         serializer = GetMeSerializer(user)
         return Response(serializer.data)
+
+    def patch(self, request):
+        serializer = PatchMeSerializer(request.user, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class GenerateOTPApiView(APIView):

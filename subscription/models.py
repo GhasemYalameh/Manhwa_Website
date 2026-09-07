@@ -5,6 +5,7 @@ from django.utils import timezone
 
 from config.settings import AUTH_USER_MODEL
 
+
 class SubscriptionPlan(models.Model):
     name = models.CharField(max_length=100, unique=True)
     duration = models.PositiveIntegerField()
@@ -13,6 +14,7 @@ class SubscriptionPlan(models.Model):
 
     def __str__(self):
         return self.name
+
 
 class Subscription(models.Model):
     user = models.OneToOneField(AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='subscription')
@@ -42,7 +44,6 @@ class Subscription(models.Model):
         self.is_active = False
         self.save(update_fields=("last_validation", "is_active",))
         return False
-
 
 
 class SubscriptionOrder(models.Model):
