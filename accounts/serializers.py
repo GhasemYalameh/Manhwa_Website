@@ -25,14 +25,18 @@ def pass_validation(value):
 class GetMeSerializer(serializers.ModelSerializer):
     is_subscriber = serializers.SerializerMethodField()
     avatar = serializers.CharField(source='avatar.url')
+    is_admin = serializers.SerializerMethodField()
+
     class Meta:
         model = CustomUser
-        fields = ("phone_number", "first_name", "last_name", "is_subscriber", "avatar",)
-
+        fields = ("phone_number", "first_name", "last_name", "is_admin", "is_subscriber", "avatar",)
 
     def get_is_subscriber(self, obj):
         # return True
         return obj.subscription.is_subscriber()
+
+    def get_is_admin(self, obj):
+        return self.context['request'].user.is_staff
 
 
 class PatchMeSerializer(serializers.ModelSerializer):

@@ -20,7 +20,7 @@ class MeApiView(APIView):
 
     def get(self, request):
         user = CustomUser.objects.prefetch_related('subscription').get(pk=request.user.id)
-        serializer = GetMeSerializer(user)
+        serializer = GetMeSerializer(user, context={'request': request})
         return Response(serializer.data)
 
     def patch(self, request):
