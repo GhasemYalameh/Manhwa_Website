@@ -347,22 +347,23 @@ class CommentReAction(models.Model):
 
 
 class Ticket(models.Model):
-    READ = 'r'
-    UNREAD = 'unr'
-    VIEWING_STATUS = (
-    (READ, 'read ticket'),
-    (UNREAD, 'unread ticket'),
+    STATUS_CHOICES = (
+        (OPEN:='op', 'open ticket'),
+        (CLOSE:='cl', 'close ticket'),
     )
+
     title = models.CharField(max_length=150, default='title not set')
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='tickets')
-    viewing_status = models.CharField(max_length=20, choices=VIEWING_STATUS, default=UNREAD)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default=OPEN)
+    is_seen = models.BooleanField(default=False)
 
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         ordering = ['-created_at']
         indexes = (
-            models.Index(fields=('viewing_status',)),
+            models.Index(fields=('status',)),
+            models.Index(fields=('status', 'is_seen')),
         )
 
     def is_accessible_by(self, user):
@@ -373,12 +374,11 @@ class Ticket(models.Model):
 
 
 class TicketMessage(models.Model):
-    USER = 'user'
-    ADMIN = 'admin'
     MESSAGE_SENDER = (
-        (USER, 'From User'),
-        (ADMIN, 'From Admin'),
+        (USER:='user', 'From User'),
+        (ADMIN:='admin', 'From Admin'),
     )
+    
     ticket = models.ForeignKey(Ticket, on_delete=models.CASCADE, related_name='messages')
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='messages')
     message_sender = models.CharField(max_length=20, choices=MESSAGE_SENDER, default=USER)

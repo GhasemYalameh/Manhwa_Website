@@ -117,7 +117,7 @@ class TicketMessageInline(admin.TabularInline):
 
 @admin.register(Ticket)
 class TicketAdmin(admin.ModelAdmin):
-    list_display = ('id', 'title', 'user', 'viewing_status')
+    list_display = ('id', 'title', 'user', 'status', 'is_seen')
     inlines = [TicketMessageInline]
 
 

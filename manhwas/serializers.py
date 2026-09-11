@@ -280,7 +280,15 @@ class ListTicketSerializer(serializers.ModelSerializer):
     messages_count = serializers.IntegerField(source='messages.count')
     class Meta:
         model = Ticket
-        fields = ('id', 'title', 'user', 'viewing_status', 'messages_count', 'created_at',)
+        fields = ('id', 'title', 'user', 'status', 'is_seen', 'messages_count', 'created_at',)
+
+
+class ListTicketForAdminSerializer(serializers.ModelSerializer):
+    messages_count = serializers.IntegerField(source='messages.count')
+    user = CustomUserSerializer()
+    class Meta:
+        model = Ticket
+        fields = ('id', 'title', 'user', 'status', 'is_seen', 'messages_count', 'created_at',)
 
 
 class CreateTicketSerializer(serializers.Serializer):
@@ -305,6 +313,12 @@ class CreateTicketSerializer(serializers.Serializer):
         return ticket_obj
 
 
+class PatchTicketSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Ticket
+        fields = ('status', 'is_seen',)
+
+
 class GetTicketMessageSerializer(serializers.ModelSerializer):
     class Meta:
         model = TicketMessage
@@ -324,11 +338,20 @@ class CreateTicketMessageSerializer(serializers.ModelSerializer):
         fields = ('id', 'text', 'message_sender', 'created_at')
         read_only_fields = ('message_sender', 'created_at',)
 
+    def validate(self, attrs):
+        ticket_obj = self.context['ticket']
+        is_ticket_open = ticket_obj.status == Ticket.OPEN
+        if not is_ticket_open:
+            raise ValidationError('ticket is close.sending message for this ticket not allowed.')
+
+        return super().validate(attrs)
+
     def save(self, **kwargs):
         request = self.context['request']
+        ticket_obj = self.context['ticket']
         is_admin = request.user.is_staff
         return super().save(
-            ticket_id = self.context['ticket_id'],
+            ticket_id = ticket_obj.id,
             user=request.user,
             message_sender=TicketMessage.ADMIN if is_admin else TicketMessage.USER,
             **kwargs,

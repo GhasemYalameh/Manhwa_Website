@@ -24,31 +24,14 @@ from .services import ManhwaService, get_today_weekly_name
 def health_check(request):
     return JsonResponse({'status': 'ok'})
 
-# class TicketApiView(ListCreateAPIView):
-#     permission_classes = (IsAuthenticated,)
-#     filter_backends = (DjangoFilterBackend,)
-#     filterset_fields = ('viewing_status',)
-#
-#     def get_queryset(self):
-#         query = Ticket.objects.prefetch_related('messages').all()
-#         if self.request.method == 'GET' and not self.request.user.is_staff:
-#             return query.filter(user=self.request.user)
-#         return query
-#
-#     def get_serializer_class(self):
-#         if self.request.method == 'POST':
-#             return srilzr.CreateTicketSerializer
-#         elif self.request.method == 'GET':
-#             return srilzr.ListTicketSerializer
-#         return srilzr.ListTicketSerializer
-#
 
 class TicketViewSet(ModelViewSet):
-    http_method_names = ('get', 'post',)
+    http_method_names = ('get', 'post', 'patch',)
     permission_classes = (IsAuthenticated,)
     pagination_class = CustomPagination
-    filter_backends = (DjangoFilterBackend,)
-    filterset_fields = ('viewing_status',)
+    filter_backends = (DjangoFilterBackend, OrderingFilter)
+    ordering_fields = ('is_seen', 'status', 'created_at',)
+    filterset_fields = ('status','is_seen')
 
     def get_queryset(self):
         query = Ticket.objects.select_related('user').prefetch_related('messages').all()
@@ -59,7 +42,19 @@ class TicketViewSet(ModelViewSet):
     def get_serializer_class(self):
         if self.action == 'create':
             return srilzr.CreateTicketSerializer
+        if self.action == 'partial_update':
+            return srilzr.PatchTicketSerializer
+
+        is_admin_user = self.request.user.is_staff
+        if is_admin_user and self.action in ['list', 'retrieve'] :
+            return srilzr.ListTicketForAdminSerializer
+
         return srilzr.ListTicketSerializer
+
+    def get_permissions(self):
+        if self.action == 'partial_update':
+            return (IsAuthenticated(), IsAdminUser(),)
+        return super().get_permissions()
 
 
 class TicketMessageViewSet(ModelViewSet):
@@ -69,15 +64,11 @@ class TicketMessageViewSet(ModelViewSet):
 
     def get_queryset(self):
         ticket_id = int(self.kwargs['ticket_pk'])
-        # ticket_obj = get_object_or_404(Ticket, id=ticket_id)
-        # if ticket_obj.is_accessible_by(self.request.user):
-        #     return exceptions.PermissionDenied(detail='your not owner of this ticket.', code=status.HTTP_403_FORBIDDEN)
-
         ticket_messages_qs = TicketMessage.objects.filter(ticket_id=ticket_id)
         return ticket_messages_qs
 
     def get_serializer_context(self):
-        context = {'ticket_id': self.kwargs['ticket_pk'],}
+        context = {'ticket': self.get_ticket(),}
         return {**context, **super().get_serializer_context()}
 
     def get_serializer_class(self):
@@ -88,33 +79,11 @@ class TicketMessageViewSet(ModelViewSet):
                 return srilzr.CreateTicketMessageSerializer
             case _:
                 return srilzr.GetTicketMessageSerializer
-            
-    def check_ticket_object_owner(self, request, pk):
-        """
-        check Ticket owner permission before create or list TicketMessages.
-        returns Ticket object if permission trusted.
-        """
-        queryset = self.get_queryset()
-        ticket_obj = get_object_or_404(queryset, pk=pk)
-        self.check_object_permissions(request, ticket_obj)
-        return ticket_obj
 
-# class TicketMessagesApiView(RetrieveAPIView, CreateAPIView):
-#     queryset = Ticket.objects.prefetch_related('messages').all()
-#     permission_classes = [IsOwnerOrAdmin]
-#
-#     def post(self, request, *args, **kwargs):
-#         self.get_object()
-#         return super().post(request, *args, **kwargs)
-#
-#     def get_serializer_context(self):
-#         context = {'ticket': self.kwargs['pk'],}
-#         return {**context, **super().get_serializer_context()}
-#
-#     def get_serializer_class(self):
-#         if self.request.method == 'GET':
-#             return srilzr.ListTicketMessagesSerializer
-#         return srilzr.CreateTicketMessageSerializer
+    def get_ticket(self):
+        ticket_id = self.kwargs['ticket_pk']
+        ticket_obj = get_object_or_404(Ticket, id=ticket_id)
+        return ticket_obj
 
 
 class CommentViewSet(ModelViewSet):
@@ -128,12 +97,11 @@ class CommentViewSet(ModelViewSet):
 
     def get_permissions(self):
         match self.action:
-            case 'create':
+            case 'create' | 'partial_update' | 'destroy':
                 return [IsAuthenticated()]
-            case 'partial_update' | 'destroy':
-                return [IsOwnerOrAdmin()]
             case _:
                 return [AllowAny()]
+            
 # ------ use cache for updating reactions instead  of directly to db -------
     def get_queryset(self):
         pk = self.kwargs.get('pk')
@@ -145,7 +113,9 @@ class CommentViewSet(ModelViewSet):
         match self.action:
             case 'create':
                 return base_qs
-            case 'list':
+            case 'partial_update' | 'destroy':
+                return base_qs.filter(author_id=self.request.user.id)
+            case 'list' :
                 query = optimized_qs.filter(level=0)
                 return query if not self.request.user.is_authenticated else query.annotate(
                     user_reaction=Coalesce(
