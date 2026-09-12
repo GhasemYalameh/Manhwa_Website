@@ -17,6 +17,7 @@ import {
   UserCircleIcon,
   HeartIcon,
   LogOutIcon,
+  CommentIcon,
 } from "@/components/icons";
 
 
@@ -163,6 +164,14 @@ export function Header() {
                     <HeartIcon />
                     علاقه‌مندی‌ها
                   </Link>
+                  <Link
+                    href="/tickets"
+                    onClick={() => setUserMenuOpen(false)}
+                    className="flex items-center gap-2 px-4 py-2 text-sm text-text-primary  hover:text-accent"
+                  >
+                    <CommentIcon />
+                    تیکت‌های من
+                  </Link>
                   <div className="my-1 border-t border-divider" />
                   <button
                     type="button"
@@ -240,6 +249,13 @@ export function Header() {
               >
                 <HeartIcon />
                 علاقه‌مندی‌ها
+              </Link>
+              <Link
+                href="/tickets"
+                className="flex items-center gap-2 rounded-card px-3 py-2.5 text-sm text-text-secondary hover:bg-bg hover:text-text-primary"
+              >
+                <CommentIcon />
+                تیکت‌های من
               </Link>
               <button
                 type="button"

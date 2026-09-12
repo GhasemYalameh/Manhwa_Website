@@ -1,4 +1,4 @@
-import { apiPost, apiGet, getRefreshToken } from "./client";
+import { apiPost, apiGet, apiPatchForm, getRefreshToken } from "./client";
 
 const AUTH_PREFIX = "/account";
 
@@ -74,6 +74,7 @@ export interface UserProfile {
   avatar: string | null; // relative URL
   phone_number: string;
   is_subscriber: boolean;
+  is_admin: boolean;
 }
 
 export function getMe(): Promise<UserProfile> {
@@ -85,4 +86,24 @@ export function logout(): Promise<void> {
   const refresh = getRefreshToken();
   if (!refresh) return Promise.resolve();
   return apiPost<void>(`${AUTH_PREFIX}/jwt/blacklist/`, { refresh });
+}
+
+export interface UpdateProfilePayload {
+  first_name?: string;
+  last_name?: string;
+  avatar?: File;
+}
+
+export interface UpdateProfileResponse {
+  first_name: string;
+  last_name: string;
+  avatar: string | null;
+}
+
+export function updateProfile(payload: UpdateProfilePayload): Promise<UpdateProfileResponse> {
+  const formData = new FormData();
+  if (payload.first_name !== undefined) formData.append("first_name", payload.first_name);
+  if (payload.last_name !== undefined) formData.append("last_name", payload.last_name);
+  if (payload.avatar) formData.append("avatar", payload.avatar);
+  return apiPatchForm<UpdateProfileResponse>(`${AUTH_PREFIX}/me/`, formData, { auth: true });
 }

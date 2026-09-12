@@ -213,6 +213,51 @@ export async function apiPatch<TResponse>(
   }
 }
 
+async function rawPatchForm<TResponse>(
+  path: string,
+  formData: FormData,
+  accessToken?: string
+): Promise<TResponse> {
+  const res = await fetch(`${BASE_URL}${path}`, {
+    method: "PATCH",
+    headers: {
+      ...(accessToken ? { Authorization: `JWT ${accessToken}` } : {}),
+    },
+    body: formData,
+  });
+
+  const isJson = res.headers.get("content-type")?.includes("application/json");
+  const data = isJson ? await res.json() : null;
+
+  if (!res.ok) {
+    throw new ApiError(res.status, data);
+  }
+
+  return data as TResponse;
+}
+
+// برای PATCH هایی که شامل فایل هستن (مثل آپلود کاور پروفایل) — بدون Content-Type دستی
+export async function apiPatchForm<TResponse>(
+  path: string,
+  formData: FormData,
+  options: ApiPostOptions = {}
+): Promise<TResponse> {
+  const { auth = false } = options;
+  const token = auth ? getAccessToken() ?? undefined : undefined;
+
+  try {
+    return await rawPatchForm<TResponse>(path, formData, token);
+  } catch (err) {
+    const shouldRetry = auth && err instanceof ApiError && err.status === 401;
+    if (!shouldRetry) throw err;
+
+    const newAccessToken = await refreshAccessToken();
+    if (!newAccessToken) throw err;
+
+    return rawPatchForm<TResponse>(path, formData, newAccessToken);
+  }
+}
+
 async function rawDelete(path: string, accessToken?: string): Promise<void> {
   const res = await fetch(`${BASE_URL}${path}`, {
     method: "DELETE",

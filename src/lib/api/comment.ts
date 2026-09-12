@@ -84,3 +84,27 @@ export function toggleCommentReaction(
     { auth: true }
   );
 }
+
+export interface MyCommentManhwaRef {
+  en_title: string;
+  fa_title: string;
+  title_slug: string;
+}
+
+export interface MyCommentApiItem {
+  id: number;
+  manhwa: MyCommentManhwaRef;
+  text: string;
+  is_spoiler: boolean;
+  parent: number | null;
+  level: number;
+  likes_count: number;
+  dis_likes_count: number;
+  replies_count: number;
+  created_at: string;
+}
+
+// توجه: بک‌اند فعلاً آرایه‌ی flat برمی‌گردونه، نه پیجینیت‌شده — اگه بعداً پیجینیشن اضافه شد این تابع باید Promise<PaginatedResponse<MyCommentApiItem>> برگردونه
+export function getMyComments(): Promise<MyCommentApiItem[]> {
+  return apiGet<MyCommentApiItem[]>(`/api/comments/mine/`, { auth: true });
+}
