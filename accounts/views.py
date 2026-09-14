@@ -2,10 +2,12 @@ from django.db.models import Count, OuterRef, Subquery, IntegerField
 from django.db.models.functions import Coalesce
 from django.shortcuts import get_object_or_404
 
+from django.utils import timezone
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.token_blacklist.models import OutstandingToken, BlacklistedToken
 from rest_framework.permissions import IsAuthenticated
 
 from accounts.services.otp import BlackListManager
@@ -13,8 +15,8 @@ from manhwas.models import Rate, View, WatchList, Comment
 from .models import CustomUser
 from .services import OTP
 from .serializers import (
-    CompleteSignUpWithOTPSerializer, GetPhoneNumberSerializer, LoginWithPasswordSerializer, GetMeSerializer, 
-    OTPCodeVerifySerializer, PatchMeSerializer,  SignUpWithPasswordSerializer, UserProfileDetailSerializer,
+    CompleteSignUpWithOTPSerializer, GetPhoneNumberSerializer, LoginWithPasswordSerializer, GetMeSerializer, VerifyChangePassOTPCodeSerializer, 
+    VerifyRegistrationOTPCodeSerializer, PatchMeSerializer,  SignUpWithPasswordSerializer, UserProfileDetailSerializer,
 )
 
 
@@ -58,7 +60,7 @@ class UserProfileDetailView(APIView):
         return Response(serializer.data)
 
 
-class GenerateOTPApiView(APIView):
+class GenerateRegistrationOTPApiView(APIView):
     """
     generating OTP and send via sms.
     """
@@ -80,13 +82,13 @@ class GenerateOTPApiView(APIView):
         return Response('your otp code generated. please send it to us for verification', status=status.HTTP_201_CREATED)
 
 
-class VerifyOTPApiView(APIView):
+class VerifyRegistrationOTPApiView(APIView):
     """
     verify otp code and register user.
     returns access token and refresh token.
     """
     def post(self, request):
-        serializer = OTPCodeVerifySerializer(data=request.data)
+        serializer = VerifyRegistrationOTPCodeSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         phone_number = serializer.validated_data['phone_number']
         otp = serializer.validated_data['otp']
@@ -120,6 +122,15 @@ class VerifyOTPApiView(APIView):
         )
 
 
+class SignUpWithPasswordApiView(APIView):
+    def post(self, request):
+        serializer = SignUpWithPasswordSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.save()
+        refresh = RefreshToken.for_user(user)
+        return Response({"refresh_token": str(refresh), "access_token": str(refresh.access_token)}, status=status.HTTP_200_OK)
+
+
 class CompleteSignUpWithOTPApiView(APIView):
     """
     after creating new user, user must redirected to this view for completion of signin.
@@ -131,15 +142,6 @@ class CompleteSignUpWithOTPApiView(APIView):
         serializer.is_valid(raise_exception=True)
         serializer.save(is_new_user=False)
         return Response('sign up completed', status=status.HTTP_200_OK)
-
-
-class SignUpWithPasswordApiView(APIView):
-    def post(self, request):
-        serializer = SignUpWithPasswordSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        user = serializer.save()
-        refresh = RefreshToken.for_user(user)
-        return Response({"refresh_token": str(refresh), "access_token": str(refresh.access_token)}, status=status.HTTP_200_OK)
 
 
 class LoginWithPasswordApiView(APIView):
@@ -167,4 +169,81 @@ class LoginWithPasswordApiView(APIView):
         
         refresh = RefreshToken.for_user(user)
         return Response({"refresh_token": str(refresh), "access_token": str(refresh.access_token)}, status=status.HTTP_200_OK)
-        
+
+
+class GenerateChangePassOTPApiView(APIView):
+    """
+    when user wanna change herself password, he must generate an OTP
+    to confirm change password.
+    """
+    permission_classes = (IsAuthenticated,)
+    def post(self, request):
+        phone_number:str = request.user.phone_number
+        otp = OTP(phone_number)
+
+        if otp.is_blacklisted():  # check if user in blacklist
+            return Response('your now in blacklist. please try again later', status=status.HTTP_403_FORBIDDEN)
+
+        otp_code = otp.generate_otp_code()
+        if not otp_code:
+            return Response('the OTP code is already generated. please send it for verification.', status=status.HTTP_406_NOT_ACCEPTABLE)
+
+        otp.send_sms(otp_code)  # sms the otp here
+        return Response('your otp code generated. please send it to us for verification', status=status.HTTP_201_CREATED)
+
+
+class VerifyChangePassOTPApiView(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    def post(self, request):
+        serializer = VerifyChangePassOTPCodeSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        new_password = serializer.validated_data['new_password']
+        otp = serializer.validated_data['otp']
+        phone_number = request.user.phone_number
+
+        is_verified, code, error = self.verify_otp(phone_number, otp)
+        if not is_verified:
+            return Response(error, status=code)
+
+        tokens = self.change_password_for_user(request.user, new_password)
+        return Response(tokens)
+
+    def change_password_for_user(self, user, new_password):
+        user.set_password(new_password)
+        user.save(update_fields=('password',))
+
+        tokens = OutstandingToken.objects.filter(user=user, expires_at__gt=timezone.now())
+        BlacklistedToken.objects.bulk_create([BlacklistedToken(token=token) for token in tokens], ignore_conflicts=True)
+
+        refresh = RefreshToken.for_user(user)
+        return {'refresh_token': str(refresh), 'access_token': str(refresh.access_token)}
+
+    def verify_otp(self, phone_number, otp):
+        """
+        returns is_verified , status code, error dic
+        """
+        otp_service = OTP(phone_number)  
+
+        if otp_service.is_blacklisted():  # check if user in blacklist
+            error = {'message': 'your now in blacklist. please try again later', 'ttl': otp_service.get_blacklisted_ttl}
+            code = 403
+            return False, code, error
+
+
+        # Wrong OTP code condition
+        is_verified = otp_service.verify_otp_code(otp)
+        if not is_verified:
+            attempt_count = otp_service.check_attempts()
+            if attempt_count == -1:
+                error = {
+                    'message': 'you are added to blacklist because of most attempt.', 
+                    'ttl': otp_service.get_blacklisted_ttl
+                }
+                code = 403
+                return False, code, error
+            return False, 400, {'message': 'incorrect OTP code!', 'remaining': otp_service.max_attempts - attempt_count}
+
+        otp_service.delete_cached_keys()
+        return True, 200, None

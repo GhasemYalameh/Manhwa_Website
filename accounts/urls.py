@@ -11,10 +11,13 @@ urlpatterns = [
     path('me/', views.MeApiView.as_view(), name='me'),
     path('profile/<uuid:uid>/', views.UserProfileDetailView.as_view(), name='User-profile-detail'),
 
-    path('otp/', views.GenerateOTPApiView.as_view(), name='generate-otp'),
-    path('otp/verify/', views.VerifyOTPApiView.as_view(), name='verify-otp'),
+    path('otp/', views.GenerateRegistrationOTPApiView.as_view(), name='generate-otp'),
+    path('otp/verify/', views.VerifyRegistrationOTPApiView.as_view(), name='verify-otp'),
     path('otp/completion/', views.CompleteSignUpWithOTPApiView.as_view(), name='complete-signin-otp'),
 
     path('login/password/', views.LoginWithPasswordApiView.as_view(), name='login-pass'),
     path('signup/password/', views.SignUpWithPasswordApiView.as_view(), name='signin-pass'),
+
+    path('password/change/otp/', views.GenerateChangePassOTPApiView.as_view(), name='change-pass-otp'),
+    path('password/change/verify/', views.VerifyChangePassOTPApiView.as_view(), name='change-pass-verify'),
 ]

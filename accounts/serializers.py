@@ -1,6 +1,9 @@
+from xml.dom import ValidationErr
+
 from django.core.validators import RegexValidator
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError as DjangoValidationError
+from jsonschema import ValidationError
 from rest_framework import serializers
 
 from manhwas.models import Manhwa
@@ -87,9 +90,20 @@ class GetPhoneNumberSerializer(serializers.Serializer):
     phone_number = serializers.CharField(max_length=11, validators=[phone_regex,])
 
 
-class OTPCodeVerifySerializer(serializers.Serializer):
+class VerifyRegistrationOTPCodeSerializer(serializers.Serializer):
     phone_number = serializers.CharField(max_length=11, validators=[phone_regex])
     otp = serializers.CharField(max_length=8, validators=[otp_regex])
+
+
+class VerifyChangePassOTPCodeSerializer(serializers.Serializer):
+    otp = serializers.CharField(max_length=8, validators=[otp_regex])
+    new_password = serializers.CharField(max_length=128)
+    new_password2 = serializers.CharField(max_length=128)
+
+    def validate(self, fields):
+        if  fields.get('new_password') != fields.get('new_password2'):
+            raise ValidationError({'new_password2': 'new password and new password2 are not same.'})
+        return fields
 
 
 class CompleteSignUpWithOTPSerializer(serializers.ModelSerializer):
