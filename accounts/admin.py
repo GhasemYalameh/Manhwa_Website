@@ -5,7 +5,7 @@ from .models import CustomUser
 
 class CustomUserAdmin(UserAdmin):
     # فیلدهای نمایش در لیست
-    list_display = ['phone_number', 'first_name', 'is_staff', 'is_active', 'is_new_user',]
+    list_display = ['phone_number', 'id', 'first_name', 'is_staff', 'is_active', 'is_new_user',]
 
     # فیلدهای جستجو
     search_fields = ['phone_number', 'first_name', 'last_name']

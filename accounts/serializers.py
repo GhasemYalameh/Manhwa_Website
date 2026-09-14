@@ -3,7 +3,10 @@ from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError as DjangoValidationError
 from rest_framework import serializers
 
+from manhwas.models import Manhwa
+
 from .models import CustomUser
+from manhwas.serializers import CommentDetailSerializer, ManhwaSerializer
 
 phone_regex = RegexValidator(
     regex=r"^09\d{9}$",
@@ -43,6 +46,41 @@ class PatchMeSerializer(serializers.ModelSerializer):
     class Meta:
         model = CustomUser
         fields = ("first_name", "last_name", "avatar",)
+
+
+class UserProfileDetailSerializer(serializers.ModelSerializer):
+    avatar = serializers.CharField(source='avatar.url')
+    is_subscriber = serializers.SerializerMethodField()
+
+    finished_manhwa_count = serializers.IntegerField(read_only=True)
+    now_following_manhwa_count = serializers.IntegerField(read_only=True)
+    will_reading_manhwa_count = serializers.IntegerField(read_only=True)
+    total_comments = serializers.IntegerField(read_only=True)
+    total_manhwa_viewed = serializers.IntegerField(read_only=True)
+    total_manhwa_rated = serializers.IntegerField(read_only=True)
+
+    last_comments = serializers.SerializerMethodField()
+    interested_manhwas = serializers.SerializerMethodField()
+
+    class Meta:
+        model = CustomUser
+        fields = (
+            'first_name', 'avatar', 'bio', 'date_joined', 'is_subscriber',
+            'finished_manhwa_count', 'now_following_manhwa_count', 'will_reading_manhwa_count', 
+            'total_comments', 'total_manhwa_viewed', 'total_manhwa_rated',
+            'last_comments', 'interested_manhwas',
+        )
+
+    def get_is_subscriber(self, obj):
+        return obj.subscription.is_subscriber()
+
+    def get_last_comments(self, obj):
+        my_comments = obj.comments.select_related('manhwa').prefetch_related('children').filter(level=0).order_by('-likes_count', '-created_at')[:5]
+        return CommentDetailSerializer(my_comments, many=True).data
+
+    def get_interested_manhwas(self, obj):
+        manhwa_ids = obj.rates.select_related('manhwa').filter(rating__gte=4).order_by('-rating').values_list('manhwa_id', flat=True)[:10]
+        return ManhwaSerializer(Manhwa.objects.prefetch_related('comments', 'views').filter(id__in=manhwa_ids), many=True).data
 
 
 class GetPhoneNumberSerializer(serializers.Serializer):

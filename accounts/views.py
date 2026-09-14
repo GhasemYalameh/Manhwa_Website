@@ -1,17 +1,20 @@
-from djoser import serializers
+from django.db.models import Count, OuterRef, Subquery, IntegerField
+from django.db.models.functions import Coalesce
+from django.shortcuts import get_object_or_404
+
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework.generics import RetrieveUpdateAPIView
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.permissions import IsAuthenticated
 
 from accounts.services.otp import BlackListManager
+from manhwas.models import Rate, View, WatchList, Comment
 from .models import CustomUser
 from .services import OTP
 from .serializers import (
     CompleteSignUpWithOTPSerializer, GetPhoneNumberSerializer, LoginWithPasswordSerializer, GetMeSerializer, 
-    OTPCodeVerifySerializer, PatchMeSerializer,  SignUpWithPasswordSerializer,
+    OTPCodeVerifySerializer, PatchMeSerializer,  SignUpWithPasswordSerializer, UserProfileDetailSerializer,
 )
 
 
@@ -28,6 +31,31 @@ class MeApiView(APIView):
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class UserProfileDetailView(APIView):
+    def get(self, request, uid: str):
+        # subqueries
+        watch_list_qs = WatchList.objects.filter(user_id=OuterRef('pk'))
+        finished_sq = watch_list_qs.filter(watching_status=WatchList.FINISHED).values('user_id').annotate(c=Count('id')).values('c')
+        now_reading_sq = watch_list_qs.filter(watching_status=WatchList.NOW_READING).values('user_id').annotate(c=Count('id')).values('c')
+        will_reading_sq = watch_list_qs.filter(watching_status=WatchList.WILL_READING).values('user_id').annotate(c=Count('id')).values('c')
+        comments_sq = Comment.objects.filter(author_id=OuterRef('pk')).values('author_id').annotate(c=Count('id')).values('c')
+        views_sq = View.objects.filter(user_id=OuterRef('pk')).values('user_id').annotate(c=Count('id')).values('c')
+        rates_sq = Rate.objects.filter(user_id=OuterRef('pk')).values('user_id').annotate(c=Count('id')).values('c')
+
+        # main queryset
+        annotated_qs = CustomUser.objects.annotate(
+            finished_manhwa_count=Coalesce(Subquery(finished_sq, output_field=IntegerField()), 0),
+            now_following_manhwa_count=Coalesce(Subquery(now_reading_sq, output_field=IntegerField()), 0),
+            will_reading_manhwa_count=Coalesce(Subquery(will_reading_sq, output_field=IntegerField()), 0),
+            total_comments=Coalesce(Subquery(comments_sq, output_field=IntegerField()), 0),
+            total_manhwa_viewed=Coalesce(Subquery(views_sq, output_field=IntegerField()), 0),
+            total_manhwa_rated=Coalesce(Subquery(rates_sq, output_field=IntegerField()), 0),
+        )
+        user = get_object_or_404(annotated_qs, id=uid)
+        serializer = UserProfileDetailSerializer(user)
+        return Response(serializer.data)
 
 
 class GenerateOTPApiView(APIView):

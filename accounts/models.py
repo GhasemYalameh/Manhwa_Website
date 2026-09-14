@@ -58,6 +58,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     phone_number = models.CharField(max_length=11, unique=True, validators=[phone_regex],)
     first_name = models.CharField(max_length=150, blank=True)
     last_name = models.CharField(max_length=150, blank=True)
+    bio = models.CharField(max_length=150, blank=True)
     email = models.EmailField(blank=True, null=True)
     avatar = models.ImageField(upload_to=user_avatar_upload_to, default='User/default.jpg')
 
