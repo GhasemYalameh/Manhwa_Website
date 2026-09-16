@@ -6,32 +6,23 @@ import { useToast } from "@/components/ui/Toast";
 import { CommentForm } from "@/components/manga/CommentForm";
 import { CommentItem } from "@/components/manga/CommentItem";
 import { getComments, getComment, createComment, type CommentApiItem } from "@/lib/api/comment";
-import type { PaginatedResponse } from "@/lib/api/manhwa";
 
 interface CommentListProps {
   manhwaSlug: string;
-  initialComments: CommentApiItem[];
-  initialCount: number;
   highlightCommentId?: number;
 }
 
 const PAGE_SIZE = 10;
-const MAX_CHAIN_STEPS = 5; // سطح ۰ تا ۳ یعنی حداکثر ۴ گام تا ریشه، ۵ برای اطمینان
+const MAX_CHAIN_STEPS = 5;
 
-export function CommentList({
-  manhwaSlug,
-  initialComments,
-  initialCount,
-  highlightCommentId,
-}: CommentListProps) {
+export function CommentList({ manhwaSlug, highlightCommentId }: CommentListProps) {
   const { showToast } = useToast();
-  const [comments, setComments] = useState<CommentApiItem[]>(initialComments);
-  const [totalCount, setTotalCount] = useState(initialCount);
+  const [comments, setComments] = useState<CommentApiItem[]>([]);
+  const [totalCount, setTotalCount] = useState(0);
   const [page, setPage] = useState(1);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
-  // زنجیره‌ی کامل ریشه→هدف برای لینک عمیق از نوتیفیکیشن
   const [chainPath, setChainPath] = useState<CommentApiItem[]>([]);
   const [chainLoading, setChainLoading] = useState(false);
   const [chainError, setChainError] = useState(false);
@@ -39,6 +30,30 @@ export function CommentList({
   useEffect(() => {
     setIsLoggedIn(!!getAccessToken());
   }, []);
+
+  // بارگذاری اولیه‌ی صفحه‌ی ۱ — کاملاً سمت کلاینت (دیگه از سرور initialComments نمی‌گیریم)
+  // تا اگه کاربر لاگین بود، user_reaction از همون اول درست بیاد، نه فقط بعد از رفتن به صفحه‌ی بعد
+  useEffect(() => {
+    let cancelled = false;
+    setIsLoading(true);
+    getComments(manhwaSlug, 1)
+      .then((res) => {
+        if (cancelled) return;
+        setComments(res.results);
+        setTotalCount(res.count);
+        setPage(1);
+      })
+      .catch(() => {
+        if (!cancelled) showToast("خطا در دریافت نظرات.", "error");
+      })
+      .finally(() => {
+        if (!cancelled) setIsLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [manhwaSlug]);
 
   useEffect(() => {
     if (!highlightCommentId) return;
@@ -84,7 +99,7 @@ export function CommentList({
     if (newPage < 1 || newPage > totalPages || newPage === page || isLoading) return;
     setIsLoading(true);
     try {
-      const res: PaginatedResponse<CommentApiItem> = await getComments(manhwaSlug, newPage);
+      const res = await getComments(manhwaSlug, newPage);
       setComments(res.results);
       setTotalCount(res.count);
       setPage(newPage);
@@ -159,7 +174,9 @@ export function CommentList({
         </div>
       )}
 
-      {comments.length === 0 ? (
+      {isLoading && comments.length === 0 ? (
+        <p className="text-sm text-text-secondary">در حال بارگذاری نظرات...</p>
+      ) : comments.length === 0 ? (
         <p className="text-sm text-text-secondary">هنوز نظری ثبت نشده است.</p>
       ) : (
         <ul className={`flex flex-col gap-4 transition-opacity ${isLoading ? "opacity-50" : "opacity-100"}`}>

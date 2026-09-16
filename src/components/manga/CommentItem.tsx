@@ -1,10 +1,12 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { getCoverUrl } from "@/lib/api/manhwa";
 import { getAccessToken } from "@/lib/api/client";
 import { useToast } from "@/components/ui/Toast";
 import { CommentForm } from "@/components/manga/CommentForm";
+
 import {
   getCommentReplies,
   createComment,
@@ -123,21 +125,30 @@ export function CommentItem({ manhwaSlug, comment: initialComment, replyChain, h
       className={`rounded-card bg-surface p-4 transition-shadow ${isTarget ? "ring-2 ring-accent" : ""}`}
     >
       <div className="flex items-center gap-2">
-        {comment.author?.avatar ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={getCoverUrl(comment.author.avatar)}
-            alt=""
-            className="h-8 w-8 rounded-full object-cover"
-          />
+        {comment.author ? (
+          <Link href={`/users/${comment.author.id}`} className="flex items-center gap-2 hover:opacity-80">
+            {comment.author.avatar ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={getCoverUrl(comment.author.avatar)}
+                alt=""
+                className="h-8 w-8 rounded-full object-cover"
+              />
+            ) : (
+              <span className="flex h-8 w-8 items-center justify-center rounded-full bg-accent-light text-sm font-semibold text-accent">
+                {comment.author.first_name?.charAt(0) ?? "?"}
+              </span>
+            )}
+            <span className="text-sm font-medium text-text-primary">{comment.author.first_name}</span>
+          </Link>
         ) : (
-          <span className="flex h-8 w-8 items-center justify-center rounded-full bg-accent-light text-sm font-semibold text-accent">
-            {comment.author?.first_name?.charAt(0) ?? "?"}
-          </span>
+          <>
+            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-accent-light text-sm font-semibold text-accent">
+              ?
+            </span>
+            <span className="text-sm font-medium text-text-primary">کاربر حذف‌شده</span>
+          </>
         )}
-        <span className="text-sm font-medium text-text-primary">
-          {comment.author?.first_name ?? "کاربر حذف‌شده"}
-        </span>
         {comment.author?.is_subscriber && (
           <span className="rounded-full bg-accent-light px-2 py-0.5 text-[11px] font-semibold text-accent">
             مشترک

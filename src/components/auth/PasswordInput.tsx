@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { PasswordIcon } from "../icons";
+import { EyeIcon, EyeOffIcon } from "@/components/icons";
 
 interface PasswordInputProps {
   id: string;
@@ -52,9 +53,10 @@ export function PasswordInput({
           onClick={() => setVisible((v) => !v)}
           disabled={disabled}
           tabIndex={-1}
-          className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-text-secondary hover:text-accent disabled:opacity-50"
+          aria-label={visible ? "مخفی کردن رمز عبور" : "نمایش رمز عبور"}
+          className="absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary hover:text-accent disabled:opacity-50"
         >
-          {visible ? "مخفی" : "نمایش"}
+          {visible ? <EyeIcon className="h-[18px] w-[18px]" /> : <EyeOffIcon className="h-[18px] w-[18px]" />}
         </button>
       </div>
       {error && (

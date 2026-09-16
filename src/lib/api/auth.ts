@@ -107,3 +107,31 @@ export function updateProfile(payload: UpdateProfilePayload): Promise<UpdateProf
   if (payload.avatar) formData.append("avatar", payload.avatar);
   return apiPatchForm<UpdateProfileResponse>(`${AUTH_PREFIX}/me/`, formData, { auth: true });
 }
+
+// --- تغییر رمز عبور با تایید OTP (بدون نیاز به current_password) ---
+
+// درخواست ارسال OTP برای تغییر رمز — بدنه خالیه، شماره از خود کاربر لاگین‌شده گرفته میشه
+export function requestPasswordChangeOtp(): Promise<void> {
+  return apiPost<void>(`${AUTH_PREFIX}/password/change/otp/`, {}, { auth: true });
+}
+
+export interface ChangePasswordPayload {
+  otp: string;
+  new_password: string;
+  new_password2: string;
+}
+
+export interface ChangePasswordResponse {
+  refresh_token: string;
+  access_token: string;
+}
+
+// تایید OTP + ثبت رمز جدید — موفقیت یعنی توکن‌های همه‌ی سشن‌های دیگه باطل شدن،
+// و این توکن‌های جدید (که برگشته) باید فوراً جایگزین توکن‌های قبلی همین دستگاه بشن
+export function verifyPasswordChangeOtp(
+  payload: ChangePasswordPayload
+): Promise<ChangePasswordResponse> {
+  return apiPost<ChangePasswordResponse>(`${AUTH_PREFIX}/password/change/verify/`, payload, {
+    auth: true,
+  });
+}

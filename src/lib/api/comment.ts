@@ -28,8 +28,11 @@ export function getComments(
   manhwaSlug: string,
   page = 1
 ): Promise<PaginatedResponse<CommentApiItem>> {
+  // endpoint خودش AllowAny هست؛ auth: true فقط باعث میشه اگه کاربر لاگین بود توکن هم فرستاده بشه
+  // تا user_reaction (اکشن list) درست annotate بشه — اگه لاگین نبود، رفتار قبلی بدون تغییر می‌مونه
   return apiGet<PaginatedResponse<CommentApiItem>>(
-    `/api/manhwas/${manhwaSlug}/comments/?page=${page}`
+    `/api/manhwas/${manhwaSlug}/comments/?page=${page}`,
+    { auth: true }
   );
 }
 

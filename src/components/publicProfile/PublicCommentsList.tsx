@@ -1,31 +1,19 @@
-"use client";
-
-import { useEffect, useState } from "react";
-import { timeAgo } from "@/lib/utils/time";
 import Link from "next/link";
-import { getMyComments, type MyCommentApiItem } from "@/lib/api/comment";
 import { ThumbsUpIcon, ThumbsDownIcon, ReplyIcon } from "@/components/icons";
+import { timeAgo } from "@/lib/utils/time";
+import type { PublicProfileComment } from "@/lib/api/publicProfile";
 
+interface PublicCommentsListProps {
+  comments: PublicProfileComment[];
+}
 
-export function MyCommentsSection() {
-  const [comments, setComments] = useState<MyCommentApiItem[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    getMyComments()
-      .then(setComments)
-      .catch(() => setComments([]))
-      .finally(() => setIsLoading(false));
-  }, []);
-
+export function PublicCommentsList({ comments }: PublicCommentsListProps) {
   return (
     <section className="mx-auto max-w-[1400px] px-4 py-8 lg:px-8">
-      <h2 className="mb-4 text-lg font-bold text-text-primary">کامنت‌های من</h2>
+      <h2 className="mb-4 text-lg font-bold text-text-primary">آخرین کامنت‌ها</h2>
 
-      {isLoading ? (
-        <p className="text-sm text-text-secondary">در حال بارگذاری...</p>
-      ) : comments.length === 0 ? (
-        <p className="text-sm text-text-secondary">شما هنوز کامنتی ثبت نکرده‌اید.</p>
+      {comments.length === 0 ? (
+        <p className="text-sm text-text-secondary">این کاربر هنوز کامنتی ثبت نکرده است.</p>
       ) : (
         <ul className="flex flex-col gap-3">
           {comments.map((comment) => (

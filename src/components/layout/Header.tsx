@@ -31,6 +31,7 @@ export function Header() {
   const router = useRouter();
 
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [hasCheckedAuth, setHasCheckedAuth] = useState(false);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [unreadCount, setUnreadCount] = useState(0);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -40,6 +41,7 @@ export function Header() {
 
   useEffect(() => {
     setIsLoggedIn(!!getAccessToken());
+    setHasCheckedAuth(true);
     function handleStorage() {
       setIsLoggedIn(!!getAccessToken());
     }
@@ -123,11 +125,13 @@ export function Header() {
         </div>
 
         <div className="hidden items-center gap-3 lg:flex">
-          {isLoggedIn && (
+          {hasCheckedAuth && isLoggedIn && (
             <NotificationDropdown unreadCount={unreadCount} onUnreadCountChange={setUnreadCount} />
           )}
 
-          {isLoggedIn ? (
+          {!hasCheckedAuth ? (
+            <div className="h-9 w-24 animate-pulse rounded-card bg-divider/50" />
+          ) : isLoggedIn ? (
             <div ref={userMenuRef} className="relative">
               <button
                 type="button"

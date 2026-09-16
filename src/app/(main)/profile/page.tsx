@@ -9,6 +9,7 @@ import { ProfileTabs } from "@/components/profile/ProfileTabs";
 import { WatchlistSection } from "@/components/profile/WatchlistSection";
 import { SubscriptionSection } from "@/components/profile/SubscriptionSection";
 import { MyCommentsSection } from "@/components/profile/MyCommentsSection";
+import { AccountSecuritySection } from "@/components/profile/AccountSecuritySection";
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -52,6 +53,7 @@ export default function ProfilePage() {
           { id: "watchlist", label: "لیست مطالعه", content: <WatchlistSection /> },
           { id: "subscription", label: "اشتراک", content: <SubscriptionSection /> },
           { id: "comments", label: "کامنت‌های من", content: <MyCommentsSection /> },
+          { id: "security", label: "امنیت حساب", content: <AccountSecuritySection /> },
         ]}
       />
     </main>

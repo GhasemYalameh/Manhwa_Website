@@ -8,6 +8,7 @@ import {
   getTicketMessages,
   sendTicketMessage,
   updateTicket,
+  isTicketUserObject,
   type TicketApiItem,
   type TicketMessage,
 } from "@/lib/api/tickets";
@@ -186,17 +187,27 @@ export function TicketThread({ ticketId, isAdmin }: TicketThreadProps) {
             {ticket.title}
           </h1>
           {isAdmin ? (
-            <button
-              type="button"
-              onClick={handleToggleStatus}
-              disabled={isClosing}
-              className={`shrink-0 rounded-card border px-3 py-1.5 text-xs font-semibold transition-colors disabled:opacity-50 ${ticket.status === "cl"
-                ? "border-success text-success hover:bg-success/10"
-                : "border-error text-error hover:bg-error/10"
-                }`}
-            >
-              {ticket.status === "cl" ? "بازگشایی" : "بستن تیکت"}
-            </button>
+            <div className="flex shrink-0 items-center gap-2">
+              {isTicketUserObject(ticket.user) && (
+                <Link
+                  href={`/users/${ticket.user.id}`}
+                  className="rounded-card border border-divider px-3 py-1.5 text-xs font-semibold text-text-primary transition-colors hover:border-accent hover:text-accent"
+                >
+                  مشاهده پروفایل
+                </Link>
+              )}
+              <button
+                type="button"
+                onClick={handleToggleStatus}
+                disabled={isClosing}
+                className={`rounded-card border px-3 py-1.5 text-xs font-semibold transition-colors disabled:opacity-50 ${ticket.status === "cl"
+                  ? "border-success text-success hover:bg-success/10"
+                  : "border-error text-error hover:bg-error/10"
+                  }`}
+              >
+                {ticket.status === "cl" ? "بازگشایی" : "بستن تیکت"}
+              </button>
+            </div>
           ) : (
             ticket.status === "cl" && (
               <span className="shrink-0 rounded-full bg-success/15 px-2.5 py-1 text-[11px] font-semibold text-success">

@@ -17,6 +17,7 @@ export function EpisodeList({ manhwaSlug }: EpisodeListProps) {
   const [episodes, setEpisodes] = useState<EpisodeApiItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [hasCheckedAuth, setHasCheckedAuth] = useState(false);
 
   const [fromNumber, setFromNumber] = useState("");
   const [toNumber, setToNumber] = useState("");
@@ -26,6 +27,7 @@ export function EpisodeList({ manhwaSlug }: EpisodeListProps) {
   useEffect(() => {
     const loggedIn = !!getAccessToken();
     setIsLoggedIn(loggedIn);
+    setHasCheckedAuth(true);
     if (!loggedIn) {
       setIsLoading(false);
       return;
@@ -70,6 +72,14 @@ export function EpisodeList({ manhwaSlug }: EpisodeListProps) {
     };
   }
 
+  if (!hasCheckedAuth || isLoading) {
+    return (
+      <section id="episodes" className="mx-auto max-w-[1400px] px-4 py-8 lg:px-8">
+        <p className="text-sm text-text-secondary">در حال بارگذاری قسمت‌ها...</p>
+      </section>
+    );
+  }
+
   if (!isLoggedIn) {
     return (
       <section id="episodes" className="mx-auto max-w-[1400px] px-4 py-8 lg:px-8">
@@ -88,15 +98,7 @@ export function EpisodeList({ manhwaSlug }: EpisodeListProps) {
       </section>
     );
   }
-
-  if (isLoading) {
-    return (
-      <section id="episodes" className="mx-auto max-w-[1400px] px-4 py-8 lg:px-8">
-        <p className="text-sm text-text-secondary">در حال بارگذاری قسمت‌ها...</p>
-      </section>
-    );
-  }
-
+  
   return (
     <section id="episodes" className="mx-auto max-w-[1400px] px-4 py-8 lg:px-8">
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
