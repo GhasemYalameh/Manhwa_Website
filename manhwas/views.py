@@ -1,5 +1,5 @@
 from django.db import connection
-from django.db.models import Avg, F, Value, Subquery, OuterRef, Prefetch
+from django.db.models import Avg, F, Value, Subquery, OuterRef, Prefetch, Count
 from django.db.models.functions import Coalesce
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404
@@ -180,14 +180,15 @@ class ManhwaViewSet(ReadOnlyModelViewSet):
     search_fields = ('en_title', 'fa_title')
     ordering_fields = ('publication_datetime', 'avg_rating', 'views_count', 'last_upload_time', 'datetime_created',)
     filterset_fields = ('day_of_week', 'genres', 'studio')
-    queryset = Manhwa.objects.prefetch_related( 'comments' ,'rates')
 
 # ---- many query in filter --------
     def get_queryset(self):
-        base_query = Manhwa.objects.prefetch_related('rates', 'comments').all()
+        base_query = Manhwa.objects.all()
         if self.action == 'list':
             return base_query.annotate(
+                count=Coalesce(Count('comments'), Value(0)),
                 avg_rating=Coalesce(Avg('rates__rating'), Value(0.0)),
+
             )
         return base_query
 
