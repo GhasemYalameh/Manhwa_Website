@@ -1,0 +1,265 @@
+*{
+    box-sizing: border-box;
+    margin: 0;
+}
+
+body{
+    font-family: "vasir", sans-serif;
+}
+
+.body{
+    padding-top: 30px;
+    width: 1090px;
+    height: 100vh;
+    margin: 80px auto;
+}
+.body p{
+    background-color: inherit;
+    color: white;
+}
+
+.manhwa-cover{
+    width: 200px;
+    height: 300px;
+    position: relative;
+    border-radius: 10px;
+}
+
+@property --angle{
+    syntax: "<angle>";
+    initial-value: 0 deg;
+    inherits: false;
+}
+
+
+.manhwa-cover::before,
+.manhwa-cover::after{
+    content: "";
+    position: absolute;
+    height: 100%;
+    width: 100%;
+    top: 50%;
+    left: 50%;
+    translate: -50% -50%;
+    background-image: conic-gradient(
+            from var(--angle),
+            #2AD70EFF, #0ED7C6FF, #1009EDFF,
+            #F605F2FF, #F6053DFF, #F6AA05FF,
+            #2AD70EFF
+    );
+    z-index: -1;
+    padding: 3px;
+    border-radius: 10px;
+
+    animation: 3s my-spin linear infinite;
+
+}
+.manhwa-cover::after{
+    filter: blur(1.5rem);
+    opacity: .5;
+}
+@keyframes my-spin {
+    from{
+        --angle: 0deg;
+    }
+    to{
+        --angle:360deg;
+    }
+}
+
+.tabs{
+    display: flex;
+    width: 300px;
+    margin: 30px auto;
+}
+.tab{
+    width: 100px;
+    background-color: #232323;
+    cursor: pointer;
+    color: white;
+    font-size: 17px;
+    border: 0;
+    height: 50px;
+    border-radius: 5px 5px 3px 3px;
+}
+.tab:hover{
+    background-color: rgba(90, 73, 114, 0.42);
+    transform: scale(1.01);
+}
+.tab-active{
+    background-color: #2f2f2f;
+    border-bottom: 2px solid #a052ff ;
+}
+
+.manhwa-cover img{
+    width: 100%;
+    height: 100%;
+    border-radius: 10px;
+    object-fit: cover;
+}
+
+.genre{
+    padding:3px 3px;
+    color: black;
+    font-weight: bold;
+    line-height: 16px;
+    border: 2px solid #a052ff ;
+    background-color: rgba(223, 194, 251, 0.8);
+    border-radius: 10px;
+}
+.episodes{
+    display: none;
+}
+.episode{
+    display: block;
+    font-size: 22px;
+    font-weight: bold;
+    padding: 10px 10px;
+    border: 2px solid aqua;
+    border-radius: 20px;
+    margin: 5px 0;
+}
+
+.comments{
+    display: none;
+}
+
+.reply-container{
+    width: 320px;
+    height: 40px;
+    margin: 0 5px;
+    border: 2px solid #684a8e;
+    border-bottom: none;
+    border-radius: 10px 10px 3px 3px;
+    padding: 2px 5px 5px 2px;
+    font-size: 13px;
+    overflow: hidden;
+
+    display: none;
+    gap: 4px;
+}
+.reply-cancel{
+    width: 20px;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    background-color: inherit;
+    border: none;
+}
+.reply-content{
+    color: #d7d9da;
+}
+.reply-content p{
+    color: #949292;
+    font-size: 12px;
+}
+
+.text-area{
+    background-color: #252525;
+    font-family: "vazir", sans-serif;
+    font-size: 15px;
+    border-radius: 5px;
+    padding: 2px 5px 2px 2px;
+    color: white;
+    margin: 3px 5px 5px 5px ;
+    width: 320px;
+    word-spacing: unset;
+}
+.text-area:focus{
+    outline: 1px solid #a052ff;
+}
+
+.topic{
+    margin: 20px 0;
+}
+
+.btn-block{
+    display: block;
+    font-family: "vazir", sans-serif;
+    font-size: 1rem;
+    padding: 5px 10px;
+    background-color: #a052ff;
+    color: white;
+    border-radius: 5px;
+
+}
+
+.comment-box{
+    display: flex;
+    gap: 10px;
+    margin: 20px 0;
+    font-family: "vazir", sans-serif;
+}
+
+.comment-img{
+    width: 60px;
+    height: 60px;
+    margin-top: 5px;
+    border-radius: 100%;
+    background-color: #4ac1f7;
+}
+.comment-content{
+    width: 90%;
+}
+
+.comment-content p{
+    font-size: 14px;
+    color: #b5b7b8;
+}
+.comment-content span{
+    color: #929292;
+    font-size: 13px;
+}
+
+.active{
+    fill: #efe40c;
+    color:#1f1f1f;
+}
+.reactions{
+    display: flex;
+    gap: 8px;
+}
+.reaction-btn{
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    background-color: inherit;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-weight: 500;
+    user-select: none;
+}
+.like-btn {
+    color: #4a5568;
+}
+.like-btn:hover {
+    color: #22c55e;
+}
+
+.dislike-btn {
+    color: #4a5568;
+}
+
+.dislike-btn:hover {
+    color: #ef4444;
+}
+
+.dislike-btn.active {
+    background: #ef4444;
+    border-color: #ef4444;
+    color: white;
+}
+
+.count {
+    font-size: 17px;
+    font-weight: bold;
+    min-width: 20px;
+}
+
+.icon-like, .icon-dislike {
+    width: 20px;
+    height: 20px;
+    transition: transform 0.2s ease;
+}

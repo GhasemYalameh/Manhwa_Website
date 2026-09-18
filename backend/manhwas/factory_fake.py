@@ -1,0 +1,128 @@
+import factory, random
+from faker import Faker
+from factory.django import DjangoModelFactory
+from datetime import timedelta
+
+from django.utils import timezone
+from django.contrib.auth import get_user_model
+from .models import *
+
+fake = Faker()
+
+MANHWA_GENRES = [
+    "اکشن", "کمدی", "درام", "ترسناک", "عاشقانه", "علمی تخیلی", "خیانت", "مثبت ۱۴ سال",
+    "مستند", "انیمیشن", "هیجانی", "جنایی", "فانتزی", "پلیسی",
+]
+PREFIX_NUMBERS = (
+    '0910', '0912', '0913', '0914', '0915',
+    '0917', '0918', '0994', '0992', '0991',
+)
+DAY_OF_WEEK = (
+    'sat', 'sun', 'mon', 'tue', 
+    'thu', 'wed', 'fri', 
+)
+PUBLICATION_STATUS = (
+    'cp', 'c', 'up'
+)
+
+class StudioFactory(DjangoModelFactory):
+    class Meta:
+        model = Studio
+        django_get_or_create = ('title',)
+    title = factory.Faker('name',)
+    description = factory.Faker('paragraph', nb_sentences=2, locale='fa_IR')
+
+
+# class TranslatorFactory(DjangoModelFactory):
+#     class Meta:
+#         model = Translator
+#         django_get_or_create = ('name',)
+#     name = factory.Faker('name')
+#     description = factory.Faker('paragraph', nb_sentences=2)
+
+
+class GenreFactory(DjangoModelFactory):
+    class Meta:
+        model = Genre
+        django_get_or_create = ('title',)
+    title = factory.LazyFunction(lambda : random.choice(MANHWA_GENRES))
+    description = factory.Faker('paragraph', nb_sentences=2, locale='fa_IR')
+
+
+class GenresList:
+    genres_list = []
+    @classmethod
+    def set(cls, genres_list):
+        cls.genres_list = genres_list
+
+
+class ManhwaFactory(DjangoModelFactory):
+    class Meta:
+        model = Manhwa
+        django_get_or_create = ('en_title',)
+
+    en_title = factory.Faker('sentence', nb_words=6)
+    fa_title = factory.Faker('sentence', nb_words=4, locale='fa_IR')
+    summary = factory.Faker('paragraph', nb_sentences=10, locale='fa_IR')
+    day_of_week = factory.LazyFunction(lambda : random.choice(DAY_OF_WEEK))
+    cover = factory.django.ImageField(size=(450, 350),format='JPEG')
+    hero_cover = factory.django.ImageField(size=(720, 1080),format='JPEG')
+    publication_status = factory.LazyFunction(lambda : random.choice(PUBLICATION_STATUS))
+    views_count = factory.LazyFunction(lambda : random.randint(200, 30000))
+    publication_datetime = factory.LazyFunction(
+        lambda : timezone.now() - timedelta(days=random.randint(1, 1000))
+    )
+    datetime_created =factory.LazyFunction(
+        lambda : timezone.now() - timedelta(days=random.randint(1, 100))
+    )
+    last_upload_time =factory.LazyFunction(
+        lambda : timezone.now() - timedelta(days=random.randint(1, 100))
+    )
+
+    @factory.post_generation
+    def genres(self, create, extracted, **kwargs):
+        """
+        choice 3-9 random genres
+        """
+        if create:
+            num_genres = random.randint(3, 9)
+            selected_genres = random.sample(GenresList.genres_list, num_genres)
+            self.genres.set(selected_genres)
+
+
+class UserFactory(DjangoModelFactory):
+    class Meta:
+        model = get_user_model()
+        django_get_or_create = ('phone_number',)
+
+    first_name = factory.Faker('first_name', locale='fa_IR')
+    last_name = factory.Faker('last_name', locale='fa_IR')
+    phone_number = factory.LazyFunction(lambda : random.choice(PREFIX_NUMBERS) + ''.join([str(random.randint(0, 9)) for _ in range(7)]))
+    email = factory.LazyAttribute(lambda obj: f'{obj.first_name}-{obj.last_name}@gmail.com')
+    avatar = factory.django.ImageField(size=[50, 50], format='JPEG')
+
+
+class CommentFactory(DjangoModelFactory):
+    class Meta:
+        model = Comment
+
+    text = factory.Faker('paragraph', nb_sentences=3, locale='fa_IR')
+    created_at = factory.LazyFunction(
+        lambda : fake.date_time_between(start_date='-3y', end_date='now')
+    )
+
+
+class RateFactory(DjangoModelFactory):
+    class Meta:
+        model = Rate
+
+    rating = factory.LazyFunction(lambda: random.randint(1, 5))
+
+
+
+class ViewFactory(DjangoModelFactory):
+    class Meta:
+        model = View
+
+
+

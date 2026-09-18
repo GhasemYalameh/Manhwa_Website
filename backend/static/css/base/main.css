@@ -1,0 +1,154 @@
+@font-face {
+    font-family: "vazir";
+    src: url("../../fonts/Vazir.ttf") format('truetype'),
+        url("../../fonts/Vazir.woff") format('woff');
+}
+
+*{
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body{
+    font-family: "vazir" ,sans-serif;
+    color: white;
+    background-color: #1f1f1f;
+}
+
+
+.container{
+    margin: 80px 0;
+    width: 100%;
+}
+
+.navbar{
+    position: fixed;
+    top: 0;
+    z-index: 2;
+
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    
+    width: 100vw;
+    height: 80px;
+    padding: 7px 100px 7px 60px;
+
+    background-color: #121212;
+    color: white;
+}
+.navbar-right{
+    display: flex;
+    gap: 30px;
+    height: 70%;
+
+}
+.navbar-sidebar{
+    display: flex;
+    flex-direction: column;
+    height: 90%; 
+    width: 60px;
+    padding: 2px 8px;
+    border: 1px solid white;
+    border-radius: 5px;
+   
+}
+.line{
+    height: 100%;
+    border-bottom: 2px solid white;
+
+}
+.line-end{
+    height: 100%;
+}
+.home-icon{
+    display: flex;
+    align-items: center;
+
+
+    height: 100%;
+
+}
+
+.home-icon a{
+    text-decoration: none;
+    color: white;
+    font-size: 20px;
+    font-weight: bold;
+}
+
+.search-box{
+    height: 100%;
+    display: flex;
+    align-items: center;
+
+}
+
+.search-box input{
+    height: 80%; 
+    width: 170px;
+    outline: 0;
+    padding-right: 15px;
+    border-radius: 15px;    
+    font-size: 16px;
+
+}
+.navbar-left{
+    display: flex;
+    align-items: center;
+    height: 100%;
+
+}
+.login-signup{
+    width: 130px;
+    height: 40px;
+    border-radius: 20px;
+    background-color: #bb86fc;
+    color: black;
+    text-align: center;
+    line-height: 40px;
+    font-weight: bold;
+    
+}
+.circle{
+    width: 40px;
+    height: 40px;
+    border-radius: 100%;
+    background-color: #fff;
+    color: black;
+    text-align: center;
+    line-height: 40px;
+}
+
+a{
+    text-decoration: none;
+    color: #fff;
+}
+
+.messages {
+    list-style: none;
+    position: fixed;
+    padding: 0;
+    display: block;
+    width: 100%;
+    z-index: 1;
+}
+
+.messages li {
+    padding: 10px;
+    margin: 5px 0;
+    border-radius: 4px;
+}
+
+.messages .error {
+    background-color: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+.messages .success {
+    background-color: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
