@@ -1,0 +1,50 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --color-bg: #fafaf8;
+  --color-surface: #ffffff;
+  --color-text-primary: #1a1a1a;
+  --color-text-secondary: #6b6b6b;
+  --color-divider: #e5e5e5;
+  --color-accent: #e85d3a;
+  --color-accent-light: #fff0eb;
+  --color-accent-dark: #c44a2e;
+  --color-error: #ff3b30;
+  --color-success: #34c759;
+  --color-warning: #ff9500;
+}
+
+[data-theme="dark"] {
+  --color-bg: #1c1c1e;
+  --color-surface: #2c2c2e;
+  --color-text-primary: #D4D4D4;
+  --color-text-secondary: #8e8e93;
+  --color-divider: #38383a;
+  --color-accent: #e85d3a;
+  --color-accent-light: #3a2620;
+  --color-accent-dark: #ff7a56;
+  --color-error: #ff453a;
+  --color-success: #30d158;
+  --color-warning: #ff9f0a;
+}
+
+html,
+body {
+  background: var(--color-bg);
+  color: var(--color-text-primary);
+}
+
+* {
+  border-color: var(--color-divider);
+}
+
+input[type="number"] {
+  -moz-appearance: textfield;
+}
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
