@@ -16,8 +16,7 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
-
-from debug_toolbar.toolbar import debug_toolbar_urls
+from config.settings import DEBUG
 
 
 urlpatterns = [
@@ -29,4 +28,8 @@ urlpatterns = [
 
     path("ckeditor5/", include('django_ckeditor_5.urls')),  # ckeditor url
 
-] + debug_toolbar_urls()
+] 
+# urls.py
+if DEBUG:
+    import debug_toolbar
+    urlpatterns += [path("__debug__/", include(debug_toolbar.urls))]

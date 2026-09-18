@@ -20,6 +20,14 @@ from .paginations import CustomPagination
 from .permissions import IsOwnerOrAdmin
 from .services import ManhwaService, get_today_weekly_name
 
+comment_count_sq = (
+    Comment.objects.filter(manhwa_id=OuterRef('pk'), level=0).order_by().values('manhwa')
+    .annotate(count=Count('id')).values('count')
+)
+avg_rating_sq = (
+    Rate.objects.filter(manhwa_id=OuterRef('pk')).order_by().values('manhwa')
+    .annotate(avg=Avg('rating')).values('avg')
+    )
 
 def health_check(request):
     return JsonResponse({'status': 'ok'})
@@ -186,9 +194,8 @@ class ManhwaViewSet(ReadOnlyModelViewSet):
         base_query = Manhwa.objects.all()
         if self.action == 'list':
             return base_query.annotate(
-                count=Coalesce(Count('comments'), Value(0)),
-                avg_rating=Coalesce(Avg('rates__rating'), Value(0.0)),
-
+                comments_count=Coalesce(Subquery(comment_count_sq), Value(0)),
+                avg_rating=Coalesce(Subquery(avg_rating_sq), Value(0.0)),
             )
         return base_query
 
@@ -206,10 +213,13 @@ class ManhwaViewSet(ReadOnlyModelViewSet):
     @action(detail=False, methods=('get',))
     def today(self, request):
         today_name = get_today_weekly_name()
-        manhwas = Manhwa.objects.prefetch_related('rates').filter(
+        manhwas = Manhwa.objects.filter(
             publication_status=Manhwa.CURRENTLY_PUBLISHING, 
             day_of_week=today_name,
-            ).annotate(avg_rating=Avg('rates__rating'))
+            ).annotate(
+                comments_count=Coalesce(Subquery(comment_count_sq), Value(0)),
+                avg_rating=Coalesce(Subquery(avg_rating_sq), Value(0.0)),
+            )
         serializer = self.get_serializer(manhwas, many=True)
         return Response(serializer.data)
 

@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 from pathlib import Path
+import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
@@ -30,7 +31,6 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
 
     # third party
-    'debug_toolbar',
     'rest_framework',
     'rest_framework_simplejwt',
     'rest_framework_simplejwt.token_blacklist',
@@ -58,24 +58,18 @@ MIDDLEWARE = [
 
     # middleware for automatically set sit language
     # 'django.middleware.locale.LocaleMiddleware',
-
-    "debug_toolbar.middleware.DebugToolbarMiddleware",
 ]
 
-# debug toolbar
-INTERNAL_IPS = [
-    "172.20.0.1",
-    "172.19.0.1",
-    "172.18.0.1",
-    "172.18.0.7",
-    "172.17.0.1",
-    "127.0.0.1",
-]
-def show_toolbar(request):
-    return True
+# DEBUG TOOLBAR
+if os.getenv('DEBUG').lower() == 'true':
+    INSTALLED_APPS += ["debug_toolbar"]
+    MIDDLEWARE.insert(0, "debug_toolbar.middleware.DebugToolbarMiddleware")
+    INTERNAL_IPS = ["127.0.0.1"]
+
+
 
 DEBUG_TOOLBAR_CONFIG = {
-    "SHOW_TOOLBAR_CALLBACK": show_toolbar,
+    "SHOW_TOOLBAR_CALLBACK": lambda x: True,
 }
 
 ROOT_URLCONF = 'config.urls'
